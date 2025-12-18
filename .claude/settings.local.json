@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command:*)",
+      "Bash(python:*)",
+      "Bash(dir:*)",
+      "Bash(wc:*)",
+      "Bash(findstr:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout /t 3)",
+      "Bash(taskkill:*)",
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(npm uninstall:*)",
+      "Bash(timeout /t 10)",
+      "WebSearch",
+      "Bash(move \"components\\resume\\studio\\ResumeCanvas.tsx\" \"components\\resume\\studio\\ResumeCanvas.old.tsx\")",
+      "Bash(move \"components\\resume\\studio\\ResumeCanvas.new.tsx\" \"components\\resume\\studio\\ResumeCanvas.tsx\")",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)"
+    ]
+  }
+}
