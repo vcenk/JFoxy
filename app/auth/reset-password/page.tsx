@@ -12,7 +12,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/clients/supabaseBrowserClient'  // lib/clients/supabaseBrowserClient.ts
 import { AlertCircle, Loader2, CheckCircle2, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
-import JobFoxyLogo from '@/components/assets/JobFoxy_Logo.png'
+import JobFoxyLogo from '@/components/assets/JobFoxy.svg'
 
 const resetPasswordSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters')
