@@ -8,7 +8,7 @@ import { getAuthUser } from '@/lib/utils/apiHelpers'
 // GET - Fetch single resume
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const user = await getAuthUser(req)
@@ -19,7 +19,7 @@ export async function GET(
       )
     }
 
-    const resolvedParams = await params
+    const resolvedParams = params instanceof Promise ? await params : params
     const { data: resume, error } = await supabaseAdmin
       .from('resumes')
       .select('*')
@@ -50,7 +50,7 @@ export async function GET(
 // PUT - Update resume
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const user = await getAuthUser(req)
@@ -61,7 +61,7 @@ export async function PUT(
       )
     }
 
-    const resolvedParams = await params
+    const resolvedParams = params instanceof Promise ? await params : params
     const body = await req.json()
     const { content, title, raw_text } = body
 
@@ -102,7 +102,7 @@ export async function PUT(
 // DELETE - Delete resume
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const user = await getAuthUser(req)
@@ -113,7 +113,7 @@ export async function DELETE(
       )
     }
 
-    const resolvedParams = await params
+    const resolvedParams = params instanceof Promise ? await params : params
     const { error } = await supabaseAdmin
       .from('resumes')
       .delete()
