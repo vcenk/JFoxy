@@ -6,9 +6,7 @@ import Stripe from 'stripe'  // stripe
 import { env } from '@/lib/config/env'  // lib/config/env.ts
 import { supabaseAdmin } from '@/lib/clients/supabaseClient'  // lib/clients/supabaseClient.ts
 
-const stripe = new Stripe(env.stripe.secretKey, {
-  apiVersion: '2024-11-20.acacia',
-})
+const stripe = new Stripe(env.stripe.secretKey)
 
 const webhookSecret = env.stripe.webhookSecret
 

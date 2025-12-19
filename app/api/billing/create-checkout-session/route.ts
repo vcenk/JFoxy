@@ -14,9 +14,7 @@ import {
   validateRequiredFields,
 } from '@/lib/utils/apiHelpers'  // lib/utils/apiHelpers.ts
 
-const stripe = new Stripe(env.stripe.secretKey, {
-  apiVersion: '2024-11-20.acacia',
-})
+const stripe = new Stripe(env.stripe.secretKey)
 
 export async function POST(req: NextRequest) {
   // Authenticate user
