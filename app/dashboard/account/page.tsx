@@ -23,9 +23,9 @@ interface UserPreferences {
     gender: string
     style: string
   }
-  elevenlabs: {
-    voice_id: string
-    voice_name: string
+  mockInterview: {
+    persona_id: string // voice_id from interviewerPersonas
+    persona_name: string
   }
   notifications: {
     email: boolean
@@ -40,7 +40,7 @@ interface UserPreferences {
 
 const DEFAULT_PREFS: UserPreferences = {
   deepgram: { language: 'en', gender: 'female', style: 'professional' },
-  elevenlabs: { voice_id: 'EXAVITQu4vr4xnSDxMaL', voice_name: 'Sarah Mitchell' }, // Default: Sarah Mitchell
+  mockInterview: { persona_id: 'EXAVITQu4vr4xnSDxMaL', persona_name: 'Sarah Mitchell' }, // Default: Sarah Mitchell
   notifications: { email: true, push: true, marketing: false },
   data_usage: { optimize_video: false, auto_play_audio: true },
 }

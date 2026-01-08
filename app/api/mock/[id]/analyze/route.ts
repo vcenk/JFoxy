@@ -47,9 +47,9 @@ export async function POST(
       return badRequestResponse('Missing required field: userAnswer')
     }
 
-    // 1. Fetch Session
+    // 1. Fetch Session (using mock_interviews table)
     const { data: session, error: sessionError } = await supabaseAdmin
-      .from('mock_interview_sessions')
+      .from('mock_interviews')
       .select('*')
       .eq('id', sessionId)
       .eq('user_id', user.id)
@@ -58,6 +58,8 @@ export async function POST(
     if (sessionError || !session) {
       return badRequestResponse('Interview session not found or access denied')
     }
+
+    const plannedQuestions = session.planned_questions || {}
 
     // 2. Get Question Details
     let question: any
@@ -70,7 +72,7 @@ export async function POST(
         .from('mock_interview_exchanges')
         .select('*')
         .eq('id', questionId)
-        .eq('session_id', sessionId)
+        .eq('mock_interview_id', sessionId)
         .single()
 
       if (exchangeError || !exchange) {
@@ -79,10 +81,10 @@ export async function POST(
 
       question = exchange
       questionText = exchange.question_text
-      questionType = exchange.exchange_type
+      questionType = exchange.question_type || 'behavioral'
     } else if (questionIndex !== undefined) {
-      // Get from session's interview plan
-      const questions = session.interview_plan?.questions || []
+      // Get from session's planned_questions
+      const questions = plannedQuestions.questions || []
       if (questionIndex >= questions.length) {
         return badRequestResponse('Invalid question index')
       }
@@ -98,16 +100,12 @@ export async function POST(
     if (session.resume_id) {
       const { data: resume } = await supabaseAdmin
         .from('resumes')
-        .select('summary, work_experience, skills')
+        .select('content')
         .eq('id', session.resume_id)
         .single()
 
-      if (resume) {
-        resumeContext = `
-Summary: ${resume.summary || 'N/A'}
-Work Experience: ${JSON.stringify(resume.work_experience || [])}
-Skills: ${JSON.stringify(resume.skills || [])}
-`.trim()
+      if (resume?.content) {
+        resumeContext = JSON.stringify(resume.content)
       }
     }
 
@@ -147,19 +145,14 @@ Description: ${jd.description}
       const { error: updateError } = await supabaseAdmin
         .from('mock_interview_exchanges')
         .update({
-          user_answer_text: userAnswer,
+          user_transcript: userAnswer,
           answer_score: analysis.score,
-          feedback: analysis.detailedFeedback,
-          strengths: analysis.strengths,
-          improvements: analysis.improvements,
-          answer_metrics: {
-            star_analysis: analysis.starAnalysis,
-            specificity: analysis.specificity,
-            relevance: analysis.relevance,
-            impact: analysis.impact,
-            suggestions: analysis.suggestions
-          },
-          answered_at: new Date().toISOString()
+          star_completeness: {
+            situation: analysis.starAnalysis?.hasSituation || false,
+            task: analysis.starAnalysis?.hasTask || false,
+            action: analysis.starAnalysis?.hasAction || false,
+            result: analysis.starAnalysis?.hasResult || false
+          }
         })
         .eq('id', questionId)
 
@@ -179,30 +172,7 @@ Description: ${jd.description}
       console.log('[Analyze] Saved analysis to exchange:', questionId)
     }
 
-    // 7. Update Session Conversation History
-    const historyEntry = {
-      type: 'answer_analysis',
-      questionText,
-      userAnswer: userAnswer.substring(0, 500), // Store truncated version
-      analysis: {
-        score: analysis.score,
-        strengths: analysis.strengths,
-        improvements: analysis.improvements
-      },
-      timestamp: new Date().toISOString()
-    }
-
-    await supabaseAdmin
-      .from('mock_interview_sessions')
-      .update({
-        conversation_history: [
-          ...(session.conversation_history || []),
-          historyEntry
-        ]
-      })
-      .eq('id', sessionId)
-
-    // 8. Return Analysis
+    // 7. Return Analysis
     return successResponse({
       analysis,
       saved: !!questionId,

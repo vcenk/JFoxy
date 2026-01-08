@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const { data: interviews, error } = await supabaseAdmin
-      .from('mock_interview_sessions')
+      .from('mock_interviews')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -31,7 +31,26 @@ export async function GET(req: NextRequest) {
       return serverErrorResponse('Failed to fetch interviews')
     }
 
-    return successResponse(interviews || [])
+    // Transform to UI-friendly format
+    const transformedInterviews = (interviews || []).map(interview => {
+      const plannedQuestions = interview.planned_questions || {}
+      return {
+        id: interview.id,
+        job_title: plannedQuestions.job_title || interview.focus || 'Interview',
+        company_name: plannedQuestions.company_name || 'Company',
+        duration_minutes: interview.duration_minutes,
+        status: interview.status,
+        overall_score: interview.overall_score,
+        current_phase: plannedQuestions.current_phase || 'welcome',
+        total_questions: plannedQuestions.questions?.length || 0,
+        created_at: interview.created_at,
+        completed_at: interview.completed_at,
+        interviewer_name: plannedQuestions.interviewer_name,
+        interviewer_voice: interview.persona_id
+      }
+    })
+
+    return successResponse(transformedInterviews)
   } catch (error) {
     console.error('[Mock List] Unexpected error:', error)
     return serverErrorResponse('An unexpected error occurred')

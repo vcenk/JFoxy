@@ -27,7 +27,7 @@ export async function GET(
 
   try {
     const { data: session, error } = await supabaseAdmin
-      .from('mock_interview_sessions')
+      .from('mock_interviews')
       .select('*')
       .eq('id', sessionId)
       .eq('user_id', user.id)
@@ -37,7 +37,27 @@ export async function GET(
       return badRequestResponse('Interview session not found or access denied')
     }
 
-    return successResponse(session)
+    // Extract UI-friendly data from planned_questions
+    const plannedQuestions = session.planned_questions || {}
+    const response = {
+      id: session.id,
+      status: session.status,
+      current_phase: plannedQuestions.current_phase || 'welcome',
+      current_question_index: plannedQuestions.current_question_index || 0,
+      total_questions: plannedQuestions.questions?.length || 0,
+      interviewer_name: plannedQuestions.interviewer_name,
+      interviewer_title: plannedQuestions.interviewer_title,
+      interviewer_voice: session.persona_id,
+      interviewer_gender: plannedQuestions.interviewer_gender,
+      company_name: plannedQuestions.company_name,
+      job_title: plannedQuestions.job_title || session.focus,
+      duration_minutes: session.duration_minutes,
+      created_at: session.created_at,
+      started_at: session.started_at,
+      completed_at: session.completed_at
+    }
+
+    return successResponse(response)
   } catch (error) {
     console.error('[Mock Get] Unexpected error:', error)
     return serverErrorResponse('An unexpected error occurred')
@@ -61,7 +81,7 @@ export async function DELETE(
   try {
     // First verify the session belongs to this user
     const { data: session, error: fetchError } = await supabaseAdmin
-      .from('mock_interview_sessions')
+      .from('mock_interviews')
       .select('id')
       .eq('id', sessionId)
       .eq('user_id', user.id)
@@ -75,11 +95,11 @@ export async function DELETE(
     await supabaseAdmin
       .from('mock_interview_exchanges')
       .delete()
-      .eq('session_id', sessionId)
+      .eq('mock_interview_id', sessionId)
 
     // Delete the session
     const { error: deleteError } = await supabaseAdmin
-      .from('mock_interview_sessions')
+      .from('mock_interviews')
       .delete()
       .eq('id', sessionId)
       .eq('user_id', user.id)

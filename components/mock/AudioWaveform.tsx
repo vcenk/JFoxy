@@ -8,7 +8,7 @@ import { useEffect, useRef } from 'react'
 interface AudioWaveformProps {
     isActive: boolean
     audioLevel?: number
-    color?: 'purple' | 'blue' | 'white'
+    color?: 'purple' | 'blue' | 'white' | 'green' | 'orange'
     barCount?: number
     className?: string
 }
@@ -25,7 +25,9 @@ export default function AudioWaveform({
     const colorClasses = {
         purple: 'bg-purple-500',
         blue: 'bg-blue-500',
-        white: 'bg-white/80'
+        white: 'bg-white/80',
+        green: 'bg-green-500',
+        orange: 'bg-orange-500'
     }
 
     useEffect(() => {

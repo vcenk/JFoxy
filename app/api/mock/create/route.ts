@@ -27,12 +27,11 @@ import {
   getPersonaTitle,
   ALL_PERSONAS
 } from '@/lib/data/interviewerPersonas'
-import { createConversationState } from '@/lib/services/conversationManager'
 
 /**
  * POST /api/mock/create
  *
- * Creates a new voice-only mock interview session with ElevenLabs
+ * Creates a new voice mock interview session with OpenAI Realtime API
  *
  * Request Body:
  * - resumeId: string (required)
@@ -43,7 +42,8 @@ import { createConversationState } from '@/lib/services/conversationManager'
  * Response:
  * - session: Interview session data
  * - questions: Generated interview questions
- * - interviewer: Persona details
+ * - interviewer: Persona details (includes openaiVoice for Realtime API)
+ * - jobContext: Job context for the interview
  */
 export async function POST(req: NextRequest) {
   const user = await getAuthUser(req)
@@ -178,20 +178,18 @@ export async function POST(req: NextRequest) {
     console.log('[Mock Create] Generated', questions.length, 'questions')
 
     // 8. Create Interview Session
+    // Using the actual 'mock_interviews' table with correct schema
     const { data: session, error: sessionError } = await supabaseAdmin
-      .from('mock_interview_sessions')
+      .from('mock_interviews')
       .insert({
         user_id: user.id,
         resume_id: resumeId,
         job_description_id: jobDescriptionId,
         duration_minutes: durationMinutes,
-        interviewer_voice: voiceId,
-        interviewer_name: persona.name,
-        interviewer_title: interviewerTitle,
-        interviewer_gender: persona.gender,
-        job_title: jobTitle,
-        company_name: companyName,
-        interview_plan: {
+        persona_id: voiceId, // Persona/voice ID
+        focus: jobTitle || null,
+        difficulty: 'standard',
+        planned_questions: {
           questions: questions.map(q => ({
             text: q.text,
             type: q.type,
@@ -202,13 +200,18 @@ export async function POST(req: NextRequest) {
           })),
           seniority_level: seniorityLevel,
           industry,
-          duration: durationMinutes
+          duration: durationMinutes,
+          // Store extra context in planned_questions for UI
+          interviewer_name: persona.name,
+          interviewer_title: interviewerTitle,
+          interviewer_gender: persona.gender,
+          company_name: companyName,
+          job_title: jobTitle,
+          current_phase: 'welcome',
+          current_question_index: 0
         },
-        conversation_history: [],
         status: 'in_progress',
-        current_phase: 'welcome',
-        current_question_index: 0,
-        total_questions: questions.length
+        started_at: new Date().toISOString()
       })
       .select()
       .single()
@@ -219,25 +222,11 @@ export async function POST(req: NextRequest) {
     }
 
     // 9. Create Question Exchanges (pre-populate with generated questions)
-    // Map question types to valid database exchange_type values
-    // Allowed: 'welcome', 'small_talk', 'company_intro', 'behavioral', 'technical', 'leadership', 'follow_up', 'wrap_up'
-    const mapQuestionTypeToExchangeType = (type: string): string => {
-      const typeMap: Record<string, string> = {
-        'behavioral': 'behavioral',
-        'technical': 'technical',
-        'leadership': 'leadership',
-        'situational': 'behavioral', // Map situational to behavioral
-        'values': 'behavioral'       // Map values to behavioral
-      }
-      return typeMap[type] || 'behavioral'
-    }
-
     const exchanges = questions.map((q, index) => ({
-      session_id: session.id,
-      exchange_type: mapQuestionTypeToExchangeType(q.type),
-      order_index: index + 1,
-      question_text: q.text
-      // Note: Question metadata (difficulty, tips, etc.) is stored in session.interview_plan
+      mock_interview_id: session.id,
+      question_text: q.text,
+      question_type: q.type,
+      exchange_order: index + 1
     }))
 
     const { error: exchangesError } = await supabaseAdmin
@@ -246,29 +235,15 @@ export async function POST(req: NextRequest) {
 
     if (exchangesError) {
       console.error('[Mock Create] Exchanges creation error:', exchangesError)
-      // Clean up session?
+      // Clean up session
       await supabaseAdmin
-        .from('mock_interview_sessions')
+        .from('mock_interviews')
         .delete()
         .eq('id', session.id)
       return serverErrorResponse('Failed to initialize interview questions')
     }
 
-    // 10. Initialize Conversation State (for first request)
-    const conversationState = createConversationState({
-      sessionId: session.id,
-      voiceId,
-      userName: profile?.full_name || 'Candidate',
-      companyName,
-      jobTitle,
-      questions: questions.map(q => ({
-        text: q.text,
-        type: q.type,
-        tips: q.tips
-      }))
-    })
-
-    // 11. Track Usage
+    // 10. Track Usage
     await trackUsage({
       userId: user.id,
       resourceType: 'mock_interview',
@@ -278,20 +253,21 @@ export async function POST(req: NextRequest) {
 
     await incrementUsage(user.id, 'mock_interviews_this_month')
 
-    // 12. Return Success
+    // 11. Return Success
     return successResponse({
       session: {
         id: session.id,
         status: session.status,
-        currentPhase: session.current_phase,
+        currentPhase: 'welcome',
         durationMinutes: session.duration_minutes,
-        totalQuestions: session.total_questions,
+        totalQuestions: questions.length,
         createdAt: session.created_at
       },
       interviewer: {
         name: persona.name,
         title: interviewerTitle,
         voiceId,
+        openaiVoice: persona.openai_voice, // OpenAI Realtime voice
         gender: persona.gender,
         personality: persona.personality
       },
@@ -301,7 +277,6 @@ export async function POST(req: NextRequest) {
         difficulty: q.difficulty,
         tips: q.tips
       })),
-      conversationState,
       jobContext: {
         title: jobTitle || 'General Interview',
         company: companyName || 'Company',

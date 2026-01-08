@@ -1,8 +1,11 @@
 // lib/data/interviewerPersonas.ts
-// Interviewer Personas mapped to ElevenLabs Voices
+// Interviewer Personas with voice mappings for ElevenLabs and OpenAI Realtime API
+
+import { OpenAIVoice } from '@/lib/services/realtimeClient'
 
 export interface InterviewerPersona {
-  voice_id: string
+  voice_id: string // ElevenLabs voice ID (legacy, used by Practice section)
+  openai_voice: OpenAIVoice // OpenAI Realtime voice (used by Mock Interview)
   name: string
   gender: 'female' | 'male' | 'neutral'
   default_title: string
@@ -11,6 +14,11 @@ export interface InterviewerPersona {
   best_for: string[]
   voice_characteristics: string
   photoUrl: string // Interviewer headshot image path
+  // Interview behavior settings
+  style: 'friendly' | 'professional' | 'direct' | 'warm'
+  warmth: number // 1-10
+  strictness: number // 1-10
+  backchannel_frequency: 'low' | 'medium' | 'high'
 }
 
 // ============================================================================
@@ -20,6 +28,7 @@ export interface InterviewerPersona {
 export const FEMALE_PERSONAS: InterviewerPersona[] = [
   {
     voice_id: 'EXAVITQu4vr4xnSDxMaL', // Sarah - Professional, clear
+    openai_voice: 'shimmer', // Polished, professional female
     name: 'Sarah Mitchell',
     gender: 'female',
     default_title: 'Senior Recruiter',
@@ -27,10 +36,15 @@ export const FEMALE_PERSONAS: InterviewerPersona[] = [
     age_range: '30-40',
     best_for: ['corporate', 'tech', 'consulting', 'finance'],
     voice_characteristics: 'Clear, articulate, confident',
-    photoUrl: '/images/interviewers/sarah_mitchell.jpg'
+    photoUrl: '/images/interviewers/sarah_mitchell.jpg',
+    style: 'professional',
+    warmth: 7,
+    strictness: 5,
+    backchannel_frequency: 'medium'
   },
   {
     voice_id: '21m00Tcm4TlvDq8ikWAM', // Rachel - Friendly, engaging
+    openai_voice: 'coral', // Warm, friendly female
     name: 'Emily Johnson',
     gender: 'female',
     default_title: 'Talent Acquisition Manager',
@@ -38,10 +52,15 @@ export const FEMALE_PERSONAS: InterviewerPersona[] = [
     age_range: '25-35',
     best_for: ['startups', 'creative', 'marketing', 'design'],
     voice_characteristics: 'Warm, engaging, approachable',
-    photoUrl: '/images/interviewers/emily_johnson.jpg'
+    photoUrl: '/images/interviewers/emily_johnson.jpg',
+    style: 'friendly',
+    warmth: 9,
+    strictness: 3,
+    backchannel_frequency: 'high'
   },
   {
     voice_id: 'ThT5KcBeYPX3keUQqHPh', // Dorothy - Mature, experienced
+    openai_voice: 'ballad', // Mature, authoritative female
     name: 'Jennifer Davis',
     gender: 'female',
     default_title: 'VP of People',
@@ -49,10 +68,15 @@ export const FEMALE_PERSONAS: InterviewerPersona[] = [
     age_range: '40-50',
     best_for: ['executive', 'leadership', 'c-suite', 'board'],
     voice_characteristics: 'Mature, confident, commanding',
-    photoUrl: '/images/interviewers/jennifer_davis.jpg'
+    photoUrl: '/images/interviewers/jennifer_davis.jpg',
+    style: 'direct',
+    warmth: 5,
+    strictness: 8,
+    backchannel_frequency: 'low'
   },
   {
     voice_id: 'MF3mGyEYCl7XYWbV9V6O', // Elli - Youthful, energetic
+    openai_voice: 'coral', // Youthful, energetic
     name: 'Megan Parker',
     gender: 'female',
     default_title: 'HR Coordinator',
@@ -60,10 +84,15 @@ export const FEMALE_PERSONAS: InterviewerPersona[] = [
     age_range: '22-30',
     best_for: ['entry-level', 'internships', 'junior roles'],
     voice_characteristics: 'Young, energetic, enthusiastic',
-    photoUrl: '/images/interviewers/megan_parker.jpg'
+    photoUrl: '/images/interviewers/megan_parker.jpg',
+    style: 'friendly',
+    warmth: 9,
+    strictness: 2,
+    backchannel_frequency: 'high'
   },
   {
     voice_id: 'jsCqWAovK2LkecY7zXl4', // Freya - British, sophisticated
+    openai_voice: 'marin', // Refined, balanced (OpenAI recommended)
     name: 'Charlotte Williams',
     gender: 'female',
     default_title: 'Global Talent Director',
@@ -71,7 +100,11 @@ export const FEMALE_PERSONAS: InterviewerPersona[] = [
     age_range: '35-45',
     best_for: ['international', 'consulting', 'luxury brands'],
     voice_characteristics: 'British accent, refined, articulate',
-    photoUrl: '/images/interviewers/charlotte_williams.jpg'
+    photoUrl: '/images/interviewers/charlotte_williams.jpg',
+    style: 'professional',
+    warmth: 6,
+    strictness: 6,
+    backchannel_frequency: 'medium'
   }
 ]
 
@@ -82,6 +115,7 @@ export const FEMALE_PERSONAS: InterviewerPersona[] = [
 export const MALE_PERSONAS: InterviewerPersona[] = [
   {
     voice_id: 'pNInz6obpgDQGcFmaJgB', // Adam - Clear, direct
+    openai_voice: 'ash', // Professional, measured male
     name: 'Michael Chen',
     gender: 'male',
     default_title: 'Senior Recruiter',
@@ -89,10 +123,15 @@ export const MALE_PERSONAS: InterviewerPersona[] = [
     age_range: '30-40',
     best_for: ['tech', 'engineering', 'data science', 'analytics'],
     voice_characteristics: 'Clear, confident, articulate',
-    photoUrl: '/images/interviewers/michael_chen.jpg'
+    photoUrl: '/images/interviewers/michael_chen.jpg',
+    style: 'direct',
+    warmth: 5,
+    strictness: 7,
+    backchannel_frequency: 'low'
   },
   {
     voice_id: 'yoZ06aMxZJJ28mfd3POQ', // Sam - Casual, friendly
+    openai_voice: 'verse', // Approachable, friendly male
     name: 'David Williams',
     gender: 'male',
     default_title: 'Hiring Manager',
@@ -100,10 +139,15 @@ export const MALE_PERSONAS: InterviewerPersona[] = [
     age_range: '35-45',
     best_for: ['startups', 'product', 'creative', 'remote companies'],
     voice_characteristics: 'Casual, approachable, friendly',
-    photoUrl: '/images/interviewers/david_williams.jpg'
+    photoUrl: '/images/interviewers/david_williams.jpg',
+    style: 'friendly',
+    warmth: 8,
+    strictness: 3,
+    backchannel_frequency: 'high'
   },
   {
     voice_id: '29vD33N1CtxCmqQRPOHJ', // Drew - Professional, deep
+    openai_voice: 'echo', // Direct, efficient male
     name: 'James Anderson',
     gender: 'male',
     default_title: 'Director of Engineering',
@@ -111,10 +155,15 @@ export const MALE_PERSONAS: InterviewerPersona[] = [
     age_range: '40-50',
     best_for: ['engineering', 'architecture', 'technical leadership'],
     voice_characteristics: 'Deep, authoritative, technical',
-    photoUrl: '/images/interviewers/james_anderson.jpg'
+    photoUrl: '/images/interviewers/james_anderson.jpg',
+    style: 'direct',
+    warmth: 4,
+    strictness: 8,
+    backchannel_frequency: 'low'
   },
   {
     voice_id: 'VR6AewLTigWG4xSOukaG', // Arnold - Mature, commanding
+    openai_voice: 'sage', // Mature, commanding male
     name: 'Robert Thompson',
     gender: 'male',
     default_title: 'Chief People Officer',
@@ -122,10 +171,15 @@ export const MALE_PERSONAS: InterviewerPersona[] = [
     age_range: '45-55',
     best_for: ['executive', 'c-suite', 'board', 'senior leadership'],
     voice_characteristics: 'Mature, commanding, strategic',
-    photoUrl: '/images/interviewers/robert_thompson.jpg'
+    photoUrl: '/images/interviewers/robert_thompson.jpg',
+    style: 'professional',
+    warmth: 4,
+    strictness: 9,
+    backchannel_frequency: 'low'
   },
   {
     voice_id: 'TxGEqnHWrfWFTfGW9XjX', // Josh - Energetic, young
+    openai_voice: 'alloy', // Youthful, energetic male
     name: 'Alex Martinez',
     gender: 'male',
     default_title: 'Talent Scout',
@@ -133,10 +187,15 @@ export const MALE_PERSONAS: InterviewerPersona[] = [
     age_range: '25-35',
     best_for: ['tech startups', 'gaming', 'social media', 'web3'],
     voice_characteristics: 'Young, energetic, modern',
-    photoUrl: '/images/interviewers/alex_martinez.jpg'
+    photoUrl: '/images/interviewers/alex_martinez.jpg',
+    style: 'friendly',
+    warmth: 8,
+    strictness: 3,
+    backchannel_frequency: 'high'
   },
   {
     voice_id: 'IKne3meq5aSn9XLyUdCD', // Charlie - British, charming
+    openai_voice: 'cedar', // Refined, balanced (OpenAI recommended)
     name: 'Oliver Bennett',
     gender: 'male',
     default_title: 'Global Recruitment Lead',
@@ -144,7 +203,11 @@ export const MALE_PERSONAS: InterviewerPersona[] = [
     age_range: '35-45',
     best_for: ['consulting', 'finance', 'international roles'],
     voice_characteristics: 'British accent, charming, polished',
-    photoUrl: '/images/interviewers/oliver_bennett.jpg'
+    photoUrl: '/images/interviewers/oliver_bennett.jpg',
+    style: 'professional',
+    warmth: 6,
+    strictness: 6,
+    backchannel_frequency: 'medium'
   }
 ]
 

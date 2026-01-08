@@ -37,9 +37,9 @@ export async function POST(
   const sessionId = params.id
 
   try {
-    // 1. Fetch Session
+    // 1. Fetch Session (using mock_interviews table)
     const { data: session, error: sessionError } = await supabaseAdmin
-      .from('mock_interview_sessions')
+      .from('mock_interviews')
       .select('*')
       .eq('id', sessionId)
       .eq('user_id', user.id)
@@ -49,20 +49,25 @@ export async function POST(
       return badRequestResponse('Interview session not found or access denied')
     }
 
+    const plannedQuestions = session.planned_questions || {}
+
     if (session.status === 'completed') {
       // Already completed, fetch existing report
       const { data: exchanges } = await supabaseAdmin
         .from('mock_interview_exchanges')
         .select('*')
-        .eq('session_id', sessionId)
+        .eq('mock_interview_id', sessionId)
         .order('exchange_order', { ascending: true })
 
-      if (!session.final_report || !exchanges) {
-        return badRequestResponse('Interview completed but report not available')
-      }
-
       return successResponse({
-        report: session.final_report,
+        report: {
+          overallScore: session.overall_score,
+          verdict: session.verdict,
+          summary: session.summary,
+          keyStrengths: session.key_strengths,
+          keyGaps: session.key_gaps,
+          improvementPlan: session.improvement_plan
+        },
         session: {
           id: session.id,
           status: session.status,
@@ -78,7 +83,7 @@ export async function POST(
     const { data: exchanges, error: exchangesError } = await supabaseAdmin
       .from('mock_interview_exchanges')
       .select('*')
-      .eq('session_id', sessionId)
+      .eq('mock_interview_id', sessionId)
       .order('exchange_order', { ascending: true })
 
     if (exchangesError) {
@@ -92,7 +97,7 @@ export async function POST(
 
     // 3. Filter Answered Questions and Build Exchanges Array
     const answeredExchanges = exchanges.filter(ex =>
-      ex.user_answer_text && ex.answer_score !== null
+      ex.user_transcript && ex.answer_score !== null
     )
 
     if (answeredExchanges.length === 0) {
@@ -103,27 +108,28 @@ export async function POST(
 
     // Build exchanges array for report generation
     const reportExchanges = answeredExchanges.map(ex => {
+      const starInfo = ex.star_completeness || {}
       const analysis: AnswerAnalysis = {
         score: ex.answer_score || 0,
-        strengths: ex.strengths || [],
-        improvements: ex.improvements || [],
-        detailedFeedback: ex.feedback || '',
-        starAnalysis: ex.answer_metrics?.star_analysis || {
-          hasSituation: false,
-          hasTask: false,
-          hasAction: false,
-          hasResult: false,
-          completenessScore: 0
+        strengths: [],
+        improvements: [],
+        detailedFeedback: '',
+        starAnalysis: {
+          hasSituation: starInfo.situation || false,
+          hasTask: starInfo.task || false,
+          hasAction: starInfo.action || false,
+          hasResult: starInfo.result || false,
+          completenessScore: starInfo.used_star ? 80 : 40
         },
-        specificity: ex.answer_metrics?.specificity || 5,
-        relevance: ex.answer_metrics?.relevance || 5,
-        impact: ex.answer_metrics?.impact || 5,
-        suggestions: ex.answer_metrics?.suggestions || []
+        specificity: 5,
+        relevance: 5,
+        impact: 5,
+        suggestions: []
       }
 
       return {
         question: ex.question_text,
-        answer: ex.user_answer_text || '',
+        answer: ex.user_transcript || '',
         analysis
       }
     })
@@ -133,12 +139,12 @@ export async function POST(
     if (session.resume_id) {
       const { data: resume } = await supabaseAdmin
         .from('resumes')
-        .select('summary, work_experience')
+        .select('content')
         .eq('id', session.resume_id)
         .single()
 
-      if (resume) {
-        resumeContext = JSON.stringify(resume)
+      if (resume?.content) {
+        resumeContext = JSON.stringify(resume.content)
       }
     }
 
@@ -166,15 +172,27 @@ export async function POST(
 
     console.log('[Complete] Report generated, overall score:', report.overallScore)
 
-    // 6. Update Session with Report and Mark as Completed
+    // 6. Derive verdict from overall score
+    const getVerdict = (score: number): 'strong_hire' | 'hire' | 'borderline' | 'not_ready' => {
+      if (score >= 8) return 'strong_hire'
+      if (score >= 6) return 'hire'
+      if (score >= 4) return 'borderline'
+      return 'not_ready'
+    }
+
+    // 7. Update Session with Report and Mark as Completed
     const { error: updateError } = await supabaseAdmin
-      .from('mock_interview_sessions')
+      .from('mock_interviews')
       .update({
         status: 'completed',
-        current_phase: 'completed',
         completed_at: new Date().toISOString(),
-        final_report: report,
-        overall_score: report.overallScore
+        updated_at: new Date().toISOString(),
+        overall_score: report.overallScore,
+        verdict: getVerdict(report.overallScore),
+        summary: report.summary,
+        key_strengths: report.keyStrengths,
+        key_gaps: report.areasForImprovement || [],
+        improvement_plan: { recommendations: report.recommendations }
       })
       .eq('id', sessionId)
 
@@ -182,19 +200,6 @@ export async function POST(
       console.error('[Complete] Failed to update session:', updateError)
       return serverErrorResponse('Report generated but failed to save')
     }
-
-    // 7. Calculate Additional Session Stats
-    const totalDuration = answeredExchanges.reduce((sum, ex) => {
-      return sum + (ex.answer_metrics?.duration_seconds || 0)
-    }, 0)
-
-    const avgWPM = answeredExchanges.reduce((sum, ex) => {
-      return sum + (ex.answer_metrics?.wpm || 0)
-    }, 0) / answeredExchanges.length
-
-    const totalFillers = answeredExchanges.reduce((sum, ex) => {
-      return sum + (ex.answer_metrics?.filler_count || 0)
-    }, 0)
 
     // 8. Return Complete Report
     return successResponse({
@@ -208,15 +213,12 @@ export async function POST(
         overallScore: report.overallScore
       },
       statistics: {
-        totalDurationSeconds: totalDuration,
-        averageWPM: Math.round(avgWPM),
-        totalFillerWords: totalFillers,
         questionsAnswered: answeredExchanges.length,
         questionsSkipped: exchanges.length - answeredExchanges.length
       },
       interviewer: {
-        name: session.interviewer_name,
-        title: session.interviewer_title
+        name: plannedQuestions.interviewer_name,
+        title: plannedQuestions.interviewer_title
       }
     })
 

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Mic, Play, Loader2, CheckCircle, Save, Pause, Globe, Sparkles, Lock, User, Video } from 'lucide-react'
+import { Mic, Play, Loader2, CheckCircle, Save, Pause, Globe, Sparkles, Lock, User, Video, Volume2 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { SUBSCRIPTION_TIERS, TIER_LIMITS } from '@/lib/config/constants'
+import { ALL_PERSONAS, InterviewerPersona } from '@/lib/data/interviewerPersonas'
 
 interface IntegrationsTabProps {
   prefs: any
@@ -19,19 +20,18 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
     gender: prefs.deepgram?.gender || 'female',
     style: prefs.deepgram?.style || 'professional',
   })
-  const [elevenlabs, setElevenlabs] = useState({
-    voice_id: prefs.elevenlabs?.voice_id || 'EXAVITQu4vr4xnSDxMaL',
-    voice_name: prefs.elevenlabs?.voice_name || 'Sarah Mitchell',
+  // Mock interview persona selection (uses OpenAI Realtime voices)
+  const [mockInterview, setMockInterview] = useState({
+    persona_id: prefs.mockInterview?.persona_id || 'EXAVITQu4vr4xnSDxMaL', // Default Sarah Mitchell's voice_id
+    persona_name: prefs.mockInterview?.persona_name || 'Sarah Mitchell',
   })
 
   const [languages, setLanguages] = useState<any[]>([])
   const [styles, setStyles] = useState<any[]>([])
   const [genders, setGenders] = useState<any[]>([])
-  const [elevenLabsVoices, setElevenLabsVoices] = useState<any[]>([])
+  const [genderFilter, setGenderFilter] = useState<'all' | 'female' | 'male'>('all')
   const [loadingData, setLoadingData] = useState(true)
   const [playingPreview, setPlayingPreview] = useState(false)
-  const [playingElevenLabs, setPlayingElevenLabs] = useState(false)
-  const audioRef = useState<HTMLAudioElement | null>(null)[0]
 
   // Access user's tier from profile
   const userTier = profile?.subscription_tier || SUBSCRIPTION_TIERS.BASIC
@@ -44,13 +44,18 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
   const canAccessProStyles = isPro // Professional, Conversational, Calm
   const canAccessPremiumStyles = isPremium // All 6
 
+  // Get personas based on gender filter
+  const filteredPersonas = genderFilter === 'all'
+    ? ALL_PERSONAS
+    : ALL_PERSONAS.filter(p => p.gender === genderFilter)
+
+  // Get selected persona
+  const selectedPersona = ALL_PERSONAS.find(p => p.voice_id === mockInterview.persona_id) || ALL_PERSONAS[0]
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [voiceRes, elevenLabsRes] = await Promise.all([
-          fetch('/api/deepgram/voices'),
-          fetch('/api/elevenlabs/voices')
-        ])
+        const voiceRes = await fetch('/api/deepgram/voices')
 
         if (voiceRes.ok) {
           const data = await voiceRes.json()
@@ -70,11 +75,6 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
           }
           setStyles(availableStyles)
           setGenders(data.genders) // All genders are fetched
-        }
-
-        if (elevenLabsRes.ok) {
-          const data = await elevenLabsRes.json()
-          setElevenLabsVoices(data.data?.all || [])
         }
       } catch (error) {
         console.error('Failed to load integration data', error)
@@ -118,31 +118,6 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
     }
   }
 
-  const handlePlayElevenLabsPreview = async () => {
-    try {
-      setPlayingElevenLabs(true)
-      const response = await fetch('/api/elevenlabs/preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          voice_id: elevenlabs.voice_id,
-        }),
-      })
-
-      if (!response.ok) throw new Error('Preview failed')
-
-      const audioBlob = await response.blob()
-      const audioUrl = URL.createObjectURL(audioBlob)
-      const audio = new Audio(audioUrl)
-      audio.onended = () => setPlayingElevenLabs(false)
-      await audio.play()
-    } catch (error) {
-      console.error('Voice preview error:', error)
-      alert('Failed to play voice preview')
-      setPlayingElevenLabs(false)
-    }
-  }
-
   const handleSave = async () => {
     // Before saving, ensure the selected options are valid for the user's tier
     const currentPrefs = deepgram;
@@ -176,18 +151,18 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
       const supabase = (await import('@/lib/clients/supabaseBrowserClient')).createClient()
       const user = useAuthStore.getState().user
 
-      // Update preferences (include both deepgram and elevenlabs)
+      // Update preferences (include deepgram for practice sessions and mockInterview for mock interviews)
       const { error } = await supabase
         .from('profiles')
         .update({
-          preferences: { deepgram, elevenlabs }
+          preferences: { deepgram, mockInterview }
         })
         .eq('id', user?.id)
 
       if (error) throw error
 
       // Call parent onSave for UI updates
-      onSave({ deepgram, elevenlabs })
+      onSave({ deepgram, mockInterview })
     } catch (error) {
       console.error('Error saving integration settings:', error)
       alert('Failed to save settings. Please try again.')
@@ -197,7 +172,6 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
   const selectedLanguage = languages.find(l => l.code === deepgram.language)
   const selectedGender = genders.find(g => g.id === deepgram.gender)
   const selectedStyle = styles.find(s => s.id === deepgram.style)
-  const selectedElevenLabsVoice = elevenLabsVoices.find(v => v.voice_id === elevenlabs.voice_id)
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -354,7 +328,7 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
         </div>
       </div>
 
-      {/* ElevenLabs Voice Configuration - Mock Interviews */}
+      {/* Mock Interview Persona Selection - OpenAI Realtime */}
       <div className="bg-gradient-to-br from-indigo-900/20 to-purple-900/20 rounded-2xl border border-indigo-700/30 p-8 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl -mr-32 -mt-32" />
 
@@ -365,130 +339,146 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
                 <Video className="w-6 h-6 text-indigo-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">Mock Interview Voice</h2>
-                <p className="text-sm text-indigo-300">Powered by ElevenLabs AI</p>
-                <p className="text-xs text-indigo-400/70 mt-0.5">Select your AI interviewer voice for mock interviews</p>
+                <h2 className="text-2xl font-bold text-white">Mock Interview Persona</h2>
+                <p className="text-sm text-indigo-300">Powered by OpenAI Realtime Voice</p>
+                <p className="text-xs text-indigo-400/70 mt-0.5">Select your AI interviewer for real-time voice interviews</p>
               </div>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-500/30">
-              <Sparkles className="w-4 h-4 text-indigo-400" />
-              <span className="text-xs font-medium text-indigo-300">11 Professional Voices</span>
+              <Volume2 className="w-4 h-4 text-indigo-400" />
+              <span className="text-xs font-medium text-indigo-300">11 Professional Personas</span>
             </div>
           </div>
 
-          {loadingData ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
-            </div>
-          ) : (
-            <div>
-              {/* Gender Filter */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-indigo-200 mb-3">Voice Gender</label>
-                <div className="flex gap-3">
-                  {['All', 'Female', 'Male'].map(gender => {
-                    const filterGender = gender.toLowerCase() === 'all' ? 'all' : gender.toLowerCase()
-                    const filteredVoices = filterGender === 'all'
-                      ? elevenLabsVoices
-                      : elevenLabsVoices.filter(v => v.gender === filterGender)
+          <div>
+            {/* Gender Filter */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-indigo-200 mb-3">Filter by Gender</label>
+              <div className="flex gap-3">
+                {[
+                  { label: 'All', value: 'all' as const },
+                  { label: 'Female', value: 'female' as const },
+                  { label: 'Male', value: 'male' as const }
+                ].map(({ label, value }) => {
+                  const count = value === 'all'
+                    ? ALL_PERSONAS.length
+                    : ALL_PERSONAS.filter(p => p.gender === value).length
 
-                    return (
-                      <button
-                        key={gender}
-                        onClick={() => {
-                          // If switching gender, select first voice of that gender
-                          if (filterGender !== 'all') {
-                            const firstVoice = elevenLabsVoices.find(v => v.gender === filterGender)
-                            if (firstVoice && firstVoice.voice_id !== elevenlabs.voice_id) {
-                              setElevenlabs({ voice_id: firstVoice.voice_id, voice_name: firstVoice.name })
-                            }
-                          }
-                        }}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                          selectedElevenLabsVoice?.gender === filterGender || (filterGender === 'all')
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                        }`}
-                      >
-                        {gender} ({filteredVoices.length})
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Voice Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {elevenLabsVoices
-                  .filter(voice => selectedElevenLabsVoice?.gender === 'all' || voice.gender === selectedElevenLabsVoice?.gender || true)
-                  .map(voice => (
+                  return (
                     <button
-                      key={voice.voice_id}
-                      onClick={() => setElevenlabs({ voice_id: voice.voice_id, voice_name: voice.name })}
-                      className={`p-4 rounded-xl border-2 transition-all text-left ${
-                        elevenlabs.voice_id === voice.voice_id
-                          ? 'border-indigo-500 bg-indigo-500/10 ring-2 ring-indigo-500/30'
-                          : 'border-gray-700 bg-gray-800/50 hover:border-indigo-600/50 hover:bg-gray-800'
+                      key={value}
+                      onClick={() => setGenderFilter(value)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        genderFilter === value
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                       }`}
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            voice.gender === 'female' ? 'bg-pink-500/20' : 'bg-blue-500/20'
-                          }`}>
-                            <User className={`w-5 h-5 ${voice.gender === 'female' ? 'text-pink-400' : 'text-blue-400'}`} />
-                          </div>
-                          <div>
-                            <h4 className="text-white font-semibold">{voice.name}</h4>
-                            <p className="text-xs text-gray-400 capitalize">{voice.gender}</p>
-                          </div>
-                        </div>
-                        {elevenlabs.voice_id === voice.voice_id && (
-                          <CheckCircle className="w-5 h-5 text-indigo-400 flex-shrink-0" />
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-300 mb-2">{voice.description}</p>
-                      <div className="flex flex-wrap gap-1">
-                        {voice.best_for?.slice(0, 2).map((tag: string, idx: number) => (
-                          <span key={idx} className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 text-xs rounded">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
+                      {label} ({count})
                     </button>
-                  ))}
+                  )
+                })}
               </div>
+            </div>
 
-              {/* Voice Preview Card */}
-              <div className="p-6 bg-gray-900/50 backdrop-blur-sm rounded-xl border border-indigo-500/20">
-                <div className="flex items-center justify-between">
+            {/* Persona Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {filteredPersonas.map(persona => (
+                <button
+                  key={persona.voice_id}
+                  onClick={() => setMockInterview({ persona_id: persona.voice_id, persona_name: persona.name })}
+                  className={`p-4 rounded-xl border-2 transition-all text-left ${
+                    mockInterview.persona_id === persona.voice_id
+                      ? 'border-indigo-500 bg-indigo-500/10 ring-2 ring-indigo-500/30'
+                      : 'border-gray-700 bg-gray-800/50 hover:border-indigo-600/50 hover:bg-gray-800'
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      {/* Persona Photo */}
+                      <div className={`w-12 h-12 rounded-full overflow-hidden flex items-center justify-center ${
+                        persona.gender === 'female' ? 'bg-pink-500/20' : 'bg-blue-500/20'
+                      }`}>
+                        {persona.photoUrl ? (
+                          <img
+                            src={persona.photoUrl}
+                            alt={persona.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Fallback to icon if image fails
+                              e.currentTarget.style.display = 'none'
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                            }}
+                          />
+                        ) : null}
+                        <User className={`w-6 h-6 ${persona.gender === 'female' ? 'text-pink-400' : 'text-blue-400'} ${persona.photoUrl ? 'hidden' : ''}`} />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-semibold">{persona.name}</h4>
+                        <p className="text-xs text-gray-400">{persona.default_title}</p>
+                      </div>
+                    </div>
+                    {mockInterview.persona_id === persona.voice_id && (
+                      <CheckCircle className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-300 mb-2">{persona.personality}</p>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {persona.best_for.slice(0, 2).map((tag, idx) => (
+                      <span key={idx} className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 text-xs rounded">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <span className="capitalize">{persona.style}</span>
+                    <span>•</span>
+                    <span>Warmth: {persona.warmth}/10</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Selected Persona Card */}
+            <div className="p-6 bg-gray-900/50 backdrop-blur-sm rounded-xl border border-indigo-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 rounded-full overflow-hidden flex items-center justify-center ${
+                    selectedPersona.gender === 'female' ? 'bg-pink-500/20' : 'bg-blue-500/20'
+                  }`}>
+                    {selectedPersona.photoUrl ? (
+                      <img
+                        src={selectedPersona.photoUrl}
+                        alt={selectedPersona.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className={`w-7 h-7 ${selectedPersona.gender === 'female' ? 'text-pink-400' : 'text-blue-400'}`} />
+                    )}
+                  </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-1">Selected Voice</h3>
+                    <h3 className="text-lg font-semibold text-white mb-1">{selectedPersona.name}</h3>
                     <p className="text-sm text-gray-400">
-                      {selectedElevenLabsVoice?.name} • {selectedElevenLabsVoice?.personality}
+                      {selectedPersona.default_title} • {selectedPersona.voice_characteristics}
+                    </p>
+                    <p className="text-xs text-indigo-400 mt-1">
+                      Voice: {selectedPersona.openai_voice} • {selectedPersona.age_range} years
                     </p>
                   </div>
-                  <button
-                    onClick={handlePlayElevenLabsPreview}
-                    disabled={playingElevenLabs || loadingData}
-                    className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-900/30"
-                  >
-                    {playingElevenLabs ? (
-                      <>
-                        <Pause className="w-5 h-5" />
-                        Playing...
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-5 h-5" />
-                        Preview Voice
-                      </>
-                    )}
-                  </button>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
+                    <span>Style:</span>
+                    <span className="capitalize text-indigo-300">{selectedPersona.style}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <span>Warmth: {selectedPersona.warmth}/10</span>
+                    <span>Strictness: {selectedPersona.strictness}/10</span>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
 

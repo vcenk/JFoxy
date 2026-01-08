@@ -18,7 +18,15 @@
       "Bash(move \"components\\resume\\studio\\ResumeCanvas.new.tsx\" \"components\\resume\\studio\\ResumeCanvas.tsx\")",
       "Bash(git init:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(del \"lib\\\\hooks\\\\useVoiceActivityDetection.ts\")",
+      "Bash(del \"components\\\\mock\\\\PhaseIndicator.tsx\")",
+      "Bash(del \"components\\\\mock\\\\VoicePlayer.tsx\")",
+      "Bash(del \"components\\\\mock\\\\InterviewerPresence.tsx\")",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx next build)",
+      "Bash(node_modules.bintsc:*)"
     ]
   }
 }

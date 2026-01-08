@@ -8,9 +8,24 @@ export interface Profile {
   email: string
   full_name: string | null
   avatar_url: string | null
-  subscription_status: 'free' | 'active' | 'past_due' | 'canceled'
+
+  // Subscription
+  subscription_status: 'free' | 'active' | 'past_due' | 'canceled' | 'trialing'
   subscription_price_id: string | null
+  subscription_current_period_end: string | null
   stripe_customer_id: string | null
+
+  // Usage tracking
+  ai_tokens_used_this_month: number
+  practice_sessions_this_month: number
+  mock_interviews_this_month: number
+
+  // User preferences
+  preferences: Record<string, unknown> | null
+
+  // Admin
+  is_admin: boolean
+
   created_at: string
   updated_at: string
 }
