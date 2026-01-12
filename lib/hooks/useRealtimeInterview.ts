@@ -86,6 +86,7 @@ export function useRealtimeInterview(options: UseRealtimeInterviewOptions): UseR
   const audioContextRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
   const animationFrameRef = useRef<number | null>(null)
+  const connectingRef = useRef(false) // Prevent double connection attempts
 
   // State refs for callbacks
   const stateRef = useRef(state)
@@ -312,10 +313,12 @@ export function useRealtimeInterview(options: UseRealtimeInterviewOptions): UseR
 
   // Connect to OpenAI Realtime API
   const connect = useCallback(async () => {
-    if (stateRef.current !== 'IDLE') {
-      console.warn('[RealtimeInterview] Already connecting/connected')
+    // GUARD: Prevent double connection attempts (React StrictMode/Fast Refresh)
+    if (connectingRef.current || stateRef.current !== 'IDLE') {
+      console.warn('[RealtimeInterview] Already connecting/connected, ref:', connectingRef.current, 'state:', stateRef.current)
       return
     }
+    connectingRef.current = true
 
     try {
       updateState('CONNECTING')
@@ -333,8 +336,26 @@ export function useRealtimeInterview(options: UseRealtimeInterviewOptions): UseR
         throw new Error('Failed to get session configuration')
       }
 
-      const { token, config, voice } = await sessionResponse.json()
-      console.log('[RealtimeInterview] Got token, voice:', voice)
+      const sessionData = await sessionResponse.json()
+      console.log('[RTC Debug] Response structure:', {
+        hasData: !!sessionData.data,
+        hasSuccess: !!sessionData.success,
+        dataKeys: sessionData.data ? Object.keys(sessionData.data) : [],
+        topLevelKeys: Object.keys(sessionData)
+      })
+
+      const { token, config, voice } = sessionData.data || sessionData
+      console.log('[RTC Debug] Extracted values:', {
+        hasToken: !!token,
+        tokenPrefix: token ? token.substring(0, 10) + '...' : 'MISSING',
+        voice,
+        hasConfig: !!config
+      })
+
+      // GUARD: Validate token
+      if (!token) {
+        throw new Error('Ephemeral token missing from session response')
+      }
 
       // 2. Get user media (microphone)
       console.log('[RealtimeInterview] Requesting microphone...')
@@ -426,34 +447,70 @@ export function useRealtimeInterview(options: UseRealtimeInterviewOptions): UseR
       }
 
       // 8. Create and set local offer
-      console.log('[RealtimeInterview] Creating offer...')
+      console.log('[RTC] Creating offer...')
       const offer = await pc.createOffer()
-      await pc.setLocalDescription(offer)
+      console.log('[RTC] Offer created successfully')
 
-      // 9. Send offer to OpenAI and get answer
-      console.log('[RealtimeInterview] Sending offer to OpenAI...')
+      await pc.setLocalDescription(offer)
+      console.log('[RTC] Local description set')
+
+      // 9. Wait for ICE gathering to complete
+      console.log('[RTC] Waiting for ICE gathering... (state:', pc.iceGatheringState, ')')
+      if (pc.iceGatheringState !== 'complete') {
+        await new Promise<void>((resolve) => {
+          const onStateChange = () => {
+            console.log('[RTC] ICE gathering state:', pc.iceGatheringState)
+            if (pc.iceGatheringState === 'complete') {
+              pc.removeEventListener('icegatheringstatechange', onStateChange)
+              resolve()
+            }
+          }
+          pc.addEventListener('icegatheringstatechange', onStateChange)
+
+          // Timeout after 5 seconds
+          setTimeout(() => {
+            pc.removeEventListener('icegatheringstatechange', onStateChange)
+            console.log('[RTC] ICE gathering timeout, proceeding anyway')
+            resolve()
+          }, 5000)
+        })
+      }
+      console.log('[RTC] ICE gathering complete')
+
+      // 10. Send offer to OpenAI as FormData
+      console.log('[RTC] Sending SDP to OpenAI...')
+      console.log('[RTC] Authorization header:', token ? `Bearer ${token.substring(0, 15)}...` : 'MISSING TOKEN')
+
+      const formData = new FormData()
+      formData.append('sdp', offer.sdp || '')
+
       const sdpResponse = await fetch(
-        'https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview',
+        'https://api.openai.com/v1/realtime/calls',
         {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/sdp'
+            'OpenAI-Beta': 'realtime=v1'
           },
-          body: offer.sdp
+          body: formData
         }
       )
 
+      console.log('[RTC] SDP response status:', sdpResponse.status, sdpResponse.statusText)
+
       if (!sdpResponse.ok) {
         const errorText = await sdpResponse.text()
+        console.error('[RTC] SDP request failed:', sdpResponse.status, errorText)
         throw new Error(`OpenAI connection failed: ${sdpResponse.status} ${errorText}`)
       }
 
       const answerSdp = await sdpResponse.text()
-      console.log('[RealtimeInterview] Got SDP answer')
+      console.log('[RTC] Got SDP answer from OpenAI')
 
       await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp })
-      console.log('[RealtimeInterview] Connection established')
+      console.log('[RTC] Remote description set - Connection established!')
+
+      connectingRef.current = false // Reset on success
 
     } catch (err) {
       console.error('[RealtimeInterview] Connection error:', err)
@@ -466,6 +523,12 @@ export function useRealtimeInterview(options: UseRealtimeInterviewOptions): UseR
 
   // Cleanup resources
   const cleanup = useCallback(() => {
+    // GUARD: Don't cleanup during CONNECTING (prevents Fast Refresh issues)
+    if (stateRef.current === 'CONNECTING') {
+      console.log('[RealtimeInterview] Skipping cleanup - currently CONNECTING')
+      return
+    }
+
     console.log('[RealtimeInterview] Cleaning up...')
 
     if (animationFrameRef.current) {

@@ -30,7 +30,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { PracticeStatsCard } from '@/components/practice/PracticeStatsCard'
-import { getPersonaByVoiceId } from '@/lib/data/interviewerPersonas'
+import { getPersonaByName } from '@/lib/data/interviewerPersonas'
 
 interface MockInterview {
   id: string
@@ -193,7 +193,7 @@ export default function MockInterviewsPage() {
 
   const getInterviewerPhoto = (interview: MockInterview) => {
     if (interview.interviewer_voice) {
-      const persona = getPersonaByVoiceId(interview.interviewer_voice)
+      const persona = getPersonaByName(interview.interviewer_voice)
       return persona?.photoUrl
     }
     return undefined
@@ -231,7 +231,7 @@ export default function MockInterviewsPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] max-w-[1800px] mx-auto overflow-hidden">
+    <div className="flex flex-col max-w-[1800px] mx-auto">
       {/* Header Section */}
       <div className="flex flex-col px-4 pt-1 mb-6">
         <div className="flex items-center justify-between gap-6 mb-4">
@@ -288,7 +288,7 @@ export default function MockInterviewsPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-8">
+      <div className="px-4 pb-8">
         {/* Stats Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <PracticeStatsCard
@@ -508,12 +508,12 @@ export default function MockInterviewsPage() {
                         </div>
 
                         {/* Score or Action */}
-                        {interview.status === 'completed' && interview.overall_score !== undefined ? (
+                        {interview.status === 'completed' && interview.overall_score != null ? (
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 px-3 py-2 bg-purple-500/20 rounded-lg">
                               <TrendingUp className="w-4 h-4 text-purple-400" />
                               <span className="text-sm font-bold text-purple-400">
-                                Score: {interview.overall_score.toFixed(1)}/10
+                                Score: {(interview.overall_score || 0).toFixed(1)}/10
                               </span>
                             </div>
                             <button className="text-xs text-white/40 hover:text-white transition-colors">
@@ -567,8 +567,8 @@ export default function MockInterviewsPage() {
                             {interview.company_name || '—'}
                           </div>
                           <div className="col-span-2 text-center">
-                            {interview.status === 'completed' && interview.overall_score !== undefined ? (
-                              <span className="text-purple-400 font-bold">{interview.overall_score.toFixed(1)}/10</span>
+                            {interview.status === 'completed' && interview.overall_score != null ? (
+                              <span className="text-purple-400 font-bold">{(interview.overall_score || 0).toFixed(1)}/10</span>
                             ) : (
                               getStatusBadge(interview.status)
                             )}

@@ -44,32 +44,92 @@ export const POWER_WORD_SYNONYMS: Record<string, string[]> = {
   'negotiated': ['Brokered', 'Mediated', 'Bargained', 'Settled', 'Arranged'],
 
   // Customer & Service
-  'helped': ['Assisted', 'Supported', 'Aided', 'Facilitated', 'Enabled'],
+  'helped': ['Enabled', 'Facilitated', 'Empowered', 'Supported', 'Aided'],
   'served': ['Assisted', 'Supported', 'Helped', 'Catered to', 'Attended'],
-  'supported': ['Assisted', 'Aided', 'Backed', 'Championed', 'Facilitated'],
+  'supported': ['Championed', 'Enabled', 'Facilitated', 'Bolstered', 'Strengthened'],
 
   // Financial & Business
   'saved': ['Conserved', 'Preserved', 'Reduced costs by', 'Cut expenses by'],
   'generated': ['Produced', 'Created', 'Yielded', 'Delivered', 'Secured'],
   'sold': ['Marketed', 'Promoted', 'Closed', 'Secured', 'Negotiated'],
+
+  // Weak phrase alternatives
+  'responsible for': ['Spearheaded', 'Led', 'Managed', 'Directed', 'Oversaw'],
+  'assisted': ['Collaborated on', 'Contributed to', 'Partnered in', 'Supported', 'Enabled'],
+  'assisted in': ['Collaborated on', 'Contributed to', 'Partnered in', 'Co-developed'],
+  'assisted with': ['Collaborated on', 'Contributed to', 'Partnered with'],
+  'provided': ['Delivered', 'Supplied', 'Furnished', 'Equipped', 'Offered'],
+  'provided support': ['Enabled', 'Empowered', 'Facilitated', 'Bolstered'],
+  'participated in': ['Contributed to', 'Engaged in', 'Collaborated on'],
+  'worked on': ['Developed', 'Built', 'Created', 'Crafted', 'Engineered'],
+  'worked with': ['Collaborated with', 'Partnered with', 'Teamed with'],
+  'was responsible': ['Oversaw', 'Managed', 'Directed', 'Led'],
+  'tasked with': ['Entrusted to', 'Charged with', 'Commissioned to'],
+  'in charge of': ['Directed', 'Managed', 'Oversaw', 'Supervised'],
+  'as required': ['strategically', 'proactively', 'as priorities demanded'],
+  'as needed': ['strategically', 'proactively', 'on demand'],
 }
 
 /**
- * Weak words to avoid in resumes
+ * Weak words and phrases to avoid in resumes
+ * These will be highlighted with suggestions for stronger alternatives
  */
 export const WEAK_WORDS = [
+  // Common weak starters
   'responsible for',
   'duties included',
+  'duties include',
   'worked on',
+  'worked with',
   'helped with',
-  'did',
-  'made',
-  'got',
-  'tried to',
+  'helped to',
+  'assisted in',
+  'assisted with',
+  'was tasked with',
+  'tasked with',
+  'in charge of',
+
+  // Weak verbs (when starting a bullet)
+  'provided support',
+  'provided assistance',
+  'gave support',
+  'participated in',
+  'was involved in',
+  'involved in',
+  'took part in',
+
+  // Vague quantifiers
   'various',
   'many',
   'several',
   'numerous',
+  'some',
+  'a lot of',
+  'multiple',
+
+  // Weak action words
+  'did',
+  'made',
+  'got',
+  'tried to',
+  'attempted to',
+  'sought to',
+  'aimed to',
+  'worked to',
+
+  // Passive phrases
+  'was responsible',
+  'was assigned',
+  'was given',
+  'was part of',
+
+  // Filler phrases
+  'on a daily basis',
+  'day-to-day',
+  'etc.',
+  'and so on',
+  'as needed',
+  'as required',
 ]
 
 /**

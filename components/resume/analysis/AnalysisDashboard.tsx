@@ -12,8 +12,10 @@ import { QuantificationScore } from './QuantificationScore'
 import { KeywordCoverage } from './KeywordCoverage'
 import { BulletImprovements } from './BulletImprovements'
 import { ATSHealthCheck } from './ATSHealthCheck'
+import { BulletAnalysisPanel } from './BulletAnalysisPanel'
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
+import { ParsedResume } from '@/lib/types/resume'
 
 const SkillsRadarChart = dynamic(
   () => import('./RadarChart').then((mod) => mod.default),
@@ -117,8 +119,10 @@ interface AnalysisDashboardProps {
   jobTitle?: string
   company?: string
   resumeText?: string
+  resumeData?: ParsedResume
   industry?: string
   onApplyBulletImprovement?: (improvement: { before: string; after: string; reason: string }) => void
+  onBulletImprovementsApplied?: (improvements: Array<{ original: string; improved: string }>) => void
 }
 
 // Helper to safely render coaching text (handles both string and object formats)
@@ -176,8 +180,39 @@ const formatTextWithBullets = (text: string) => {
   )
 }
 
-export function AnalysisDashboard({ data, onFixIssue, onOptimizeResume, isOptimizing, jobTitle, company, resumeText, industry, onApplyBulletImprovement }: AnalysisDashboardProps) {
+export function AnalysisDashboard({ data, onFixIssue, onOptimizeResume, isOptimizing, jobTitle, company, resumeText, resumeData, industry, onApplyBulletImprovement, onBulletImprovementsApplied }: AnalysisDashboardProps) {
   const [expandedRoadmapStep, setExpandedRoadmapStep] = useState<number | null>(null)
+  const [isImprovingBullets, setIsImprovingBullets] = useState(false)
+
+  // Handler for AI bullet improvements
+  const handleImproveWithAI = async (bulletTexts: string[]) => {
+    if (!resumeData || !onBulletImprovementsApplied) return
+
+    setIsImprovingBullets(true)
+    try {
+      const response = await fetch('/api/resume/improve-bullets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bullets: bulletTexts.map(text => ({ text })),
+          industry,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to improve bullets')
+      }
+
+      const data = await response.json()
+      if (data.success && data.data.improvements) {
+        onBulletImprovementsApplied(data.data.improvements)
+      }
+    } catch (error) {
+      console.error('Error improving bullets:', error)
+    } finally {
+      setIsImprovingBullets(false)
+    }
+  }
 
   if (!data) {
     return (
@@ -522,6 +557,17 @@ export function AnalysisDashboard({ data, onFixIssue, onOptimizeResume, isOptimi
             onApplyImprovement={onApplyBulletImprovement ? (improvement) => {
               onApplyBulletImprovement(improvement)
             } : undefined}
+          />
+        </motion.div>
+      )}
+
+      {/* Bullet Analysis Panel - Real-time bullet quality analysis with AI improvement */}
+      {resumeData && (
+        <motion.div variants={item}>
+          <BulletAnalysisPanel
+            resumeData={resumeData}
+            onImproveWithAI={onBulletImprovementsApplied ? handleImproveWithAI : undefined}
+            isImproving={isImprovingBullets}
           />
         </motion.div>
       )}

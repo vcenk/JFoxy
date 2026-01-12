@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Loader2, AlertCircle, Mic, Volume2 } from 'lucide-react'
 import InterviewRoom from '@/components/mock/InterviewRoom'
 import ConversationTranscript from '@/components/mock/ConversationTranscript'
-import { getPersonaByVoiceId } from '@/lib/data/interviewerPersonas'
+import { getPersonaByName } from '@/lib/data/interviewerPersonas'
 import { useRealtimeInterview } from '@/lib/hooks/useRealtimeInterview'
 import { InterviewPhase } from '@/lib/services/realtimeClient'
 
@@ -36,29 +36,36 @@ export default function LiveInterviewPage({ params }: { params: { id: string } }
   const [hasPermission, setHasPermission] = useState(false)
   const [showTranscript, setShowTranscript] = useState(false)
 
+  // Stable callback refs
+  const handlePhaseChange = useCallback((phase: InterviewPhase) => {
+    console.log('[Interview] Phase changed:', phase)
+    setSession(prev => prev ? { ...prev, current_phase: phase } : null)
+  }, [])
+
+  const handleError = useCallback((error: Error) => {
+    console.error('[Interview] Error:', error.message)
+  }, [])
+
+  const handleComplete = useCallback(() => {
+    console.log('[Interview] Completed')
+    // Small delay then redirect to report
+    setTimeout(() => {
+      router.push(`/dashboard/mock/${id}/report`)
+    }, 2000)
+  }, [id, router])
+
   // Realtime interview hook
   const interview = useRealtimeInterview({
     sessionId: id,
-    onPhaseChange: (phase) => {
-      console.log('[Interview] Phase changed:', phase)
-      setSession(prev => prev ? { ...prev, current_phase: phase } : null)
-    },
-    onError: (error) => {
-      console.error('[Interview] Error:', error)
-    },
-    onComplete: () => {
-      console.log('[Interview] Completed')
-      // Small delay then redirect to report
-      setTimeout(() => {
-        router.push(`/dashboard/mock/${id}/report`)
-      }, 2000)
-    }
+    onPhaseChange: handlePhaseChange,
+    onError: handleError,
+    onComplete: handleComplete
   })
 
   // Get interviewer photo from persona
   const getInterviewerPhoto = () => {
     if (!session) return undefined
-    const persona = getPersonaByVoiceId(session.interviewer_voice)
+    const persona = getPersonaByName(session.interviewer_voice)
     return persona?.photoUrl
   }
 

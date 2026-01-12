@@ -554,15 +554,20 @@ export const JobAnalysisView = forwardRef<JobAnalysisViewRef, JobAnalysisViewPro
       const updatedBullets = exp.bullets.map(bullet => {
         if (found) return bullet
 
-        // Extract plain text from RichText
-        const bulletText = jsonToPlainText(bullet)
+        // Extract plain text from RichText - handle both old format (direct RichText) and new format (BulletItem)
+        const bulletContent = (bullet as any).content || bullet
+        const bulletText = jsonToPlainText(bulletContent)
         const normalizedBullet = normalizeText(bulletText)
 
         // Check if this bullet matches the "before" text (partial match)
         if (normalizedBullet.includes(normalizedBefore) || normalizedBefore.includes(normalizedBullet)) {
           found = true
-          // Replace with the improved version
-          return plainTextToJSON(improvement.after)
+          // Replace with the improved version - preserve BulletItem structure if present
+          const newContent = plainTextToJSON(improvement.after)
+          if ((bullet as any).id !== undefined) {
+            return { ...bullet, content: newContent }
+          }
+          return newContent
         }
 
         return bullet
@@ -572,15 +577,69 @@ export const JobAnalysisView = forwardRef<JobAnalysisViewRef, JobAnalysisViewPro
     })
 
     if (found) {
-      // Update the resume data
+      // Update the resume data (cast to any to handle backward compatibility)
       setResumeData({
         ...resumeData,
-        experience: updatedExperience
+        experience: updatedExperience as any
       })
       // Show success (could use a toast notification in the future)
       console.log('Successfully applied improvement to resume!')
     } else {
       setError(`Could not find matching bullet in resume. The bullet may have already been changed.`)
+    }
+  }
+
+  // Handle batch bullet improvements from the BulletAnalysisPanel
+  const handleBulletImprovementsApplied = (improvements: Array<{ original: string; improved: string }>) => {
+    if (!resumeData.experience || resumeData.experience.length === 0) {
+      setError('No experience section found in resume.')
+      return
+    }
+
+    // Normalize text for comparison
+    const normalizeText = (text: string) => text.replace(/[""]/g, '"').replace(/\s+/g, ' ').trim().toLowerCase()
+
+    let updatedCount = 0
+
+    // Process improvements one by one
+    const updatedExperience = resumeData.experience.map(exp => {
+      const updatedBullets = exp.bullets.map(bullet => {
+        // Extract plain text from RichText
+        const bulletContent = (bullet as any).content || bullet
+        const bulletText = jsonToPlainText(bulletContent)
+        const normalizedBullet = normalizeText(bulletText)
+
+        // Check each improvement to see if it matches
+        for (const improvement of improvements) {
+          const normalizedOriginal = normalizeText(improvement.original)
+
+          if (normalizedBullet === normalizedOriginal ||
+              normalizedBullet.includes(normalizedOriginal) ||
+              normalizedOriginal.includes(normalizedBullet)) {
+            updatedCount++
+            // Replace with the improved version - preserve BulletItem structure
+            const newContent = plainTextToJSON(improvement.improved)
+            if ((bullet as any).id !== undefined) {
+              return { ...bullet, content: newContent }
+            }
+            return newContent
+          }
+        }
+
+        return bullet
+      })
+
+      return { ...exp, bullets: updatedBullets }
+    })
+
+    if (updatedCount > 0) {
+      setResumeData({
+        ...resumeData,
+        experience: updatedExperience as any
+      })
+      toast.success(`Successfully improved ${updatedCount} bullet${updatedCount > 1 ? 's' : ''}!`, 5000)
+    } else {
+      setError('Could not find matching bullets in resume. They may have already been changed.')
     }
   }
 
@@ -682,8 +741,10 @@ export const JobAnalysisView = forwardRef<JobAnalysisViewRef, JobAnalysisViewPro
           jobTitle={jobTitle}
           company={company}
           resumeText={resumeRawText || currentResumeText}
+          resumeData={resumeData}
           industry={industry || 'technology'}
           onApplyBulletImprovement={handleApplyBulletImprovement}
+          onBulletImprovementsApplied={handleBulletImprovementsApplied}
         />
 
         {/* Modal must be rendered in THIS return block to work */}
@@ -881,15 +942,6 @@ export const JobAnalysisView = forwardRef<JobAnalysisViewRef, JobAnalysisViewPro
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         featureName="AI Job Analysis"
-      />
-
-      <OptimizeConfirmModal
-        isOpen={showOptimizeModal}
-        onClose={() => setShowOptimizeModal(false)}
-        onConfirm={executeOptimization}
-        bulletImprovementsCount={analysisResult?.bullet_improvements?.length || 0}
-        missingKeywordsCount={analysisResult?.missing_keywords?.length || 0}
-        isLoading={optimizing}
       />
     </div>
   )

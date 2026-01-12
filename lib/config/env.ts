@@ -23,11 +23,6 @@ export const env = {
     get sttModel() { return process.env.DEEPGRAM_STT_MODEL || 'nova-2' },
   },
 
-  // ElevenLabs (for voice-only mock interviews)
-  elevenlabs: {
-    get apiKey() { return process.env.ELEVENLABS_API_KEY || '' },
-  },
-
   // Stripe
   stripe: {
     get secretKey() { return process.env.STRIPE_SECRET_KEY || '' },

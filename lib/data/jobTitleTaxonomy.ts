@@ -2642,9 +2642,9 @@ export const JOB_TITLE_TAXONOMY: Record<string, JobTitleData> = {
     description: 'Researches and develops new products and technologies'
   },
 
-  'automation-engineer': {
-    canonicalTitle: 'Automation Engineer',
-    aliases: ['Controls Engineer', 'Robotics Engineer', 'Automation Specialist'],
+  'industrial-automation-engineer': {
+    canonicalTitle: 'Industrial Automation Engineer',
+    aliases: ['Controls Engineer', 'Robotics Engineer', 'Automation Specialist', 'Automation Engineer'],
     industry: 'engineering',
     suitableLevels: ['mid', 'senior'],
     typicalSkills: {

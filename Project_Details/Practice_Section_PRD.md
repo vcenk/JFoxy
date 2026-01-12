@@ -21,8 +21,8 @@ The "Practice Section" is a core feature of JobFoxy designed to help candidates 
 
 ### 4.1. Session Setup
 *   **Inputs:**
-    *   Select `Resume` (from database).
-    *   Select `Job Description` (from database).
+    *   Select `Resume` (Current Resume).
+    *   Select `Job Description` (Current Job Description used in this resume [id]).
     *   Select `Question Category` (Behavioral, Leadership, etc. - Optional, default to Mixed).
     *   Select `Question Count` (Default: 5).
 *   **Action:** Generate a `Practice Session` and 5 initial STAR questions based on the inputs.
@@ -74,10 +74,7 @@ The core experience follows this loop for each question:
 *   **Dark/Light Mode:** consistent with system theme.
 
 ### 5.2. Key Components
-*   **Interactive Audio Visualizer:**
-    *   **AI Speaking State:** A smooth, undulating waveform or pulsing orb effect (e.g., using blue/purple gradients) that syncs with the TTS audio amplitude. This gives the user a visual focal point while listening.
-    *   **User Listening/Recording State:** A responsive, high-fidelity frequency bar graph or dynamic waveform (e.g., using green/teal gradients) that reacts instantly to the user's microphone input. This provides immediate visual feedback that the system is "hearing" them.
-    *   **Thinking/Processing State:** A subtle, rotating loading ring or breathing animation to indicate the AI is processing the answer.
+*   **Audio Visualizer:** A dynamic waveform that reacts to the user's voice intensity.
 *   **Control Bar:** Large, accessible buttons for Start/Stop/Pause.
 *   **Feedback Card:** An expandable card that reveals the analysis after the answer. It should not clutter the screen while answering.
 *   **Progress Indicator:** "Question 2 of 5".

@@ -68,8 +68,11 @@ export function resumeToPlainText(resume: ParsedResume): string {
       const dateRange = `${exp.startDate || ''} - ${exp.current ? 'Present' : exp.endDate || ''}`
       sections.push(dateRange)
       if (exp.bullets && exp.bullets.length > 0) {
-        exp.bullets.forEach(bullet => {
-          sections.push(`• ${richTextToPlainText(bullet)}`)
+        exp.bullets.forEach((bullet: any) => {
+          // Skip disabled bullets and handle both old RichText and new BulletItem formats
+          if (bullet.enabled === false) return
+          const content = bullet.content || bullet
+          sections.push(`• ${richTextToPlainText(content)}`)
         })
       }
     })
@@ -86,17 +89,27 @@ export function resumeToPlainText(resume: ParsedResume): string {
     })
   }
 
-  // Skills
+  // Skills (handle both old string[] and new SkillCategory[] formats)
   if (resume.skills) {
     sections.push('\n\nSKILLS')
-    if (resume.skills.technical && resume.skills.technical.length > 0) {
-      sections.push(`Technical: ${resume.skills.technical.join(', ')}`)
+    const extractSkillNames = (skills: any[] | undefined): string[] => {
+      if (!skills || !Array.isArray(skills)) return []
+      return skills
+        .filter((s: any) => s.enabled !== false)
+        .map((s: any) => typeof s === 'string' ? s : s.name)
+        .filter(Boolean)
     }
-    if (resume.skills.soft && resume.skills.soft.length > 0) {
-      sections.push(`Soft Skills: ${resume.skills.soft.join(', ')}`)
+    const technical = extractSkillNames(resume.skills.technical)
+    const soft = extractSkillNames(resume.skills.soft)
+    const other = extractSkillNames(resume.skills.other)
+    if (technical.length > 0) {
+      sections.push(`Technical: ${technical.join(', ')}`)
     }
-    if (resume.skills.other && resume.skills.other.length > 0) {
-      sections.push(`Other: ${resume.skills.other.join(', ')}`)
+    if (soft.length > 0) {
+      sections.push(`Soft Skills: ${soft.join(', ')}`)
+    }
+    if (other.length > 0) {
+      sections.push(`Other: ${other.join(', ')}`)
     }
   }
 

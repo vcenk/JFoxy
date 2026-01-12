@@ -135,80 +135,10 @@ export async function POST(
     let nextQuestion = null;
     let isSessionFinished = false;
 
-    if (currentQuestionIndex + 1 < totalQuestionsInSession) {
-      // Fetch session details to get resume/job context for next question generation
-      const { data: sessionData, error: sessionFetchError } = await supabaseAdmin
-        .from('practice_sessions')
-        .select('resume_id, job_description_id, question_category')
-        .eq('id', sessionId)
-        .single();
-
-      if (sessionFetchError || !sessionData) {
-        console.error('Failed to fetch session for next question:', sessionFetchError);
-        return serverErrorResponse('Failed to get context for next question');
-      }
-
-      const { data: resume, error: resumeError } = await supabaseAdmin
-        .from('resumes')
-        .select('raw_text')
-        .eq('id', sessionData.resume_id)
-        .single();
-      if (resumeError || !resume) return badRequestResponse('Resume not found for next question generation');
-
-      let jobText: string | undefined;
-      if (sessionData.job_description_id) {
-        const { data: jd, error: jdError } = await supabaseAdmin
-          .from('job_descriptions')
-          .select('description')
-          .eq('id', sessionData.job_description_id)
-          .single();
-        if (jdError) console.error('Failed to fetch JD for next question:', jdError);
-        jobText = jd?.description;
-      }
-
-      // Map suggested difficulty to engine format
-      const difficultyMap: Record<string, string> = {
-        'easy': 'easy',
-        'medium': 'standard',
-        'hard': 'challenging'
-      }
-      const engineDifficulty = difficultyMap[suggestedDifficulty] || 'standard'
-
-      const nextPlan = await generateInterviewPlan({
-        resumeText: resume.raw_text,
-        jobDescription: jobText,
-        difficulty: engineDifficulty as 'easy' | 'standard' | 'challenging',
-        focus: sessionData.question_category,
-        durationMinutes: 3, // Just generate one question
-      });
-
-      if (nextPlan && nextPlan.questions.length > 0) {
-        const newQ = nextPlan.questions[0];
-        const { data: insertedQuestion, error: insertQError } = await supabaseAdmin
-          .from('practice_questions')
-          .insert({
-            session_id: sessionId,
-            question_text: newQ.text,
-            question_category: newQ.type,
-            difficulty: suggestedDifficulty || 'medium',
-            expected_components: newQ.ideal_answer_points,
-            order_index: currentQuestionIndex + 1,
-          })
-          .select()
-          .single();
-
-        if (insertQError) {
-          console.error('Failed to insert next practice question:', insertQError);
-          return serverErrorResponse('Failed to save next question');
-        }
-        nextQuestion = insertedQuestion;
-      } else {
-        // If AI fails to generate a new question, end session
-        isSessionFinished = true;
-      }
-    } else {
-      isSessionFinished = true;
-    }
+    // TODO: Implement dynamic question generation
+    // For now, end the session since we don't have pre-generated questions
+    // The generateInterviewPlan function needs to be implemented
+    isSessionFinished = true;
 
     return successResponse({
       evaluation,

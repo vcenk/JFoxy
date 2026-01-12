@@ -4,7 +4,6 @@
 export interface BackchannelPhrase {
   text: string
   type: 'acknowledgment' | 'encouragement' | 'thinking' | 'understanding' | 'surprise' | 'agreement'
-  audio_tags?: string  // ElevenLabs audio tags
   duration_estimate: number  // milliseconds
   appropriate_after: number  // seconds of user speaking
 }
@@ -100,21 +99,18 @@ export const BACKCHANNEL_PHRASES: BackchannelPhrase[] = [
   {
     text: 'Interesting',
     type: 'encouragement',
-    audio_tags: '[thoughtful]',
     duration_estimate: 1200,
     appropriate_after: 20
   },
   {
     text: 'Oh, interesting',
     type: 'encouragement',
-    audio_tags: '[awe]',
     duration_estimate: 1500,
     appropriate_after: 22
   },
   {
     text: 'That\'s interesting',
     type: 'encouragement',
-    audio_tags: '[thoughtful]',
     duration_estimate: 1500,
     appropriate_after: 25
   },
@@ -159,21 +155,18 @@ export const BACKCHANNEL_PHRASES: BackchannelPhrase[] = [
   {
     text: 'Hmm',
     type: 'thinking',
-    audio_tags: '[thoughtful]',
     duration_estimate: 800,
     appropriate_after: 20
   },
   {
-    text: 'Hmm [pause]',
+    text: 'Hmm',
     type: 'thinking',
-    audio_tags: '[thoughtful]',
     duration_estimate: 1500,
     appropriate_after: 25
   },
   {
     text: 'I see what you mean',
     type: 'thinking',
-    audio_tags: '[thoughtful]',
     duration_estimate: 1500,
     appropriate_after: 20
   },
@@ -182,35 +175,30 @@ export const BACKCHANNEL_PHRASES: BackchannelPhrase[] = [
   {
     text: 'Oh wow',
     type: 'surprise',
-    audio_tags: '[awe]',
     duration_estimate: 1000,
     appropriate_after: 20
   },
   {
     text: 'Really?',
     type: 'surprise',
-    audio_tags: '[awe]',
     duration_estimate: 900,
     appropriate_after: 18
   },
   {
     text: 'Oh, really?',
     type: 'surprise',
-    audio_tags: '[awe]',
     duration_estimate: 1200,
     appropriate_after: 20
   },
   {
     text: 'That\'s impressive',
     type: 'surprise',
-    audio_tags: '[awe]',
     duration_estimate: 1500,
     appropriate_after: 25
   },
   {
     text: 'Wow',
     type: 'surprise',
-    audio_tags: '[awe]',
     duration_estimate: 700,
     appropriate_after: 18
   },
@@ -371,16 +359,6 @@ export function getResponseCloser(): string {
  */
 export function getTransitionPhrase(): string {
   return TRANSITION_PHRASES[Math.floor(Math.random() * TRANSITION_PHRASES.length)]
-}
-
-/**
- * Format backchannel with audio tags
- */
-export function formatBackchannel(backchannel: BackchannelPhrase): string {
-  if (backchannel.audio_tags) {
-    return `${backchannel.audio_tags} ${backchannel.text}`
-  }
-  return backchannel.text
 }
 
 /**

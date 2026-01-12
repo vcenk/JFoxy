@@ -66,9 +66,8 @@ Return JSON with this exact structure:
   ],
   "skills": {
     "technical": ["JavaScript", "Python"],
-    "languages": ["English", "Spanish"],
-    "tools": ["Git", "Docker"],
-    "certifications": ["AWS Certified"]
+    "soft": ["Leadership", "Communication"],
+    "other": ["Project Management"]
   },
   "projects": [
     {
@@ -77,10 +76,54 @@ Return JSON with this exact structure:
       "technologies": ["React", "Node.js"],
       "link": "https://..."
     }
+  ],
+  "certifications": [
+    {
+      "name": "Certification Name",
+      "issuer": "Issuing Organization",
+      "date": "Jan 2023"
+    }
+  ],
+  "languages": [
+    {
+      "language": "English",
+      "fluency": "Native"
+    },
+    {
+      "language": "Spanish",
+      "fluency": "Intermediate"
+    }
+  ],
+  "awards": [
+    {
+      "title": "Award Name",
+      "issuer": "Organization",
+      "date": "2023",
+      "description": "Award description"
+    }
+  ],
+  "volunteer": [
+    {
+      "organization": "Organization Name",
+      "role": "Volunteer Role",
+      "startDate": "Jan 2020",
+      "endDate": "Present",
+      "current": true,
+      "description": "Volunteer work description"
+    }
+  ],
+  "publications": [
+    {
+      "title": "Publication Title",
+      "publisher": "Publisher Name",
+      "date": "2023",
+      "link": "https://...",
+      "description": "Brief description"
+    }
   ]
 }
 
-Only include fields that are present in the resume. Use null for missing data.
+Extract ALL sections that exist in the resume. Only include fields that are present. Use empty arrays [] for sections with no data.
 `.trim()
 
   try {

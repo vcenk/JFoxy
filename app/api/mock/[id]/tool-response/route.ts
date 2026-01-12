@@ -57,7 +57,7 @@ export async function POST(
 
     // Verify session belongs to user (using mock_interviews table)
     const { data: session, error: sessionError } = await supabaseAdmin
-      .from('mock_interviews')
+      .from('mock_interview_sessions')
       .select('*')
       .eq('id', sessionId)
       .eq('user_id', user.id)
@@ -96,9 +96,9 @@ async function handleSaveAnswer(
 
   console.log('[Tool Response] Saving answer for question:', question_index)
 
-  // Get the question from planned_questions
-  const plannedQuestions = session.planned_questions || {}
-  const questions = plannedQuestions.questions || []
+  // Get the question from interview_plan
+  const interviewPlan = session.interview_plan || {}
+  const questions = interviewPlan.questions || []
   const question = questions[question_index]
 
   if (!question) {
@@ -110,27 +110,22 @@ async function handleSaveAnswer(
   const { error: updateError } = await supabaseAdmin
     .from('mock_interview_exchanges')
     .update({
-      user_transcript: answer_summary,
-      star_completeness: used_star_method ? { used_star: true } : { used_star: false },
+      user_answer_text: answer_summary,
+      star_components: used_star_method ? { used_star: true } : { used_star: false },
       answer_score: answer_quality === 'strong' ? 8 : answer_quality === 'average' ? 5 : 3
     })
-    .eq('mock_interview_id', sessionId)
-    .eq('exchange_order', question_index + 1) // exchange_order is 1-based
+    .eq('session_id', sessionId)
+    .eq('order_index', question_index + 1) // order_index is 1-based
 
   if (updateError) {
     console.error('[Tool Response] Update error:', updateError)
   }
 
-  // Update current_question_index in planned_questions
-  const updatedPlannedQuestions = {
-    ...plannedQuestions,
-    current_question_index: question_index + 1
-  }
-
+  // Update current_question_index in session
   await supabaseAdmin
-    .from('mock_interviews')
+    .from('mock_interview_sessions')
     .update({
-      planned_questions: updatedPlannedQuestions,
+      current_question_index: question_index + 1,
       updated_at: new Date().toISOString()
     })
     .eq('id', sessionId)
@@ -151,17 +146,11 @@ async function handleAdvancePhase(
 
   console.log('[Tool Response] Advancing to phase:', next_phase, 'Reason:', reason)
 
-  // Update current_phase in planned_questions
-  const plannedQuestions = session.planned_questions || {}
-  const updatedPlannedQuestions = {
-    ...plannedQuestions,
-    current_phase: next_phase
-  }
-
+  // Update current_phase in session
   const { error: updateError } = await supabaseAdmin
-    .from('mock_interviews')
+    .from('mock_interview_sessions')
     .update({
-      planned_questions: updatedPlannedQuestions,
+      current_phase: next_phase,
       updated_at: new Date().toISOString()
     })
     .eq('id', sessionId)
@@ -186,24 +175,13 @@ async function handleEndInterview(
 
   console.log('[Tool Response] Ending interview:', reason, overall_impression)
 
-  // Store completion info in planned_questions
-  const plannedQuestions = session.planned_questions || {}
-  const updatedPlannedQuestions = {
-    ...plannedQuestions,
-    current_phase: 'completed',
-    completion_info: {
-      reason,
-      overall_impression,
-      timestamp: new Date().toISOString()
-    }
-  }
-
   // Update session status
   const { error: updateError } = await supabaseAdmin
-    .from('mock_interviews')
+    .from('mock_interview_sessions')
     .update({
       status: 'completed',
-      planned_questions: updatedPlannedQuestions,
+      current_phase: 'completed',
+      feedback_summary: overall_impression,
       completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     })

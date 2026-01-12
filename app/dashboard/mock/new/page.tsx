@@ -14,7 +14,7 @@ interface Resume {
 interface JobDescription {
   id: string
   title: string
-  company_name?: string
+  company?: string
   description: string
 }
 
@@ -213,7 +213,7 @@ export default function NewMockInterviewPage() {
               <option value="">General interview (no specific job)</option>
               {jobDescriptions.map((jd) => (
                 <option key={jd.id} value={jd.id}>
-                  {jd.title} {jd.company_name ? `at ${jd.company_name}` : ''}
+                  {jd.title} {jd.company ? `at ${jd.company}` : ''}
                 </option>
               ))}
             </select>

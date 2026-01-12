@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const { data: interviews, error } = await supabaseAdmin
-      .from('mock_interviews')
+      .from('mock_interview_sessions')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -33,20 +33,20 @@ export async function GET(req: NextRequest) {
 
     // Transform to UI-friendly format
     const transformedInterviews = (interviews || []).map(interview => {
-      const plannedQuestions = interview.planned_questions || {}
+      const interviewPlan = interview.interview_plan || {}
       return {
         id: interview.id,
-        job_title: plannedQuestions.job_title || interview.focus || 'Interview',
-        company_name: plannedQuestions.company_name || 'Company',
+        job_title: interview.job_title || 'Interview',
+        company_name: interview.company_name || 'Company',
         duration_minutes: interview.duration_minutes,
         status: interview.status,
         overall_score: interview.overall_score,
-        current_phase: plannedQuestions.current_phase || 'welcome',
-        total_questions: plannedQuestions.questions?.length || 0,
+        current_phase: interview.current_phase || 'welcome',
+        total_questions: interview.total_questions || interviewPlan.questions?.length || 0,
         created_at: interview.created_at,
         completed_at: interview.completed_at,
-        interviewer_name: plannedQuestions.interviewer_name,
-        interviewer_voice: interview.persona_id
+        interviewer_name: interview.interviewer_name,
+        interviewer_voice: interview.interviewer_voice
       }
     })
 

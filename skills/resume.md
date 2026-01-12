@@ -7,7 +7,8 @@ Use this agent for all resume-related features including builder, analysis, temp
 - Resume library and management (grid/list view)
 - Resume analysis and optimization (ATS, JD matching, power words)
 - AI-powered optimization engine
-- Professional resume templates
+- Professional resume templates (Classic, Modern, Minimal)
+- React-PDF generation with custom fonts
 - Resume examples generation (by job title and industry)
 - Resume parsing (PDF, Word, LinkedIn)
 - Cover letter generation from resume
@@ -27,25 +28,71 @@ Use this agent for all resume-related features including builder, analysis, temp
   - `ZoomControls.tsx` - Canvas zoom controls
   - `AnalysisPanel.tsx` - Integrated analysis panel
   - `TemplatePreviewModal.tsx` - Template preview/switcher
+  - `PDFPreview.tsx` - React-PDF preview component with zoom controls
 - `contexts/ResumeContext.tsx` - Resume state management (section order, designer settings, templates)
 
-### Resume Forms (Section Editors)
-- `components/resume/forms/*` - All section editing forms
-  - `ContactForm.tsx` - Contact information
-  - `SummaryForm.tsx` - Professional summary
-  - `WorkForm.tsx` - Work experience
-  - `EducationForm.tsx` - Education
-  - `SkillsForm.tsx` - Skills (technical, soft, other)
-  - `ProjectForm.tsx` - Projects
-  - `CertificationForm.tsx` - Certifications
-  - `AwardForm.tsx` - Awards & honors
-  - `VolunteerForm.tsx` - Volunteer experience
-  - `PublicationForm.tsx` - Publications
-  - `LanguageForm.tsx` - Languages
-  - `TargetTitleForm.tsx` - Target job title
+### PDF Generation System (React-PDF)
+- `lib/pdf/types.ts` - TypeScript types for PDF rendering
+  - `ResumeDesign` - Design settings interface
+  - `FontFamily` - Available fonts (helvetica, times, courier, inter, roboto, open-sans, lato, merriweather, source-sans)
+  - `CustomMargins`, `CustomSpacing`, `CustomFontSizes` - Numeric overrides
+  - `PageNumberPosition` - Page number placement options
+- `lib/pdf/styles/index.ts` - Style computation and utilities
+  - `computeStyles()` - Converts design settings to computed styles
+  - `createPageStyles()`, `createTypographyStyles()`, etc.
+- `lib/pdf/styles/presets.ts` - Design presets
+  - `MARGIN_PRESETS` - Compact, Normal, Spacious margins
+  - `FONT_SIZE_PRESETS` - Small, Normal, Large font sizes
+  - `SPACING_PRESETS` - Compact, Normal, Relaxed spacing
+  - `COLOR_PRESETS` - Professional, Modern, Bold, Minimal, Creative, Warm
+  - `FONT_FAMILY_MAP` - Maps font IDs to React-PDF font names
+- `lib/pdf/fonts/register.ts` - Custom font registration
+  - Registers TTF fonts from `/public/fonts/`
+  - Supports: Inter, Roboto, Open Sans, Lato, Merriweather, Source Sans Pro
 
-### Resume Sections (Renderers)
-- `components/resume/sections/*` - Section rendering components
+### PDF Templates
+- `lib/pdf/templates/index.ts` - Template registry and factory
+- `lib/pdf/templates/ClassicTemplate.tsx` - Traditional single-column layout
+- `lib/pdf/templates/ModernTemplate.tsx` - Two-column with sidebar
+- `lib/pdf/templates/MinimalTemplate.tsx` - Clean typography-focused design
+
+### PDF Sections (React-PDF Components)
+- `lib/pdf/sections/*` - Reusable PDF section components
+  - `HeaderSection.tsx` - Name, title, contact info
+  - `SummarySection.tsx` - Professional summary
+  - `ExperienceSection.tsx` - Work experience with bullets
+  - `EducationSection.tsx` - Education entries
+  - `SkillsSection.tsx` - Skills grid/list
+  - `ProjectsSection.tsx` - Projects
+  - `CertificationsSection.tsx` - Certifications
+  - `AwardsSection.tsx` - Awards & honors
+  - `LanguagesSection.tsx` - Languages
+  - `VolunteerSection.tsx` - Volunteer experience
+  - `PublicationsSection.tsx` - Publications
+  - `PageNumber.tsx` - Fixed page number component
+
+### PDF Utilities
+- `lib/pdf/utils/richTextToPlain.ts` - Convert TipTap JSON to plain text
+- `lib/pdf/utils/dateFormatter.ts` - Format dates for PDF
+- `lib/pdf/utils/designerAdapter.ts` - Convert legacy settings to new format
+
+### PDF Design Panel
+- `components/resume/design/PDFDesignPanel.tsx` - Word-style design controls
+  - Typography: Font family, sizes (name/section/body), heading style, alignment, date format
+  - Page Layout: Paper size, margins (numeric), spacing (numeric), line height (numeric), page numbers
+  - Colors: Theme presets, custom accent color
+  - Sections: Enable/disable, custom titles, skill columns
+
+### Custom Fonts (TTF Files)
+- `/public/fonts/Inter/` - Inter Regular, Medium, SemiBold, Bold
+- `/public/fonts/Roboto/` - Roboto Regular, Medium, Bold
+- `/public/fonts/OpenSans/` - Open Sans Regular, SemiBold, Bold
+- `/public/fonts/Lato/` - Lato Regular, Bold
+- `/public/fonts/Merriweather/` - Merriweather Regular, Bold
+- `/public/fonts/SourceSansPro/` - Source Sans Pro Regular, SemiBold, Bold
+
+### Resume Sections (Canvas Renderers)
+- `components/resume/sections/*` - Section rendering components for canvas
   - `ContactSection.tsx`, `SummarySection.tsx`, `ExperienceSection.tsx`
   - `EducationSection.tsx`, `SkillsSection.tsx`, `ProjectsSection.tsx`
   - `CertificationsSection.tsx`, `AwardsSection.tsx`, `VolunteerSection.tsx`
@@ -84,14 +131,7 @@ Use this agent for all resume-related features including builder, analysis, temp
 - `lib/data/powerWords.ts` - 900+ power word synonyms
 - `lib/data/atsKeywords.ts` - ATS keywords for 10+ industries
 - `lib/data/jobTitleTaxonomy.ts` - 200+ job titles with metadata
-
-### Resume Templates
-- `lib/resumeThemes.ts` - Template definitions
-- `components/resume/templates/*` - Template implementations
-  - `TemplateRenderer.tsx` - Main template renderer
-  - `MinimalTemplate.tsx` - Minimal template
-  - `shared/TemplateLayout.tsx` - Shared layout utilities
-- `components/resume/studio/templates/ModernTemplate.tsx` - Modern template
+- `lib/data/colorPresets.ts` - Color theme definitions
 
 ### Resume Examples
 - `app/resume/examples/page.tsx` - Public examples gallery
@@ -108,6 +148,7 @@ Use this agent for all resume-related features including builder, analysis, temp
 - `lib/utils/richTextHelpers.ts` - TipTap rich text utilities
 - `lib/types/resume.ts` - TypeScript type definitions (ParsedResume with RichText)
 - `lib/types/analysis.ts` - Analysis type definitions
+- `lib/types/designer.ts` - Designer settings types
 - `components/resume/LinkedInImportModal.tsx` - LinkedIn import UI
 - `components/resume/ResumeUploadModal.tsx` - Resume upload UI
 - `lib/sectionRegistry.ts` - Section configuration registry
@@ -132,6 +173,12 @@ Use this agent for all resume-related features including builder, analysis, temp
 - `POST /api/resume/optimize` - Optimize resume with power words
 - `POST /api/resume/optimize-ai` - AI-powered optimization
 - `POST /api/resume/rewrite` - Rewrite sections with AI
+
+### Resume AI Content Generation
+- `POST /api/resume/generate-bullets` - Generate bullet points
+- `POST /api/resume/generate-summary` - Generate professional summary
+- `POST /api/resume/optimize-bullet` - Optimize individual bullet
+- `POST /api/resume/suggest-skills` - Suggest skills for role
 
 ### Resume Parsing & Import
 - `POST /api/resume/parse` - Parse PDF/Word documents
@@ -174,29 +221,37 @@ Resume text fields (summary, bullets) use TipTap JSONContent format, NOT plain s
   - `plainTextToJSON()` - Convert string to JSONContent
   - `jsonToPlainText()` - Convert JSONContent to string
 
-### Designer Settings (ResumeContext)
-Available in `contexts/ResumeContext.tsx`:
-- Font: inter, sf-pro, roboto, lato, open-sans, montserrat, raleway, poppins, playfair, merriweather, georgia, times
-- Paper: letter, a4
-- Date formats: MM/YYYY, Month Year, Mon YYYY, YYYY-MM, YYYY
-- Section customization: visibility, custom titles, layout, list styles
-- Typography: font sizes (name, headings, body), weights, styles, letter spacing
+### PDF Design Settings (ResumeDesign)
+Available in `lib/pdf/types.ts`:
+- **Fonts**: helvetica, times, courier (built-in) + inter, roboto, open-sans, lato, merriweather, source-sans (custom)
+- **Paper sizes**: letter, a4
+- **Margins**: Preset (compact/normal/spacious) or custom numeric (24-72pt)
+- **Spacing**: Preset (compact/normal/relaxed) or custom numeric (section: 8-28pt, item: 4-16pt)
+- **Line height**: 1.0 to 2.0 (default 1.15)
+- **Font sizes**: Preset (small/normal/large) or custom numeric
+- **Date formats**: MM/YYYY, Month Year, Mon YYYY, YYYY
+- **Page numbers**: Optional, position (bottom-center, bottom-right)
+- **Section customization**: visibility, custom titles, skill columns
+
+### PDF Re-rendering
+The PDFViewer uses a `key` prop that changes when design settings change. If adding new design fields, update the `pdfKey` in `components/resume/studio/PDFPreview.tsx`.
 
 ## Common Tasks
-- Add new resume templates
+- Add new resume templates (create in `lib/pdf/templates/`)
+- Add new fonts (download TTF to `/public/fonts/`, register in `lib/pdf/fonts/register.ts`)
 - Update resume analysis algorithms
 - Improve power words detection
 - Add new ATS keywords for industries
 - Create new resume sections
 - Update resume builder UI
 - Generate new resume examples
-- Improve PDF/DOCX export quality
+- Improve PDF export quality
 - Update LinkedIn parser
 - Enhance AI optimization engine
 
 ## Related Systems
+- React-PDF (@react-pdf/renderer) for PDF generation
 - OpenAI GPT-4 for AI analysis and optimization
-- PDF generation (jsPDF)
 - DOCX generation (docx library)
 - Document parsing (unpdf, mammoth)
 - TipTap for rich text editing
@@ -205,6 +260,7 @@ Available in `contexts/ResumeContext.tsx`:
 ## Design Patterns
 - Context API for resume state management (ResumeContext)
 - Component composition for sections
-- Factory pattern for template rendering
+- Factory pattern for template rendering (`getTemplateComponent()`)
 - Strategy pattern for different parsers
 - Real-time sync with database via useAutoSave hook
+- Preset + custom override pattern for design settings

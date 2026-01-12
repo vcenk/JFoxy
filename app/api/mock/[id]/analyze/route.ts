@@ -49,7 +49,7 @@ export async function POST(
 
     // 1. Fetch Session (using mock_interviews table)
     const { data: session, error: sessionError } = await supabaseAdmin
-      .from('mock_interviews')
+      .from('mock_interview_sessions')
       .select('*')
       .eq('id', sessionId)
       .eq('user_id', user.id)
@@ -59,7 +59,7 @@ export async function POST(
       return badRequestResponse('Interview session not found or access denied')
     }
 
-    const plannedQuestions = session.planned_questions || {}
+    const interviewPlan = session.interview_plan || {}
 
     // 2. Get Question Details
     let question: any
@@ -72,7 +72,7 @@ export async function POST(
         .from('mock_interview_exchanges')
         .select('*')
         .eq('id', questionId)
-        .eq('mock_interview_id', sessionId)
+        .eq('session_id', sessionId)
         .single()
 
       if (exchangeError || !exchange) {
@@ -81,10 +81,10 @@ export async function POST(
 
       question = exchange
       questionText = exchange.question_text
-      questionType = exchange.question_type || 'behavioral'
+      questionType = exchange.exchange_type || 'behavioral'
     } else if (questionIndex !== undefined) {
-      // Get from session's planned_questions
-      const questions = plannedQuestions.questions || []
+      // Get from session's interview_plan
+      const questions = interviewPlan.questions || []
       if (questionIndex >= questions.length) {
         return badRequestResponse('Invalid question index')
       }
@@ -145,14 +145,15 @@ Description: ${jd.description}
       const { error: updateError } = await supabaseAdmin
         .from('mock_interview_exchanges')
         .update({
-          user_transcript: userAnswer,
+          user_answer_text: userAnswer,
           answer_score: analysis.score,
-          star_completeness: {
+          star_components: {
             situation: analysis.starAnalysis?.hasSituation || false,
             task: analysis.starAnalysis?.hasTask || false,
             action: analysis.starAnalysis?.hasAction || false,
             result: analysis.starAnalysis?.hasResult || false
-          }
+          },
+          analyzed_at: new Date().toISOString()
         })
         .eq('id', questionId)
 

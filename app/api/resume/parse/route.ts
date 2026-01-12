@@ -3,6 +3,7 @@
 
 import { NextRequest } from 'next/server'
 import { parseResume } from '@/lib/engines/resumeParsingEngine'
+import { normalizeResume } from '@/lib/utils/resumeNormalizer'
 import { supabaseAdmin } from '@/lib/clients/supabaseClient'
 import {
   getAuthUser,
@@ -124,11 +125,14 @@ export async function POST(req: NextRequest) {
     console.log('[Resume Parse] Extracted text length:', resumeText.length)
 
     // Parse resume using AI engine
-    const parsed = await parseResume(resumeText)
+    const rawParsed = await parseResume(resumeText)
 
-    if (!parsed) {
+    if (!rawParsed) {
       return serverErrorResponse('Failed to parse resume. Please try again or create a resume manually.')
     }
+
+    // Normalize the parsed data to ensure all entries have IDs and enabled flags
+    const parsed = normalizeResume(rawParsed)
 
     // Generate title from filename (remove extension)
     const title = file.name.replace(/\.[^/.]+$/, '') || 'Untitled Resume'

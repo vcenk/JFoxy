@@ -33,6 +33,7 @@ export interface GeneratedResumeExample {
   h1Heading: string
   h2Headings: string[]
   targetKeywords: string[]
+  canonicalUrl: string
   qualityScore: number
   generationCost: number
 }
@@ -101,7 +102,7 @@ export async function generateResumeExample(
   })
 
   return {
-    slug: seoMetadata.slug,
+    ...seoMetadata,
     jobTitle: request.jobTitle,
     industry: request.industry,
     experienceLevel: request.experienceLevel,
@@ -111,7 +112,6 @@ export async function generateResumeExample(
     powerWordsCount: qualityMetrics.powerWordsCount,
     quantifiedAchievementsCount: qualityMetrics.quantifiedAchievementsCount,
     keywords: qualityMetrics.keywords,
-    ...seoMetadata,
     qualityScore: calculateOverallQualityScore(qualityMetrics),
     generationCost: cost
   }
@@ -302,18 +302,19 @@ function parseGeneratedResume(
     })
 
     return {
-      header: data.header || {},
+      contact: data.header || data.contact || {},
+      targetTitle: data.header?.title || data.targetTitle || '',
       summary: toRichText(data.summary || ''),
       experience: (data.experience || []).map((exp: any) => ({
         ...exp,
         bullets: (exp.bullets || []).map((bullet: string) => toRichText(bullet))
       })),
       education: data.education || [],
-      skills: data.skills || [],
+      skills: data.skills || {},
       certifications: data.certifications || [],
-      projects: [],
-      awards: [],
-      languages: []
+      projects: data.projects || [],
+      awards: data.awards || [],
+      languages: data.languages || []
     }
   } catch (error: any) {
     console.error('[Resume Generator] JSON parse error:', error)
@@ -327,12 +328,12 @@ function parseGeneratedResume(
 function convertToPlainText(resume: ParsedResume): string {
   const sections: string[] = []
 
-  // Header
-  if (resume.header) {
-    sections.push(`${resume.header.name || ''}`)
-    sections.push(`${resume.header.title || ''}`)
-    sections.push(`${resume.header.email || ''} | ${resume.header.phone || ''}`)
-    sections.push(`${resume.header.location || ''}`)
+  // Contact
+  if (resume.contact) {
+    sections.push(`${resume.contact.firstName || ''} ${resume.contact.lastName || ''}`.trim())
+    if (resume.targetTitle) sections.push(`${resume.targetTitle}`)
+    sections.push(`${resume.contact.email || ''} | ${resume.contact.phone || ''}`)
+    sections.push(`${resume.contact.location || ''}`)
   }
 
   // Summary
@@ -346,8 +347,8 @@ function convertToPlainText(resume: ParsedResume): string {
   if (resume.experience?.length > 0) {
     sections.push('\nEXPERIENCE')
     resume.experience.forEach(exp => {
-      sections.push(`${exp.title} at ${exp.company}`)
-      sections.push(`${exp.date}`)
+      sections.push(`${exp.position} at ${exp.company}`)
+      sections.push(`${exp.startDate || ''} - ${exp.endDate || 'Present'}`)
       exp.bullets?.forEach(bullet => {
         const bulletText = extractTextFromRichText(bullet)
         sections.push(`• ${bulletText}`)
@@ -359,17 +360,23 @@ function convertToPlainText(resume: ParsedResume): string {
   if (resume.education?.length > 0) {
     sections.push('\nEDUCATION')
     resume.education.forEach(edu => {
-      sections.push(`${edu.degree} - ${edu.school}`)
-      sections.push(`${edu.date}`)
+      sections.push(`${edu.degree} - ${edu.institution}`)
+      sections.push(`${edu.graduationDate || ''}`)
     })
   }
 
   // Skills
-  if (resume.skills?.length > 0) {
+  if (resume.skills) {
     sections.push('\nSKILLS')
-    resume.skills.forEach(skillGroup => {
-      sections.push(`${skillGroup.category}: ${skillGroup.items?.join(', ')}`)
-    })
+    if (resume.skills.technical?.length) {
+      sections.push(`Technical: ${resume.skills.technical.join(', ')}`)
+    }
+    if (resume.skills.soft?.length) {
+      sections.push(`Soft Skills: ${resume.skills.soft.join(', ')}`)
+    }
+    if (resume.skills.other?.length) {
+      sections.push(`Other: ${resume.skills.other.join(', ')}`)
+    }
   }
 
   return sections.filter(s => s).join('\n')
@@ -412,7 +419,7 @@ async function analyzeQuality(resumeText: string, request: ResumeGenerationReque
   const keywords = extractKeywords(resumeText, request.industry)
 
   return {
-    atsScore: atsAnalysis.ats_score,
+    atsScore: atsAnalysis?.ats_score || 0,
     powerWordsCount,
     quantifiedAchievementsCount: quantifiedCount,
     keywords
@@ -520,7 +527,8 @@ function generateSEOMetadata(request: ResumeGenerationRequest) {
       `${experienceLevel} ${jobTitle}`,
       `${jobTitle} resume template`,
       `${jobTitle} ${industry}`
-    ]
+    ],
+    canonicalUrl: `/resumes/examples/${slug}`
   }
 }
 

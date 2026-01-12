@@ -181,7 +181,7 @@ Return JSON with this EXACT structure (fill in improved content):
 }`
 
         // Call OpenAI
-        const optimizedContent = await callLLMJSON<typeof content>({
+        const optimizedContent = await callLLMJSON<any>({
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt },
@@ -194,30 +194,75 @@ Return JSON with this EXACT structure (fill in improved content):
             return serverErrorResponse('AI optimization failed to return results')
         }
 
-        // Carefully merge - only update sections that AI actually returned
-        // This preserves original structure if AI omits sections
+        // Helper to convert plain text to RichText format
+        const textToRichText = (text: string) => ({
+            type: 'doc',
+            content: [{ type: 'paragraph', content: text ? [{ type: 'text', text }] : [] }]
+        })
+
+        // Helper to extract plain text from any bullet format
+        const extractBulletText = (bullet: any): string => {
+            if (typeof bullet === 'string') return bullet
+            if (bullet?.content?.content?.[0]?.content?.[0]?.text) {
+                return bullet.content.content[0].content[0].text
+            }
+            if (bullet?.content?.[0]?.content?.[0]?.text) {
+                return bullet.content[0].content[0].text
+            }
+            return ''
+        }
+
+        // CRITICAL: Preserve original structure, only update text content
+        // Merge experience - preserve IDs, enabled flags, and structure
+        let mergedExperience = content.experience
+        if (optimizedContent.experience && Array.isArray(optimizedContent.experience) && content.experience) {
+            mergedExperience = content.experience.map((origExp: any, expIndex: number) => {
+                // Find matching AI-optimized experience by index (AI returns same order)
+                const aiExp = optimizedContent.experience[expIndex]
+                if (!aiExp) return origExp // Keep original if AI didn't return this index
+
+                // Merge bullets - preserve structure, only update text
+                const mergedBullets = (origExp.bullets || []).map((origBullet: any, bulletIndex: number) => {
+                    const aiBulletText = aiExp.bullets?.[bulletIndex]
+                    if (!aiBulletText || typeof aiBulletText !== 'string') {
+                        return origBullet // Keep original if no AI improvement
+                    }
+
+                    // Preserve BulletItem structure (id, enabled), update content
+                    if (origBullet.id !== undefined) {
+                        return {
+                            ...origBullet,
+                            content: textToRichText(aiBulletText)
+                        }
+                    }
+                    // Legacy format - just return RichText
+                    return textToRichText(aiBulletText)
+                })
+
+                return {
+                    ...origExp,
+                    bullets: mergedBullets
+                }
+            })
+        }
+
+        // Merge summary - handle RichText format
+        let mergedSummary = content.summary
+        if (optimizedContent.summary && typeof optimizedContent.summary === 'string' && optimizedContent.summary.trim().length > 0) {
+            // Check if original summary is RichText or string
+            if (typeof content.summary === 'object' && content.summary?.type === 'doc') {
+                mergedSummary = textToRichText(optimizedContent.summary)
+            } else {
+                mergedSummary = optimizedContent.summary
+            }
+        }
+
+        // Build final content preserving ALL original structure
         const finalContent = {
             ...content,
-            // Only update header if AI returned one with actual values
-            header: optimizedContent.header && Object.keys(optimizedContent.header).length > 0
-                ? { ...content.header, ...optimizedContent.header }
-                : content.header,
-            // Only update summary if AI returned a non-empty string
-            summary: optimizedContent.summary && typeof optimizedContent.summary === 'string' && optimizedContent.summary.trim().length > 0
-                ? optimizedContent.summary
-                : content.summary,
-            // Only update experience if AI returned a non-empty array
-            experience: optimizedContent.experience && Array.isArray(optimizedContent.experience) && optimizedContent.experience.length > 0
-                ? optimizedContent.experience
-                : content.experience,
-            // Only update skills if AI returned a valid array
-            skills: optimizedContent.skills && Array.isArray(optimizedContent.skills) && optimizedContent.skills.length > 0
-                ? optimizedContent.skills
-                : content.skills,
-            // Preserve education (AI often doesn't improve this much)
-            education: optimizedContent.education && Array.isArray(optimizedContent.education) && optimizedContent.education.length > 0
-                ? optimizedContent.education
-                : content.education,
+            summary: mergedSummary,
+            experience: mergedExperience,
+            // Keep skills, education, and everything else exactly as is
         }
 
         // Update resume in database

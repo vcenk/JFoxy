@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
       supabaseAdmin.from('star_stories').select('created_at, title', { count: 'exact' }).eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
       supabaseAdmin.from('gap_defenses').select('created_at, gap_type', { count: 'exact' }).eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
       supabaseAdmin.from('intro_pitches').select('created_at', { count: 'exact' }).eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
-      supabaseAdmin.from('mock_interviews').select('id', { count: 'exact' }).eq('user_id', user.id),
+      supabaseAdmin.from('mock_interview_sessions').select('id', { count: 'exact' }).eq('user_id', user.id),
       supabaseAdmin.from('cover_letters').select('id', { count: 'exact' }).eq('user_id', user.id),
       supabaseAdmin.from('resumes').select('ats_score').eq('user_id', user.id).not('ats_score', 'is', null)
     ])

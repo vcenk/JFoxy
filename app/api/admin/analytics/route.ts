@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
 
       // Total mock interviews
       supabaseAdmin
-        .from('mock_interviews')
+        .from('mock_interview_sessions')
         .select('id, user_id, status, overall_score, created_at', { count: 'exact' }),
 
       // Total job descriptions

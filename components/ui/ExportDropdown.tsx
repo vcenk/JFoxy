@@ -25,7 +25,7 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
   if (variant === 'glow') {
     baseStyles = "glow-button px-4 py-2 sm:px-6 flex items-center gap-1 sm:gap-2 disabled:opacity-70 disabled:cursor-wait text-white";
   } else if (variant === 'outline') {
-    baseStyles = "px-3 py-2 sm:px-4 rounded-xl border border-white/10 glass-panel hover:bg-white/15 text-white/80 hover:text-white transition-all flex items-center gap-1 sm:gap-2";
+    baseStyles = "px-3 py-1.5 sm:px-4 rounded-xl border border-white/10 glass-panel hover:bg-white/15 text-white/80 hover:text-white transition-all flex items-center gap-1 sm:gap-2";
   } else {
     baseStyles = "flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-lg transition-all text-sm";
   }

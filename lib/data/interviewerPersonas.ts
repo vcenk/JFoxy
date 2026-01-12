@@ -1,10 +1,9 @@
 // lib/data/interviewerPersonas.ts
-// Interviewer Personas with voice mappings for ElevenLabs and OpenAI Realtime API
+// Interviewer Personas with voice mappings for OpenAI Realtime API
 
 import { OpenAIVoice } from '@/lib/services/realtimeClient'
 
 export interface InterviewerPersona {
-  voice_id: string // ElevenLabs voice ID (legacy, used by Practice section)
   openai_voice: OpenAIVoice // OpenAI Realtime voice (used by Mock Interview)
   name: string
   gender: 'female' | 'male' | 'neutral'
@@ -27,7 +26,6 @@ export interface InterviewerPersona {
 
 export const FEMALE_PERSONAS: InterviewerPersona[] = [
   {
-    voice_id: 'EXAVITQu4vr4xnSDxMaL', // Sarah - Professional, clear
     openai_voice: 'shimmer', // Polished, professional female
     name: 'Sarah Mitchell',
     gender: 'female',
@@ -43,7 +41,6 @@ export const FEMALE_PERSONAS: InterviewerPersona[] = [
     backchannel_frequency: 'medium'
   },
   {
-    voice_id: '21m00Tcm4TlvDq8ikWAM', // Rachel - Friendly, engaging
     openai_voice: 'coral', // Warm, friendly female
     name: 'Emily Johnson',
     gender: 'female',
@@ -59,7 +56,6 @@ export const FEMALE_PERSONAS: InterviewerPersona[] = [
     backchannel_frequency: 'high'
   },
   {
-    voice_id: 'ThT5KcBeYPX3keUQqHPh', // Dorothy - Mature, experienced
     openai_voice: 'ballad', // Mature, authoritative female
     name: 'Jennifer Davis',
     gender: 'female',
@@ -75,7 +71,6 @@ export const FEMALE_PERSONAS: InterviewerPersona[] = [
     backchannel_frequency: 'low'
   },
   {
-    voice_id: 'MF3mGyEYCl7XYWbV9V6O', // Elli - Youthful, energetic
     openai_voice: 'coral', // Youthful, energetic
     name: 'Megan Parker',
     gender: 'female',
@@ -91,7 +86,6 @@ export const FEMALE_PERSONAS: InterviewerPersona[] = [
     backchannel_frequency: 'high'
   },
   {
-    voice_id: 'jsCqWAovK2LkecY7zXl4', // Freya - British, sophisticated
     openai_voice: 'marin', // Refined, balanced (OpenAI recommended)
     name: 'Charlotte Williams',
     gender: 'female',
@@ -114,7 +108,6 @@ export const FEMALE_PERSONAS: InterviewerPersona[] = [
 
 export const MALE_PERSONAS: InterviewerPersona[] = [
   {
-    voice_id: 'pNInz6obpgDQGcFmaJgB', // Adam - Clear, direct
     openai_voice: 'ash', // Professional, measured male
     name: 'Michael Chen',
     gender: 'male',
@@ -130,7 +123,6 @@ export const MALE_PERSONAS: InterviewerPersona[] = [
     backchannel_frequency: 'low'
   },
   {
-    voice_id: 'yoZ06aMxZJJ28mfd3POQ', // Sam - Casual, friendly
     openai_voice: 'verse', // Approachable, friendly male
     name: 'David Williams',
     gender: 'male',
@@ -146,7 +138,6 @@ export const MALE_PERSONAS: InterviewerPersona[] = [
     backchannel_frequency: 'high'
   },
   {
-    voice_id: '29vD33N1CtxCmqQRPOHJ', // Drew - Professional, deep
     openai_voice: 'echo', // Direct, efficient male
     name: 'James Anderson',
     gender: 'male',
@@ -162,7 +153,6 @@ export const MALE_PERSONAS: InterviewerPersona[] = [
     backchannel_frequency: 'low'
   },
   {
-    voice_id: 'VR6AewLTigWG4xSOukaG', // Arnold - Mature, commanding
     openai_voice: 'sage', // Mature, commanding male
     name: 'Robert Thompson',
     gender: 'male',
@@ -178,7 +168,6 @@ export const MALE_PERSONAS: InterviewerPersona[] = [
     backchannel_frequency: 'low'
   },
   {
-    voice_id: 'TxGEqnHWrfWFTfGW9XjX', // Josh - Energetic, young
     openai_voice: 'alloy', // Youthful, energetic male
     name: 'Alex Martinez',
     gender: 'male',
@@ -194,7 +183,6 @@ export const MALE_PERSONAS: InterviewerPersona[] = [
     backchannel_frequency: 'high'
   },
   {
-    voice_id: 'IKne3meq5aSn9XLyUdCD', // Charlie - British, charming
     openai_voice: 'cedar', // Refined, balanced (OpenAI recommended)
     name: 'Oliver Bennett',
     gender: 'male',
@@ -220,13 +208,6 @@ export const ALL_PERSONAS = [...FEMALE_PERSONAS, ...MALE_PERSONAS]
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
-
-/**
- * Get persona by voice ID
- */
-export function getPersonaByVoiceId(voiceId: string): InterviewerPersona | undefined {
-  return ALL_PERSONAS.find(p => p.voice_id === voiceId)
-}
 
 /**
  * Get personas by gender
@@ -366,13 +347,6 @@ export function getPersonaDescription(persona: InterviewerPersona): string {
  */
 export function getDefaultPersona(): InterviewerPersona {
   return FEMALE_PERSONAS[0] // Sarah Mitchell - Professional default
-}
-
-/**
- * Validate voice ID exists
- */
-export function isValidVoiceId(voiceId: string): boolean {
-  return ALL_PERSONAS.some(p => p.voice_id === voiceId)
 }
 
 /**

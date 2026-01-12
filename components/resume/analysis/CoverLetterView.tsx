@@ -3,9 +3,10 @@
 
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Loader2, FileText, AlertCircle, Copy, Check, Download, Sparkles, Info, RefreshCw } from 'lucide-react'
+import { ArrowRight, Loader2, FileText, AlertCircle, Copy, Check, Download, Sparkles, Info, RefreshCw, PanelLeftClose, PanelLeftOpen, Zap, Minimize2, TrendingUp, Award, Briefcase, X } from 'lucide-react'
 import { ExportDropdown } from '@/components/ui/ExportDropdown'
 import { exportCoverLetterToDocx } from '@/lib/utils/docxExport'
+import { ContactInfo } from '@/lib/types/resume'
 
 export interface CoverLetterViewRef {
   handleDownload: () => Promise<void>
@@ -14,10 +15,11 @@ export interface CoverLetterViewRef {
 
 interface CoverLetterViewProps {
   resumeId: string
+  contactInfo?: ContactInfo
   onCoverLetterGenerated?: () => void
 }
 
-export const CoverLetterView = forwardRef<CoverLetterViewRef, CoverLetterViewProps>(({ resumeId, onCoverLetterGenerated }, ref) => {
+export const CoverLetterView = forwardRef<CoverLetterViewRef, CoverLetterViewProps>(({ resumeId, contactInfo, onCoverLetterGenerated }, ref) => {
   const [jobTitle, setJobTitle] = useState('')
   const [company, setCompany] = useState('')
   const [jobDescription, setJobDescription] = useState('')
@@ -34,6 +36,35 @@ export const CoverLetterView = forwardRef<CoverLetterViewRef, CoverLetterViewPro
   const [existingCoverLetter, setExistingCoverLetter] = useState<any>(null)
   const [selectedText, setSelectedText] = useState('')
   const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null)
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false)
+  const [showRefinePopover, setShowRefinePopover] = useState(false)
+
+  // Helper to get display name from contact info
+  const getDisplayName = () => {
+    if (contactInfo?.name) return contactInfo.name
+    if (contactInfo?.firstName || contactInfo?.lastName) {
+      return `${contactInfo.firstName || ''} ${contactInfo.lastName || ''}`.trim()
+    }
+    return ''
+  }
+
+  // Helper to build contact line (email | phone | location | linkedin)
+  const getContactLine = () => {
+    const parts: string[] = []
+    if (contactInfo?.email && contactInfo?.emailEnabled !== false) parts.push(contactInfo.email)
+    if (contactInfo?.phone && contactInfo?.phoneEnabled !== false) parts.push(contactInfo.phone)
+    if (contactInfo?.location && contactInfo?.locationEnabled !== false) parts.push(contactInfo.location)
+    if (contactInfo?.linkedin && contactInfo?.linkedinEnabled !== false) {
+      // Clean up LinkedIn URL for display (remove https:// prefix)
+      const linkedinDisplay = contactInfo.linkedin.replace(/^https?:\/\/(www\.)?/, '')
+      parts.push(linkedinDisplay)
+    }
+    return parts.join(' | ')
+  }
+
+  const displayName = getDisplayName()
+  const contactLine = getContactLine()
+  const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 
   // Load existing cover letter and job info
   useEffect(() => {
@@ -253,83 +284,115 @@ export const CoverLetterView = forwardRef<CoverLetterViewRef, CoverLetterViewPro
 
       const pageWidth = doc.internal.pageSize.getWidth()
       const pageHeight = doc.internal.pageSize.getHeight()
-      const margin = 25
+      const margin = 20 // Reduced margin for more space
       const maxWidth = pageWidth - (margin * 2)
+      const footerHeight = 20
+      const signatureHeight = displayName ? 25 : 0 // Space needed for signature block
+      const contentBottom = pageHeight - margin - footerHeight - signatureHeight
       let yPos = margin
 
-      // Header Block (Left Aligned)
-      doc.setFontSize(22)
-      doc.setFont('times', 'bold') // Serif font for cover letter
-      doc.setTextColor(106, 71, 255) // JobFoxy Purple
-      doc.text("Cover Letter", margin, yPos)
-      
-      yPos += 10
-      doc.setDrawColor(200, 200, 200)
-      doc.line(margin, yPos, pageWidth - margin, yPos)
-      yPos += 10
+      // Contact Header - Centered (matches preview)
+      if (displayName) {
+        doc.setFontSize(16) // Slightly smaller
+        doc.setFont('times', 'bold')
+        doc.setTextColor(106, 71, 255) // JobFoxy Purple
+        doc.text(displayName, pageWidth / 2, yPos, { align: 'center' })
+        yPos += 6
+
+        if (contactLine) {
+          doc.setFontSize(9)
+          doc.setFont('times', 'normal')
+          doc.setTextColor(120, 120, 120)
+          doc.text(contactLine, pageWidth / 2, yPos, { align: 'center' })
+          yPos += 6
+        }
+
+        // Divider line
+        doc.setDrawColor(200, 200, 200)
+        doc.line(margin, yPos, pageWidth - margin, yPos)
+        yPos += 8
+      }
+
+      // Date
+      doc.setFontSize(10)
+      doc.setFont('times', 'normal')
+      doc.setTextColor(100, 100, 100)
+      doc.text(dateStr, margin, yPos)
+      yPos += 8
 
       // Job Info Block
-      doc.setFontSize(11)
-      doc.setFont('times', 'normal')
-      doc.setTextColor(60, 60, 60)
-      
-      const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-      doc.text(dateStr, margin, yPos)
-      yPos += 10
-
       if (jobTitle) {
         doc.setFont('times', 'bold')
+        doc.setTextColor(60, 60, 60)
         doc.text(`Re: ${jobTitle}`, margin, yPos)
         yPos += 5
         doc.setFont('times', 'normal')
       }
-      
+
       if (company) {
+        doc.setTextColor(100, 100, 100)
         doc.text(company, margin, yPos)
-        yPos += 15
-      } else {
         yPos += 10
+      } else {
+        yPos += 6
       }
 
-      // Body Content
+      // Body Content - tighter line spacing
       const paragraphs = coverLetter.split('\n')
-      
-      doc.setTextColor(0, 0, 0)
-      doc.setFontSize(11)
+
+      doc.setTextColor(40, 40, 40)
+      doc.setFontSize(10) // Slightly smaller for better fit
       doc.setFont('times', 'normal')
 
       paragraphs.forEach(paragraph => {
         const trimmed = paragraph.trim()
         if (!trimmed) {
-            yPos += 4
+            yPos += 3
             return
         }
 
         const lines = doc.splitTextToSize(trimmed, maxWidth)
-        
-        // alignment: justify only works well if we use text with align option or manual spacing
-        // jsPDF's basic text doesn't support full justify easily without plugins. 
-        // We'll stick to left align for safety but keep it clean.
-        
+
         lines.forEach((line: string) => {
-            if (yPos + 5 > pageHeight - margin - 20) {
+            // Check if we need a new page (leave room for signature on first page)
+            if (yPos + 4.5 > contentBottom) {
                 doc.addPage()
                 yPos = margin
             }
             doc.text(line, margin, yPos)
-            yPos += 5 // Line height
+            yPos += 4.5 // Tighter line height
         })
-        yPos += 5 // Paragraph spacing
+        yPos += 4 // Paragraph spacing
       })
 
-      // Footer
-      const footerY = pageHeight - 15
+      // Signature Block (matches preview) - keep together
+      if (displayName) {
+        // Check if signature fits on current page
+        const signatureNeeded = 20 // "Sincerely," + name + spacing
+        if (yPos + signatureNeeded > pageHeight - margin - footerHeight) {
+          doc.addPage()
+          yPos = margin
+        }
+
+        yPos += 6
+        doc.setFontSize(10)
+        doc.setFont('times', 'italic')
+        doc.setTextColor(80, 80, 80)
+        doc.text('Sincerely,', margin, yPos)
+        yPos += 8
+        doc.setFont('times', 'bold')
+        doc.setTextColor(60, 60, 60)
+        doc.text(displayName, margin, yPos)
+      }
+
+      // Footer on last page
+      const footerY = pageHeight - 12
       doc.setDrawColor(240, 240, 240)
-      doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5)
-      
-      doc.setFontSize(8)
+      doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4)
+
+      doc.setFontSize(7)
       doc.setTextColor(150, 150, 150)
-      doc.setFont('helvetica', 'normal') // Sans-serif for footer
+      doc.setFont('helvetica', 'normal')
       doc.text('Generated by JobFoxy', pageWidth / 2, footerY, { align: 'center' })
 
       // Save PDF
@@ -348,7 +411,13 @@ export const CoverLetterView = forwardRef<CoverLetterViewRef, CoverLetterViewPro
     if (!coverLetter) return
     setIsExporting(true)
     try {
-      await exportCoverLetterToDocx(coverLetter, jobTitle || 'Job Application', company || '')
+      await exportCoverLetterToDocx(
+        coverLetter,
+        jobTitle || 'Job Application',
+        company || '',
+        displayName,
+        contactLine
+      )
     } catch (err) {
       console.error('DOCX Export Error:', err)
       setError('Failed to generate DOCX. Please try again.')
@@ -363,8 +432,9 @@ export const CoverLetterView = forwardRef<CoverLetterViewRef, CoverLetterViewPro
     handleExportDOCX
   }))
 
-  const handleRefine = async () => {
-    if (!refinePrompt.trim() || !coverLetter) return
+  const handleRefine = async (customPrompt?: string) => {
+    const prompt = customPrompt || refinePrompt
+    if (!prompt.trim() || !coverLetter) return
 
     setRefining(true)
     setError(null)
@@ -375,7 +445,7 @@ export const CoverLetterView = forwardRef<CoverLetterViewRef, CoverLetterViewPro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           currentCoverLetter: coverLetter,
-          refinePrompt: refinePrompt.trim(),
+          refinePrompt: prompt.trim(),
         }),
       })
 
@@ -463,10 +533,32 @@ export const CoverLetterView = forwardRef<CoverLetterViewRef, CoverLetterViewPro
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col lg:flex-row gap-6 lg:gap-8 overflow-hidden">
-          
+        <div className="flex-1 flex flex-col lg:flex-row gap-6 lg:gap-8 overflow-hidden relative">
+
+          {/* Collapse/Expand Button */}
+          <button
+            onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+            className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-20 items-center justify-center w-6 h-12 bg-purple-500/20 hover:bg-purple-500/40 border border-purple-500/30 rounded-r-lg transition-all group"
+            style={{ left: leftPanelCollapsed ? 0 : 'calc(41.666% - 12px)' }}
+            title={leftPanelCollapsed ? 'Show input form' : 'Hide input form'}
+          >
+            {leftPanelCollapsed ? (
+              <PanelLeftOpen className="w-4 h-4 text-purple-300 group-hover:text-white transition-colors" />
+            ) : (
+              <PanelLeftClose className="w-4 h-4 text-purple-300 group-hover:text-white transition-colors" />
+            )}
+          </button>
+
           {/* LEFT COLUMN: Input Form */}
-          <div className="w-full lg:w-5/12 xl:w-1/3 flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
+          <AnimatePresence initial={false}>
+            {!leftPanelCollapsed && (
+              <motion.div
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 'auto', opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="w-full lg:w-5/12 xl:w-1/3 flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar overflow-hidden"
+              >
             
             {/* Job Info Banner */}
             {jobTitle && jobDescription && (
@@ -592,26 +684,41 @@ export const CoverLetterView = forwardRef<CoverLetterViewRef, CoverLetterViewPro
                 )}
               </button>
             </div>
-          </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* RIGHT COLUMN: Output Canvas */}
-          <div className="w-full lg:w-7/12 xl:w-2/3 flex flex-col gap-4 overflow-hidden h-full">
+          <div className={`flex flex-col gap-4 overflow-hidden h-full transition-all duration-300 ${leftPanelCollapsed ? 'w-full' : 'w-full lg:w-7/12 xl:w-2/3'}`}>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <FileText className="w-5 h-5 text-purple-400" />
                 Preview
               </h3>
-              
+
               {coverLetter && (
                 <div className="flex items-center gap-2">
+                  {/* Refine Button */}
+                  <button
+                    onClick={() => setShowRefinePopover(!showRefinePopover)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-sm border ${
+                      showRefinePopover
+                        ? 'bg-purple-500 text-white border-purple-500'
+                        : 'bg-white/5 hover:bg-purple-500/20 text-white border-white/10 hover:border-purple-500/30'
+                    } ${refining ? 'animate-pulse' : ''}`}
+                  >
+                    {refining ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                    Refine
+                  </button>
+
                   <button
                     onClick={handleCopy}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-lg transition-all text-sm"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-lg transition-all text-sm"
                   >
                     {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
                     {copied ? 'Copied' : 'Copy'}
                   </button>
-                  <ExportDropdown 
+                  <ExportDropdown
                     onExportPDF={handleDownload}
                     onExportDOCX={handleExportDOCX}
                     isExporting={isExporting}
@@ -622,20 +729,61 @@ export const CoverLetterView = forwardRef<CoverLetterViewRef, CoverLetterViewPro
             </div>
 
             {/* Canvas Area */}
-            <div className="flex-1 overflow-y-auto bg-black/20 rounded-2xl p-4 sm:p-6 border border-white/5 relative">
+            <div className="flex-1 overflow-auto bg-black/20 rounded-2xl p-4 sm:p-6 border border-white/5 relative">
               {coverLetter ? (
                 <div className="relative">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white text-gray-900 p-8 sm:p-12 shadow-2xl min-h-full rounded-sm mx-auto max-w-[800px]"
+                    className="bg-white text-gray-900 p-8 sm:p-12 shadow-2xl rounded-sm mx-auto max-w-[800px]"
                   >
+                    {/* Contact Header - Centered */}
+                    {displayName && (
+                      <div className="text-center mb-4">
+                        <h1 className="text-lg sm:text-xl font-bold text-[#6A47FF] mb-1">
+                          {displayName}
+                        </h1>
+                        {contactLine && (
+                          <p className="text-[10pt] sm:text-[11pt] text-gray-500">
+                            {contactLine}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Divider Line */}
+                    {displayName && (
+                      <div className="border-t border-gray-200 my-4" />
+                    )}
+
+                    {/* Date and Job Info */}
+                    <div className="mb-6 font-serif">
+                      <p className="text-[11pt] sm:text-[12pt] text-gray-600 mb-4">{dateStr}</p>
+                      {jobTitle && (
+                        <p className="text-[11pt] sm:text-[12pt] font-semibold text-gray-800">
+                          Re: {jobTitle}
+                        </p>
+                      )}
+                      {company && (
+                        <p className="text-[11pt] sm:text-[12pt] text-gray-600">{company}</p>
+                      )}
+                    </div>
+
+                    {/* Cover Letter Content */}
                     <div
-                      className="font-serif leading-relaxed whitespace-pre-wrap text-[11pt] sm:text-[12pt] select-text"
+                      className="font-serif leading-relaxed whitespace-pre-wrap text-[11pt] sm:text-[12pt] select-text text-gray-800"
                       onMouseUp={handleTextSelection}
                     >
                       {coverLetter}
                     </div>
+
+                    {/* Signature Block */}
+                    {displayName && (
+                      <div className="mt-8 font-serif">
+                        <p className="text-[11pt] sm:text-[12pt] italic text-gray-700 mb-4">Sincerely,</p>
+                        <p className="text-[11pt] sm:text-[12pt] font-semibold text-gray-800">{displayName}</p>
+                      </div>
+                    )}
                   </motion.div>
 
                   {/* Selection Regenerate Button */}
@@ -706,42 +854,91 @@ export const CoverLetterView = forwardRef<CoverLetterViewRef, CoverLetterViewPro
               )}
             </div>
 
-            {/* Refine Section (Visible when cover letter exists) */}
-            {coverLetter && (
-              <div className="glass-panel p-4 rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-blue-500/5 flex-shrink-0">
-                <div className="flex items-center gap-3 mb-3">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
-                  <h3 className="text-sm font-bold text-white">Refine with AI</h3>
-                </div>
-                
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={refinePrompt}
-                    onChange={(e) => setRefinePrompt(e.target.value)}
-                    placeholder="e.g., Make it more enthusiastic, shorter, or emphasize leadership..."
-                    className="flex-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                    onKeyDown={(e) => e.key === 'Enter' && handleRefine()}
-                  />
-                  <button
-                    onClick={handleRefine}
-                    disabled={refining || !refinePrompt.trim()}
-                    className={`
-                      px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2
-                      ${refining || !refinePrompt.trim()
-                        ? 'bg-white/5 text-white/30 cursor-not-allowed'
-                        : 'bg-purple-500 hover:bg-purple-600 text-white'}
-                    `}
-                  >
-                    {refining ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <ArrowRight className="w-4 h-4" />
+            {/* Slide-out Refine Panel from Right */}
+            <AnimatePresence>
+              {showRefinePopover && coverLetter && (
+                <motion.div
+                  initial={{ x: '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '100%' }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="absolute right-0 top-0 bottom-0 w-64 glass-panel border-l border-purple-500/30 bg-gray-900/98 backdrop-blur-xl shadow-2xl z-10 flex flex-col"
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between p-3 border-b border-white/10">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      Refine
+                    </h3>
+                    <button
+                      onClick={() => setShowRefinePopover(false)}
+                      className="p-1 hover:bg-white/10 rounded transition-colors text-white/60 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 overflow-y-auto p-3">
+                    {refining && (
+                      <div className="flex items-center gap-2 text-purple-300 text-xs mb-3 bg-purple-500/10 p-2 rounded-lg">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Refining...
+                      </div>
                     )}
-                  </button>
-                </div>
-              </div>
-            )}
+
+                    {/* Quick Actions */}
+                    <div className="flex flex-col gap-1.5 mb-4">
+                      {[
+                        { label: 'Shorter', icon: Minimize2, prompt: 'Make the cover letter more concise and shorter while keeping the key points' },
+                        { label: 'Professional', icon: Briefcase, prompt: 'Make the tone more formal and professional' },
+                        { label: 'Enthusiastic', icon: Zap, prompt: 'Add more enthusiasm and energy to the cover letter' },
+                        { label: 'Highlight Skills', icon: Award, prompt: 'Emphasize my technical skills and achievements more prominently' },
+                        { label: 'Better Opening', icon: TrendingUp, prompt: 'Rewrite the opening paragraph to be more attention-grabbing and compelling' },
+                      ].map((action) => (
+                        <button
+                          key={action.label}
+                          onClick={() => handleRefine(action.prompt)}
+                          disabled={refining}
+                          className={`
+                            flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all w-full text-left
+                            ${refining
+                              ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                              : 'bg-white/5 hover:bg-purple-500/20 text-white/80 hover:text-white'}
+                          `}
+                        >
+                          <action.icon className="w-4 h-4 flex-shrink-0" />
+                          {action.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Custom Input */}
+                    <div className="border-t border-white/10 pt-3">
+                      <textarea
+                        value={refinePrompt}
+                        onChange={(e) => setRefinePrompt(e.target.value)}
+                        placeholder="Custom instruction..."
+                        className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm resize-none h-16"
+                      />
+                      <button
+                        onClick={() => handleRefine()}
+                        disabled={refining || !refinePrompt.trim()}
+                        className={`
+                          w-full mt-2 px-3 py-2 rounded-lg font-medium transition-all text-sm flex items-center justify-center gap-2
+                          ${refining || !refinePrompt.trim()
+                            ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                            : 'bg-purple-500 hover:bg-purple-600 text-white'}
+                        `}
+                      >
+                        {refining ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
         </div>

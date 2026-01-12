@@ -58,17 +58,32 @@ function mapBasics(contact: ParsedResume['contact'], summary: ParsedResume['summ
   };
 }
 
+// Helper to extract bullet content (handles both old RichText and new BulletItem formats)
+function getBulletText(bullet: any): string {
+  if (bullet.enabled === false) return '';
+  const content = bullet.content || bullet;
+  return jsonToPlainText(content);
+}
+
 function mapExperience(experience: ParsedResume['experience']): Work[] {
-  return experience.map(exp => ({
-    name: exp.company || '',
-    position: exp.position || '',
-    startDate: exp.startDate ? formatDate(exp.startDate) : undefined,
-    endDate: exp.endDate && !exp.current ? formatDate(exp.endDate) : undefined,
-    summary: exp.bullets.map(jsonToPlainText).join('\n'), // Combine rich text bullets into a single summary string
-    location: exp.location,
-    url: undefined, // JobFoxy ParsedResume does not have a direct URL for work experience
-    highlights: exp.bullets.map(jsonToPlainText),
-  }));
+  return experience.map(exp => {
+    // Filter enabled bullets and extract text
+    const bulletTexts = exp.bullets
+      .filter((b: any) => b.enabled !== false)
+      .map(getBulletText)
+      .filter(Boolean);
+
+    return {
+      name: exp.company || '',
+      position: exp.position || '',
+      startDate: exp.startDate ? formatDate(exp.startDate) : undefined,
+      endDate: exp.endDate && !exp.current ? formatDate(exp.endDate) : undefined,
+      summary: bulletTexts.join('\n'),
+      location: exp.location,
+      url: undefined,
+      highlights: bulletTexts,
+    };
+  });
 }
 
 function mapEducation(education: ParsedResume['education']): Education[] {
@@ -82,16 +97,29 @@ function mapEducation(education: ParsedResume['education']): Education[] {
   }));
 }
 
+// Helper to extract skill names (handles both old string[] and new SkillCategory[] formats)
+function extractSkillNames(skills: any[] | undefined): string[] {
+  if (!skills || !Array.isArray(skills)) return [];
+  return skills
+    .filter((s: any) => s.enabled !== false)
+    .map((s: any) => typeof s === 'string' ? s : s.name)
+    .filter(Boolean);
+}
+
 function mapSkills(skills: ParsedResume['skills']): Skill[] {
   const mappedSkills: Skill[] = [];
-  if (skills.technical && skills.technical.length > 0) {
-    mappedSkills.push({ name: 'Technical Skills', level: '', keywords: skills.technical });
+  const technicalSkills = extractSkillNames(skills.technical);
+  const softSkills = extractSkillNames(skills.soft);
+  const otherSkills = extractSkillNames(skills.other);
+
+  if (technicalSkills.length > 0) {
+    mappedSkills.push({ name: 'Technical Skills', level: '', keywords: technicalSkills });
   }
-  if (skills.soft && skills.soft.length > 0) {
-    mappedSkills.push({ name: 'Soft Skills', level: '', keywords: skills.soft });
+  if (softSkills.length > 0) {
+    mappedSkills.push({ name: 'Soft Skills', level: '', keywords: softSkills });
   }
-  if (skills.other && skills.other.length > 0) {
-    mappedSkills.push({ name: 'Other Skills', level: '', keywords: skills.other });
+  if (otherSkills.length > 0) {
+    mappedSkills.push({ name: 'Other Skills', level: '', keywords: otherSkills });
   }
   return mappedSkills;
 }

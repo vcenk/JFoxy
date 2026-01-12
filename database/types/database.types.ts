@@ -7,9 +7,11 @@ export interface Profile {
   email: string
   full_name: string | null
   avatar_url: string | null
+  is_admin?: boolean | null
 
   // Subscription
   subscription_status: 'free' | 'active' | 'past_due' | 'canceled' | 'trialing'
+  subscription_tier?: 'basic' | 'pro' | 'premium'
   subscription_price_id: string | null
   subscription_current_period_end: string | null
   stripe_customer_id: string | null
@@ -18,6 +20,13 @@ export interface Profile {
   ai_tokens_used_this_month: number
   practice_sessions_this_month: number
   mock_interviews_this_month: number
+  resume_builds_this_month?: number
+  job_analyses_this_month?: number
+  audio_practice_sessions_this_month?: number
+  monthly_video_credits?: number
+  purchased_video_credits?: number
+
+  preferences: Record<string, any> // Added for settings
 
   created_at: string
   updated_at: string
@@ -109,6 +118,7 @@ export interface MockInterview {
   duration_minutes: number
   focus: string | null
   difficulty: 'easy' | 'standard' | 'hard' | null
+  adaptive_mode?: string // Added
   planned_questions: Record<string, any> | null
   verdict: 'strong_hire' | 'hire' | 'borderline' | 'not_ready' | null
   overall_score: number | null
@@ -133,16 +143,32 @@ export interface MockInterviewExchange {
   question_text: string
   question_type: string | null
   question_competency: string | null
-  user_transcript: string | null
-  user_audio_url: string | null
-  answer_duration_seconds: number | null
-  answer_score: number | null
-  star_completeness: Record<string, any> | null
+  // user_transcript, user_audio_url, answer_score moved to attempts
+  answer_duration_seconds: number | null // kept for aggregate or moved? Schema didn't drop it explicitly but logic suggests it's per attempt.
+  star_completeness: Record<string, any> | null // kept as summary?
   follow_up_needed: boolean
   follow_up_question: string | null
   follow_up_transcript: string | null
   follow_up_score: number | null
   exchange_order: number
+  final_attempt_id?: string // Added
+  created_at: string
+}
+
+export interface MockInterviewAttempt {
+  id: string
+  exchange_id: string
+  attempt_number: number
+  user_audio_url: string | null
+  user_transcript: string | null
+  content_scores: Record<string, any> | null
+  delivery_metrics: Record<string, any> | null
+  overall_score: number | null
+  feedback_text: string | null
+  rewritten_answer: string | null
+  coach_notes: Record<string, any> | null
+  audio_expires_at: string | null
+  audio_deleted_at: string | null
   created_at: string
 }
 
@@ -150,6 +176,8 @@ export interface StarStory {
   id: string
   user_id: string
   resume_id: string | null
+  job_description_id: string | null // Added
+  source_attempt_id: string | null // Added
   title: string
   category: string | null
   related_question: string | null
@@ -157,6 +185,8 @@ export interface StarStory {
   task: string
   action: string
   result: string
+  polished_answer: string | null // Added
+  coach_notes: Record<string, any> | null // Added
   metrics: string[] | null
   skills_demonstrated: string[] | null
   is_favorite: boolean

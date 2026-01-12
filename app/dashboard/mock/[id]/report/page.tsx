@@ -121,10 +121,10 @@ export default function InterviewReportPage({ params }: { params: { id: string }
           </div>
 
           {/* Overall Score Badge */}
-          <div className={`px-6 py-4 rounded-xl border-2 ${getScoreBgColor(report.overallScore)}`}>
+          <div className={`px-6 py-4 rounded-xl border-2 ${getScoreBgColor(report.overallScore || 0)}`}>
             <div className="text-center">
-              <div className={`text-4xl font-bold ${getScoreColor(report.overallScore)}`}>
-                {report.overallScore.toFixed(1)}
+              <div className={`text-4xl font-bold ${getScoreColor(report.overallScore || 0)}`}>
+                {(report.overallScore || 0).toFixed(1)}
               </div>
               <div className="text-sm text-gray-400 mt-1">Overall Score</div>
             </div>
@@ -140,7 +140,7 @@ export default function InterviewReportPage({ params }: { params: { id: string }
           </div>
           <h2 className="text-xl font-bold text-white">Summary</h2>
         </div>
-        <p className="text-gray-300 leading-relaxed">{report.summary}</p>
+        <p className="text-gray-300 leading-relaxed">{report.summary || 'No summary available'}</p>
       </div>
 
       {/* Strengths & Improvements Grid */}
@@ -154,12 +154,16 @@ export default function InterviewReportPage({ params }: { params: { id: string }
             <h3 className="text-lg font-bold text-white">Key Strengths</h3>
           </div>
           <ul className="space-y-3">
-            {report.keyStrengths.map((strength, index) => (
-              <li key={index} className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-300">{strength}</span>
-              </li>
-            ))}
+            {(report.keyStrengths || []).length > 0 ? (
+              report.keyStrengths.map((strength, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-300">{strength}</span>
+                </li>
+              ))
+            ) : (
+              <li className="text-gray-400 italic">No strengths recorded yet</li>
+            )}
           </ul>
         </div>
 
@@ -172,12 +176,16 @@ export default function InterviewReportPage({ params }: { params: { id: string }
             <h3 className="text-lg font-bold text-white">Areas to Improve</h3>
           </div>
           <ul className="space-y-3">
-            {report.areasForImprovement.map((area, index) => (
-              <li key={index} className="flex items-start gap-3">
-                <TrendingUp className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-300">{area}</span>
-              </li>
-            ))}
+            {(report.areasForImprovement || []).length > 0 ? (
+              report.areasForImprovement.map((area, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <TrendingUp className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-300">{area}</span>
+                </li>
+              ))
+            ) : (
+              <li className="text-gray-400 italic">No improvement areas identified yet</li>
+            )}
           </ul>
         </div>
       </div>
@@ -190,27 +198,31 @@ export default function InterviewReportPage({ params }: { params: { id: string }
           </div>
           <h2 className="text-xl font-bold text-white">Detailed Feedback</h2>
         </div>
-        <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{report.detailedFeedback}</p>
+        <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
+          {report.detailedFeedback || 'Complete the interview to receive detailed feedback'}
+        </p>
       </div>
 
       {/* Question Breakdown */}
-      <div className="bg-[#1E1E2E] rounded-xl p-6 mb-6">
-        <h2 className="text-xl font-bold text-white mb-6">Question Breakdown</h2>
-        <div className="space-y-4">
-          {report.questionScores.map((item, index) => (
-            <div key={index} className="border-l-4 border-purple-500 pl-4 py-2">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-white font-medium">Question {index + 1}</h4>
-                <span className={`text-lg font-bold ${getScoreColor(item.score)}`}>
-                  {item.score.toFixed(1)}/10
-                </span>
+      {(report.questionScores || []).length > 0 && (
+        <div className="bg-[#1E1E2E] rounded-xl p-6 mb-6">
+          <h2 className="text-xl font-bold text-white mb-6">Question Breakdown</h2>
+          <div className="space-y-4">
+            {report.questionScores.map((item, index) => (
+              <div key={index} className="border-l-4 border-purple-500 pl-4 py-2">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-white font-medium">Question {index + 1}</h4>
+                  <span className={`text-lg font-bold ${getScoreColor(item.score || 0)}`}>
+                    {(item.score || 0).toFixed(1)}/10
+                  </span>
+                </div>
+                <p className="text-gray-400 text-sm mb-2">{item.question}</p>
+                <p className="text-gray-300 text-sm">{item.feedback}</p>
               </div>
-              <p className="text-gray-400 text-sm mb-2">{item.question}</p>
-              <p className="text-gray-300 text-sm">{item.feedback}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Recommendations */}
       <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-xl p-6">
@@ -221,14 +233,18 @@ export default function InterviewReportPage({ params }: { params: { id: string }
           <h2 className="text-xl font-bold text-white">Recommendations</h2>
         </div>
         <ul className="space-y-3">
-          {report.recommendations.map((rec, index) => (
-            <li key={index} className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-purple-400 text-xs font-bold">{index + 1}</span>
-              </div>
-              <span className="text-gray-300">{rec}</span>
-            </li>
-          ))}
+          {(report.recommendations || []).length > 0 ? (
+            report.recommendations.map((rec, index) => (
+              <li key={index} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-purple-400 text-xs font-bold">{index + 1}</span>
+                </div>
+                <span className="text-gray-300">{rec}</span>
+              </li>
+            ))
+          ) : (
+            <li className="text-gray-400 italic">Complete the interview to receive personalized recommendations</li>
+          )}
         </ul>
       </div>
 

@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
         target_keywords: result.targetKeywords,
         canonical_url: result.canonicalUrl,
         is_published: result.qualityScore >= 85, // Auto-publish high quality examples
-        generation_cost: result.cost,
+        generation_cost: result.generationCost,
         generation_time_ms: generationTime,
         created_by: authResult.userId,
       })
@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
       example: savedExample,
       metadata: {
         generationTime,
-        cost: result.cost,
+        cost: result.generationCost,
         atsScore: result.atsScore,
         qualityScore: result.qualityScore,
         autoPublished: result.qualityScore >= 85,

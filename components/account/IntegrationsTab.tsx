@@ -22,7 +22,6 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
   })
   // Mock interview persona selection (uses OpenAI Realtime voices)
   const [mockInterview, setMockInterview] = useState({
-    persona_id: prefs.mockInterview?.persona_id || 'EXAVITQu4vr4xnSDxMaL', // Default Sarah Mitchell's voice_id
     persona_name: prefs.mockInterview?.persona_name || 'Sarah Mitchell',
   })
 
@@ -50,7 +49,7 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
     : ALL_PERSONAS.filter(p => p.gender === genderFilter)
 
   // Get selected persona
-  const selectedPersona = ALL_PERSONAS.find(p => p.voice_id === mockInterview.persona_id) || ALL_PERSONAS[0]
+  const selectedPersona = ALL_PERSONAS.find(p => p.name === mockInterview.persona_name) || ALL_PERSONAS[0]
 
   useEffect(() => {
     const fetchData = async () => {
@@ -385,10 +384,10 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               {filteredPersonas.map(persona => (
                 <button
-                  key={persona.voice_id}
-                  onClick={() => setMockInterview({ persona_id: persona.voice_id, persona_name: persona.name })}
+                  key={persona.name}
+                  onClick={() => setMockInterview({ persona_name: persona.name })}
                   className={`p-4 rounded-xl border-2 transition-all text-left ${
-                    mockInterview.persona_id === persona.voice_id
+                    mockInterview.persona_name === persona.name
                       ? 'border-indigo-500 bg-indigo-500/10 ring-2 ring-indigo-500/30'
                       : 'border-gray-700 bg-gray-800/50 hover:border-indigo-600/50 hover:bg-gray-800'
                   }`}
@@ -418,7 +417,7 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
                         <p className="text-xs text-gray-400">{persona.default_title}</p>
                       </div>
                     </div>
-                    {mockInterview.persona_id === persona.voice_id && (
+                    {mockInterview.persona_name === persona.name && (
                       <CheckCircle className="w-5 h-5 text-indigo-400 flex-shrink-0" />
                     )}
                   </div>

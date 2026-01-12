@@ -327,3 +327,59 @@ body.dashboard-theme {
   margin-bottom: 0.75rem;
   padding-left: 0.5em;
 }
+
+/* ===========================================
+   Weak Word Highlighting for Resume Editor
+   =========================================== */
+.weak-word-highlight {
+  background-color: rgba(251, 191, 36, 0.3);
+  border-bottom: 2px wavy #f59e0b;
+  cursor: help;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.weak-word-highlight:hover {
+  background-color: rgba(251, 191, 36, 0.5);
+}
+
+/* Dark mode styles */
+.dark .weak-word-highlight {
+  background-color: rgba(251, 191, 36, 0.2);
+  border-bottom-color: #fbbf24;
+}
+
+.dark .weak-word-highlight:hover {
+  background-color: rgba(251, 191, 36, 0.35);
+}
+
+/* Tooltip for weak words */
+.weak-word-highlight[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 100;
+  margin-bottom: 4px;
+  max-width: 250px;
+  white-space: normal;
+  text-align: center;
+}
+
+.weak-word-highlight[title]:hover::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+  z-index: 100;
+}

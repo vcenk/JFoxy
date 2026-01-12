@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   avatar_url TEXT,
 
   -- Subscription & Billing
-  subscription_status TEXT DEFAULT 'free' CHECK (subscription_status IN ('free', 'active', 'past_due', 'canceled', 'trialing')),
+  subscription_status TEXT DEFAULT 'free'::text CHECK (subscription_status = ANY (ARRAY['free'::text, 'active'::text, 'past_due'::text, 'canceled'::text, 'trialing'::text])),
+  subscription_tier TEXT DEFAULT 'basic' CHECK (subscription_tier IN ('basic', 'pro', 'premium')), -- New pricing tier
   subscription_price_id TEXT,
   subscription_current_period_end TIMESTAMPTZ,
   stripe_customer_id TEXT UNIQUE,
@@ -17,6 +18,11 @@ CREATE TABLE IF NOT EXISTS profiles (
   ai_tokens_used_this_month INTEGER DEFAULT 0,
   practice_sessions_this_month INTEGER DEFAULT 0,
   mock_interviews_this_month INTEGER DEFAULT 0,
+  resume_builds_this_month INTEGER DEFAULT 0, -- New
+  job_analyses_this_month INTEGER DEFAULT 0, -- New
+  audio_practice_sessions_this_month INTEGER DEFAULT 0, -- New
+  monthly_video_credits INTEGER DEFAULT 0, -- New (resets monthly)
+  purchased_video_credits INTEGER DEFAULT 0, -- New (never expires)
 
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
@@ -39,11 +45,23 @@ CREATE POLICY "Users can update own profile"
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name)
+  INSERT INTO public.profiles (
+    id,
+    email,
+    full_name,
+    subscription_tier, -- Initialize new column
+    resume_builds_this_month,
+    job_analyses_this_month,
+    audio_practice_sessions_this_month,
+    monthly_video_credits,
+    purchased_video_credits
+  )
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', '')
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    'basic', -- Default to basic tier
+    0, 0, 0, 0, 0 -- Initialize new counters to 0
   );
   RETURN NEW;
 END;
@@ -71,3 +89,5 @@ CREATE TRIGGER update_profiles_updated_at
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_profiles_subscription_status ON profiles(subscription_status);
 CREATE INDEX IF NOT EXISTS idx_profiles_stripe_customer_id ON profiles(stripe_customer_id);
+-- New Indexes for faster queries
+CREATE INDEX IF NOT EXISTS idx_profiles_subscription_tier ON profiles(subscription_tier);

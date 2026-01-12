@@ -55,6 +55,11 @@ CREATE TABLE public.resume_examples (
   -- Template association (optional)
   template_id text, -- Which visual template to use
 
+  -- Generation tracking (for AI-generated examples)
+  generation_cost numeric DEFAULT 0, -- Cost in USD to generate using OpenAI API
+  generation_time_ms integer DEFAULT 0, -- Generation time in milliseconds
+  created_by uuid REFERENCES public.profiles(id), -- Admin who generated this
+
   -- Timestamps
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -70,6 +75,8 @@ CREATE INDEX idx_resume_examples_published ON public.resume_examples(is_publishe
 CREATE INDEX idx_resume_examples_featured ON public.resume_examples(is_featured) WHERE is_featured = true;
 CREATE INDEX idx_resume_examples_keywords ON public.resume_examples USING gin(keywords);
 CREATE INDEX idx_resume_examples_target_keywords ON public.resume_examples USING gin(target_keywords);
+CREATE INDEX idx_resume_examples_created_by ON public.resume_examples(created_by);
+CREATE INDEX idx_resume_examples_generation_cost ON public.resume_examples(generation_cost DESC);
 
 -- Full-text search on title and content
 CREATE INDEX idx_resume_examples_search ON public.resume_examples
@@ -132,6 +139,23 @@ CREATE INDEX idx_resume_templates_category ON public.resume_templates(category);
 CREATE INDEX idx_resume_templates_published ON public.resume_templates(is_published);
 CREATE INDEX idx_resume_templates_tags ON public.resume_templates USING gin(tags);
 
+-- RLS Policies
+ALTER TABLE public.resume_templates ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Resume templates are viewable by everyone"
+  ON public.resume_templates FOR SELECT
+  USING (is_published = true);
+
+CREATE POLICY "Only admins can modify resume templates"
+  ON public.resume_templates FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+      AND is_admin = true
+    )
+  );
+
 -- =============================================
 -- POWER WORDS TRACKING (analytics on word usage)
 -- =============================================
@@ -161,6 +185,35 @@ CREATE TABLE public.power_words_usage (
 CREATE INDEX idx_power_words_usage_user ON public.power_words_usage(user_id);
 CREATE INDEX idx_power_words_usage_resume ON public.power_words_usage(resume_id);
 CREATE INDEX idx_power_words_usage_action ON public.power_words_usage(action);
+
+-- RLS Policies
+ALTER TABLE public.power_words_usage ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own power words usage"
+  ON public.power_words_usage FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own power words usage"
+  ON public.power_words_usage FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own power words usage"
+  ON public.power_words_usage FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own power words usage"
+  ON public.power_words_usage FOR DELETE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Admins can view all power words usage"
+  ON public.power_words_usage FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+      AND is_admin = true
+    )
+  );
 
 -- =============================================
 -- INDUSTRY KEYWORDS (for ATS optimization)
@@ -193,6 +246,23 @@ CREATE INDEX idx_industry_keywords_industry ON public.industry_keywords(industry
 CREATE INDEX idx_industry_keywords_job_title ON public.industry_keywords(job_title);
 CREATE INDEX idx_industry_keywords_category ON public.industry_keywords(category);
 CREATE INDEX idx_industry_keywords_importance ON public.industry_keywords(importance_score DESC);
+
+-- RLS Policies
+ALTER TABLE public.industry_keywords ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Industry keywords are viewable by everyone"
+  ON public.industry_keywords FOR SELECT
+  USING (is_active = true);
+
+CREATE POLICY "Only admins can modify industry keywords"
+  ON public.industry_keywords FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+      AND is_admin = true
+    )
+  );
 
 -- =============================================
 -- JOB TITLE TAXONOMY (standardized job titles)
@@ -234,6 +304,23 @@ CREATE INDEX idx_job_title_taxonomy_seniority ON public.job_title_taxonomy(senio
 CREATE INDEX idx_job_title_taxonomy_slug ON public.job_title_taxonomy(slug);
 CREATE INDEX idx_job_title_taxonomy_aliases ON public.job_title_taxonomy USING gin(aliases);
 
+-- RLS Policies
+ALTER TABLE public.job_title_taxonomy ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Job titles are viewable by everyone"
+  ON public.job_title_taxonomy FOR SELECT
+  USING (is_active = true);
+
+CREATE POLICY "Only admins can modify job titles"
+  ON public.job_title_taxonomy FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+      AND is_admin = true
+    )
+  );
+
 -- =============================================
 -- RESUME SYNONYMS (like TealHQ's feature)
 -- =============================================
@@ -273,18 +360,38 @@ CREATE INDEX idx_resume_synonyms_category ON public.resume_synonyms(category);
 CREATE INDEX idx_resume_synonyms_slug ON public.resume_synonyms(slug);
 CREATE INDEX idx_resume_synonyms_published ON public.resume_synonyms(is_published);
 
+-- RLS Policies
+ALTER TABLE public.resume_synonyms ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Resume synonyms are viewable by everyone"
+  ON public.resume_synonyms FOR SELECT
+  USING (is_published = true);
+
+CREATE POLICY "Only admins can modify resume synonyms"
+  ON public.resume_synonyms FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+      AND is_admin = true
+    )
+  );
+
 -- =============================================
 -- FUNCTIONS & TRIGGERS
 -- =============================================
 
 -- Update updated_at timestamp automatically
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER update_resume_examples_updated_at
   BEFORE UPDATE ON public.resume_examples
@@ -308,13 +415,17 @@ CREATE TRIGGER update_resume_synonyms_updated_at
 
 -- Function to increment view count
 CREATE OR REPLACE FUNCTION increment_resume_example_views(example_id uuid)
-RETURNS void AS $$
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   UPDATE public.resume_examples
   SET view_count = view_count + 1
   WHERE id = example_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Function to get popular resume examples
 CREATE OR REPLACE FUNCTION get_popular_resume_examples(limit_count integer DEFAULT 10)
@@ -324,7 +435,11 @@ RETURNS TABLE (
   job_title text,
   industry text,
   view_count integer
-) AS $$
+)
+LANGUAGE plpgsql
+STABLE
+SET search_path = public
+AS $$
 BEGIN
   RETURN QUERY
   SELECT
@@ -338,7 +453,7 @@ BEGIN
   ORDER BY re.view_count DESC
   LIMIT limit_count;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- =============================================
 -- COMMENTS (for documentation)

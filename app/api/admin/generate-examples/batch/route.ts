@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
       target_keywords: result.targetKeywords,
       canonical_url: result.canonicalUrl,
       is_published: result.qualityScore >= 85,
-      generation_cost: result.cost,
+      generation_cost: result.generationCost,
       generation_time_ms: Math.round(totalTime / results.length),
       created_by: authResult.userId,
     }))
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate batch statistics
-    const totalCost = results.reduce((sum, r) => sum + r.cost, 0)
+    const totalCost = results.reduce((sum, r) => sum + r.generationCost, 0)
     const avgQuality = results.reduce((sum, r) => sum + r.qualityScore, 0) / results.length
     const avgATS = results.reduce((sum, r) => sum + r.atsScore, 0) / results.length
     const autoPublished = results.filter((r) => r.qualityScore >= 85).length

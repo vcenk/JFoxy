@@ -22,7 +22,7 @@ npm run type-check   # TypeScript type checking
 - **Backend**: Next.js API Routes (serverless)
 - **Database**: Supabase (PostgreSQL with Row Level Security)
 - **AI**: OpenAI GPT-4 for all AI features
-- **Voice**: Deepgram (STT) and ElevenLabs (TTS) for mock interviews
+- **Voice**: OpenAI Realtime API for mock interviews, Deepgram for STT
 - **Payments**: Stripe for billing
 - **Rich Text**: TipTap for resume bullet editing
 
@@ -37,10 +37,10 @@ npm run type-check   # TypeScript type checking
 - `supabaseClient.ts` - Client-side (anon key)
 - `supabaseServerClient.ts` - Server-side with SSR
 - `supabaseClient.ts:supabaseAdmin` - Service role (admin operations only)
-- `openaiClient.ts`, `deepgramClient.ts`, `elevenlabsClient.ts`, `stripeClient.ts`
+- `openaiClient.ts`, `deepgramClient.ts`, `stripeClient.ts`
 
 **`/lib/data/`** - Static data and configurations
-- `interviewerPersonas.ts` - AI interviewer personas with ElevenLabs voice IDs
+- `interviewerPersonas.ts` - AI interviewer personas with OpenAI voice mappings
 - `atsKeywords.ts`, `powerWords.ts` - Resume optimization data
 
 **`/contexts/`** - React contexts
@@ -59,8 +59,8 @@ npm run type-check   # TypeScript type checking
 - Canvas renders via `/components/resume/studio/ResumeCanvas.tsx`
 
 **Mock Interviews**:
-- Personas from `/lib/data/interviewerPersonas.ts` map to ElevenLabs voices
-- Interview flow: STT (Deepgram) → AI response (mockInterviewEngine) → TTS (ElevenLabs)
+- Personas from `/lib/data/interviewerPersonas.ts` map to OpenAI Realtime voices
+- Interview flow uses OpenAI Realtime API for real-time voice conversation
 - Scoring uses STAR framework with content/delivery breakdown
 
 **API Routes**:
@@ -86,4 +86,4 @@ Supabase Auth with middleware protection in `/middleware.ts`:
 - Engine functions are pure and side-effect free
 - API routes should not contain business logic - delegate to engines
 - Use `supabaseAdmin` only for operations requiring service role
-- Interviewer voice IDs are ElevenLabs voice IDs, not arbitrary strings
+- Interviewer voices use OpenAI Realtime voice IDs (shimmer, coral, ash, etc.)

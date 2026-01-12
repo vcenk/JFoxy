@@ -26,4 +26,20 @@ export interface DesignerSettings {
   textTransform: 'none' | 'uppercase' | 'capitalize'
   letterSpacing: number
   boldPosition: boolean
+  // Enhanced spacing controls (optional for backward compatibility)
+  sectionGap?: number
+  itemGap?: number
+  bulletSpacing?: number
+  paragraphSpacing?: number
+  // Header layout options
+  headerLayout?: 'left' | 'center' | 'split'
+  contactLayout?: 'inline' | 'stacked' | 'two-column'
+  showContactIcons?: boolean
+  contactIconStyle?: 'solid' | 'outline' | 'none'
+  nameSubtitleGap?: number
+  // Color settings
+  colorPreset?: string | null
+  secondaryColor?: string
+  headerBackgroundColor?: string
+  sidebarBackgroundColor?: string
 }

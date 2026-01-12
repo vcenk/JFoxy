@@ -22,7 +22,7 @@ import {
   incrementUsage
 } from '@/lib/utils/apiHelpers'
 import {
-  getPersonaByVoiceId,
+  getPersonaByName,
   getRecommendedPersona,
   getPersonaTitle,
   ALL_PERSONAS
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     // 2. Get User Profile (for voice preferences)
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('preferred_interviewer_voice, preferred_interviewer_gender, full_name')
+      .select('preferred_interviewer_gender, full_name, preferences')
       .eq('id', user.id)
       .single()
 
@@ -130,18 +130,20 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 5. Determine Interviewer Voice & Persona
-    let voiceId = body.voiceId || profile?.preferred_interviewer_voice
+    // 5. Determine Interviewer Persona
+    // Read from user preferences (saved via IntegrationsTab)
+    const prefs = profile?.preferences as { mockInterview?: { persona_name?: string } } | null
+    let personaName = body.personaName || prefs?.mockInterview?.persona_name
 
-    // If no voice ID, get recommended persona based on job
-    if (!voiceId) {
+    // If no persona specified, get recommended persona based on job
+    if (!personaName) {
       const recommendedPersona = getRecommendedPersona(jobTitle, profile?.preferred_interviewer_gender)
-      voiceId = recommendedPersona.voice_id
+      personaName = recommendedPersona.name
     }
 
-    const persona = getPersonaByVoiceId(voiceId)
+    const persona = getPersonaByName(personaName)
     if (!persona) {
-      return badRequestResponse('Invalid voice/persona selection')
+      return badRequestResponse('Invalid persona selection')
     }
 
     // Adjust interviewer title based on job context
@@ -180,16 +182,20 @@ export async function POST(req: NextRequest) {
     // 8. Create Interview Session
     // Using the actual 'mock_interviews' table with correct schema
     const { data: session, error: sessionError } = await supabaseAdmin
-      .from('mock_interviews')
+      .from('mock_interview_sessions')
       .insert({
         user_id: user.id,
         resume_id: resumeId,
         job_description_id: jobDescriptionId,
         duration_minutes: durationMinutes,
-        persona_id: voiceId, // Persona/voice ID
-        focus: jobTitle || null,
-        difficulty: 'standard',
-        planned_questions: {
+        interviewer_voice: personaName, // Persona name identifier
+        interviewer_name: persona.name,
+        interviewer_gender: persona.gender,
+        interviewer_title: interviewerTitle,
+        job_title: jobTitle || null,
+        company_name: companyName,
+        total_questions: questions.length,
+        interview_plan: {
           questions: questions.map(q => ({
             text: q.text,
             type: q.type,
@@ -200,16 +206,10 @@ export async function POST(req: NextRequest) {
           })),
           seniority_level: seniorityLevel,
           industry,
-          duration: durationMinutes,
-          // Store extra context in planned_questions for UI
-          interviewer_name: persona.name,
-          interviewer_title: interviewerTitle,
-          interviewer_gender: persona.gender,
-          company_name: companyName,
-          job_title: jobTitle,
-          current_phase: 'welcome',
-          current_question_index: 0
+          duration: durationMinutes
         },
+        current_phase: 'welcome',
+        current_question_index: 0,
         status: 'in_progress',
         started_at: new Date().toISOString()
       })
@@ -223,10 +223,10 @@ export async function POST(req: NextRequest) {
 
     // 9. Create Question Exchanges (pre-populate with generated questions)
     const exchanges = questions.map((q, index) => ({
-      mock_interview_id: session.id,
+      session_id: session.id,
       question_text: q.text,
-      question_type: q.type,
-      exchange_order: index + 1
+      exchange_type: q.type || 'behavioral',
+      order_index: index + 1
     }))
 
     const { error: exchangesError } = await supabaseAdmin
@@ -237,7 +237,7 @@ export async function POST(req: NextRequest) {
       console.error('[Mock Create] Exchanges creation error:', exchangesError)
       // Clean up session
       await supabaseAdmin
-        .from('mock_interviews')
+        .from('mock_interview_sessions')
         .delete()
         .eq('id', session.id)
       return serverErrorResponse('Failed to initialize interview questions')
@@ -266,7 +266,7 @@ export async function POST(req: NextRequest) {
       interviewer: {
         name: persona.name,
         title: interviewerTitle,
-        voiceId,
+        personaName,
         openaiVoice: persona.openai_voice, // OpenAI Realtime voice
         gender: persona.gender,
         personality: persona.personality

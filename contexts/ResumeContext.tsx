@@ -3,9 +3,10 @@
 
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, ReactNode, useCallback } from 'react'
 import { ParsedResume } from '@/lib/types/resume'
 import { plainTextToJSON } from '@/lib/utils/richTextHelpers'
+import { ResumeDesign, DEFAULT_DESIGN } from '@/lib/pdf/types'
 
 type ResumeSection =
   | 'contact'
@@ -84,6 +85,22 @@ interface ResumeContextType {
     textTransform: 'none' | 'uppercase' | 'capitalize'
     letterSpacing: number
     boldPosition: boolean
+    // Enhanced spacing controls
+    sectionGap: number
+    itemGap: number
+    bulletSpacing: number
+    paragraphSpacing: number
+    // Header layout options
+    headerLayout: 'left' | 'center' | 'split'
+    contactLayout: 'inline' | 'stacked' | 'two-column'
+    showContactIcons: boolean
+    contactIconStyle: 'solid' | 'outline' | 'none'
+    nameSubtitleGap: number
+    // Color settings
+    colorPreset: string | null
+    secondaryColor: string
+    headerBackgroundColor: string
+    sidebarBackgroundColor: string
   }
   updateDesignerSettings: (settings: Partial<ResumeContextType['designerSettings']>) => void
 
@@ -98,6 +115,12 @@ interface ResumeContextType {
   setRenderedThemeHtml: (html: string | null) => void
   isThemeLoading: boolean
   setIsThemeLoading: (isLoading: boolean) => void
+
+  // React-PDF Integration
+  usePDFRenderer: boolean
+  setUsePDFRenderer: (use: boolean) => void
+  pdfDesign: ResumeDesign
+  updatePdfDesign: (updates: Partial<ResumeDesign>) => void
 }
 
 const ResumeContext = createContext<ResumeContextType | undefined>(undefined)
@@ -108,6 +131,12 @@ const defaultResumeData: ParsedResume = {
   education: [],
   skills: {},
   summary: plainTextToJSON(''),
+  projects: [],
+  certifications: [],
+  awards: [],
+  volunteer: [],
+  publications: [],
+  languages: [],
 }
 
 export const ResumeProvider = ({ children }: { children: ReactNode }) => {
@@ -121,6 +150,10 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
   const [selectedJsonResumeTheme, setSelectedJsonResumeTheme] = useState<string | null>(null);
   const [renderedThemeHtml, setRenderedThemeHtml] = useState<string | null>(null);
   const [isThemeLoading, setIsThemeLoading] = useState<boolean>(false);
+
+  // React-PDF state
+  const [usePDFRenderer, setUsePDFRenderer] = useState<boolean>(true);
+  const [pdfDesign, setPdfDesign] = useState<ResumeDesign>(DEFAULT_DESIGN);
 
 
   // Default all sections to visible
@@ -139,12 +172,12 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
     languages: { visible: true },
   })
 
-  const updateSectionSettings = (section: ResumeSection, settings: Partial<SectionSettings>) => {
+  const updateSectionSettings = useCallback((section: ResumeSection, settings: Partial<SectionSettings>) => {
     setSectionSettings(prev => ({
       ...prev,
       [section]: { ...prev[section], ...settings },
     }))
-  }
+  }, [])
 
   const [sectionOrder, setSectionOrder] = useState<ResumeSection[]>([
     'contact',
@@ -185,11 +218,47 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
     textTransform: 'uppercase' as 'none' | 'uppercase' | 'capitalize',
     letterSpacing: 0.05,
     boldPosition: true,
+    // Enhanced spacing controls - reduced for compact layout
+    sectionGap: 12,
+    itemGap: 6,
+    bulletSpacing: 2,
+    paragraphSpacing: 4,
+    // Header layout options
+    headerLayout: 'left' as 'left' | 'center' | 'split',
+    contactLayout: 'inline' as 'inline' | 'stacked' | 'two-column',
+    showContactIcons: false,
+    contactIconStyle: 'solid' as 'solid' | 'outline' | 'none',
+    nameSubtitleGap: 8,
+    // Color settings
+    colorPreset: null as string | null,
+    secondaryColor: '#6C47FF',
+    headerBackgroundColor: 'transparent',
+    sidebarBackgroundColor: 'transparent',
   })
 
-  const updateDesignerSettings = (settings: Partial<typeof designerSettings>) => {
-    setDesignerSettings(prev => ({ ...prev, ...settings }))
-  }
+  const updateDesignerSettings = useCallback((settings: Partial<typeof designerSettings>) => {
+    setDesignerSettings(prev => {
+      const updated = { ...prev, ...settings }
+
+      // Deep merge nested objects
+      if (settings.pageNumbers) {
+        updated.pageNumbers = { ...prev.pageNumbers, ...settings.pageNumbers }
+      }
+
+      return updated
+    })
+  }, [])
+
+  const updatePdfDesign = useCallback((updates: Partial<ResumeDesign>) => {
+    setPdfDesign(prev => ({
+      ...prev,
+      ...updates,
+      sectionSettings: {
+        ...prev.sectionSettings,
+        ...updates.sectionSettings,
+      },
+    }))
+  }, [])
 
   return (
     <ResumeContext.Provider
@@ -216,6 +285,10 @@ export const ResumeProvider = ({ children }: { children: ReactNode }) => {
         setRenderedThemeHtml,
         isThemeLoading,
         setIsThemeLoading,
+        usePDFRenderer,
+        setUsePDFRenderer,
+        pdfDesign,
+        updatePdfDesign,
       }}
     >
       {children}

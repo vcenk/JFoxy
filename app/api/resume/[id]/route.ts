@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/clients/supabaseClient'
 import { getAuthUser } from '@/lib/utils/apiHelpers'
+import { normalizeResume } from '@/lib/utils/resumeNormalizer'
 
 // GET - Fetch single resume
 export async function GET(
@@ -32,6 +33,12 @@ export async function GET(
         { success: false, error: 'Resume not found' },
         { status: 404 }
       )
+    }
+
+    // Normalize the resume content to ensure IDs and enabled flags
+    // This handles legacy data that was saved before the normalizer
+    if (resume.content) {
+      resume.content = normalizeResume(resume.content)
     }
 
     return NextResponse.json({
@@ -63,12 +70,14 @@ export async function PUT(
 
     const resolvedParams = params instanceof Promise ? await params : params
     const body = await req.json()
-    const { content, title, raw_text } = body
+    const { content, title, raw_text, template_id, design_settings } = body
 
     const updates: any = { updated_at: new Date().toISOString() }
     if (content !== undefined) updates.content = content
     if (title !== undefined) updates.title = title
     if (raw_text !== undefined) updates.raw_text = raw_text
+    if (template_id !== undefined) updates.template_id = template_id
+    if (design_settings !== undefined) updates.design_settings = design_settings
 
     const { data: resume, error } = await supabaseAdmin
       .from('resumes')

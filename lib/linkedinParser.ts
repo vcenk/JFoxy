@@ -1,8 +1,9 @@
 // lib/linkedinParser.ts
 // Parse LinkedIn profile data and convert to resume format
 
-import { ParsedResume } from '@/lib/types/resume'
+import { ParsedResume, LegacyParsedResume } from '@/lib/types/resume'
 import { plainTextToJSON } from './utils/richTextHelpers'
+import { migrateResumeData } from './utils/dataMigration'
 
 interface LinkedInProfile {
   basics?: {
@@ -84,7 +85,8 @@ interface LinkedInProfile {
  * Parse LinkedIn profile JSON and convert to resume format
  */
 export function parseLinkedInProfile(linkedinData: LinkedInProfile): ParsedResume {
-  const resume: ParsedResume = {
+  // Build legacy format first, then migrate to new format with IDs
+  const resume: any = {
     contact: {},
     experience: [],
     education: [],
@@ -237,7 +239,8 @@ export function parseLinkedInProfile(linkedinData: LinkedInProfile): ParsedResum
     }))
   }
 
-  return resume
+  // Migrate to new format with IDs and enabled flags
+  return migrateResumeData(resume)
 }
 
 /**

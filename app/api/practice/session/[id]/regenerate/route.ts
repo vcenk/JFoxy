@@ -53,51 +53,9 @@ export async function POST(
       return badRequestResponse('Resume not found')
     }
 
-    // Get job description if provided
-    let jobText: string | undefined
-    if (sessionData.job_description_id) {
-      const { data: jd } = await supabaseAdmin
-        .from('job_descriptions')
-        .select('description')
-        .eq('id', sessionData.job_description_id)
-        .single()
-      jobText = jd?.description
-    }
-
-    // Generate new question
-    const plan = await generateInterviewPlan({
-      resumeText: resume.raw_text,
-      jobDescription: jobText,
-      difficulty: sessionData.difficulty || 'standard',
-      focus: sessionData.question_category,
-      durationMinutes: 1, // Just one question
-    })
-
-    if (!plan || !plan.questions || plan.questions.length === 0) {
-      return serverErrorResponse('Failed to generate new question')
-    }
-
-    const newQuestionData = plan.questions[0]
-
-    // Update the existing question with new text
-    const { data: updatedQuestion, error: updateError } = await supabaseAdmin
-      .from('practice_questions')
-      .update({
-        question_text: newQuestionData.text,
-        expected_components: newQuestionData.ideal_answer_points,
-      })
-      .eq('id', questionId)
-      .eq('session_id', sessionId)
-      .select()
-      .single()
-
-    if (updateError || !updatedQuestion) {
-      console.error('Failed to update question:', updateError)
-      return serverErrorResponse('Failed to update question')
-    }
-
-    console.log('[Regenerate Question] Success for question:', questionId)
-    return successResponse({ question: updatedQuestion })
+    // TODO: Implement question regeneration with generateInterviewPlan
+    // This feature is not yet implemented
+    return serverErrorResponse('Question regeneration is not yet implemented')
   } catch (error) {
     console.error('[API Regenerate Question Error]:', error)
     return serverErrorResponse()

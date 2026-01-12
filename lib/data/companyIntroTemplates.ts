@@ -74,7 +74,7 @@ export function generateCompanyIntro(params: {
 function generateCompanyDescription(companyName: string, industry?: string, jobDescription?: string): string {
   // Try to extract company info from job description
   if (jobDescription) {
-    const aboutMatch = jobDescription.match(/(?:about us|about|company|who we are)[:\n]+(.*?)(?:\n\n|requirements|responsibilities)/is)
+    const aboutMatch = jobDescription.match(/(?:about us|about|company|who we are)[:\n]+([\s\S]*?)(?:\n\n|requirements|responsibilities)/i)
     if (aboutMatch && aboutMatch[1]) {
       const about = aboutMatch[1].trim().substring(0, 300)
       return `${companyName} ${about.endsWith('.') ? about : about + '.'}`
@@ -112,7 +112,7 @@ function generateRoleDescription(jobTitle: string, jobDescription?: string): str
 
   // Try to extract responsibilities from job description
   if (jobDescription) {
-    const respMatch = jobDescription.match(/(?:responsibilities|what you'll do|you will)[:\n]+(.*?)(?:\n\n|requirements|qualifications)/is)
+    const respMatch = jobDescription.match(/(?:responsibilities|what you'll do|you will)[:\n]+([\s\S]*?)(?:\n\n|requirements|qualifications)/i)
     if (respMatch && respMatch[1]) {
       const responsibilities = respMatch[1].trim().substring(0, 250)
       return `The role we're discussing today is ${title}. [pause] ${responsibilities}`

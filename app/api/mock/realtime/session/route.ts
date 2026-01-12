@@ -16,7 +16,7 @@ import {
   buildGreetingInstruction,
   InterviewerPersonaConfig
 } from '@/lib/services/interviewInstructions'
-import { getPersonaByVoiceId } from '@/lib/data/interviewerPersonas'
+import { getPersonaByName } from '@/lib/data/interviewerPersonas'
 
 /**
  * POST /api/mock/realtime/session
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     // 1. Fetch session from database (using mock_interviews table)
     const { data: session, error: sessionError } = await supabaseAdmin
-      .from('mock_interviews')
+      .from('mock_interview_sessions')
       .select('*')
       .eq('id', sessionId)
       .eq('user_id', user.id)
@@ -72,11 +72,11 @@ export async function POST(req: NextRequest) {
 
     const userName = profile?.full_name || 'Candidate'
 
-    // 3. Get interviewer persona (persona_id contains the voice_id)
-    const persona = getPersonaByVoiceId(session.persona_id)
+    // 3. Get interviewer persona (interviewer_voice contains the persona name)
+    const persona = getPersonaByName(session.interviewer_voice)
 
     if (!persona) {
-      console.error('[Realtime Session] Invalid persona ID:', session.persona_id)
+      console.error('[Realtime Session] Invalid persona ID:', session.interviewer_voice)
       return badRequestResponse('Invalid interviewer configuration')
     }
 
@@ -84,29 +84,28 @@ export async function POST(req: NextRequest) {
     const openAIVoice = mapPersonaToOpenAIVoice(persona)
 
     // 5. Build persona config for instructions
-    // Extract stored interviewer info from planned_questions
-    const plannedQuestions = session.planned_questions || {}
     const personaConfig: InterviewerPersonaConfig = {
-      name: plannedQuestions.interviewer_name || persona.name,
-      title: plannedQuestions.interviewer_title || persona.default_title,
+      name: session.interviewer_name || persona.name,
+      title: session.interviewer_title || persona.default_title,
       style: persona.style || 'professional',
       warmth: persona.warmth || 6,
       strictness: persona.strictness || 5,
       backchannelFrequency: persona.backchannel_frequency || 'medium'
     }
 
-    // 6. Extract questions from planned_questions
-    const questions = plannedQuestions.questions || []
+    // 6. Extract questions from interview_plan
+    const interviewPlan = session.interview_plan || {}
+    const questions = interviewPlan.questions || []
 
     // 7. Build instructions
     const instructions = buildInterviewInstructions({
       persona: personaConfig,
       userName,
-      companyName: plannedQuestions.company_name,
-      jobTitle: plannedQuestions.job_title || session.focus,
+      companyName: session.company_name,
+      jobTitle: session.job_title,
       questions,
-      currentPhase: plannedQuestions.current_phase || 'welcome',
-      currentQuestionIndex: plannedQuestions.current_question_index || 0
+      currentPhase: session.current_phase || 'welcome',
+      currentQuestionIndex: session.current_question_index || 0
     })
 
     // 8. Build greeting instruction
@@ -115,7 +114,7 @@ export async function POST(req: NextRequest) {
     // 9. Create ephemeral token from OpenAI
     console.log('[Realtime Session] Creating ephemeral token for voice:', openAIVoice)
     const tokenResponse = await createEphemeralToken({
-      model: 'gpt-4o-realtime-preview',
+      model: 'gpt-realtime-mini',
       voice: openAIVoice,
       modalities: ['text', 'audio']
     })
@@ -123,7 +122,7 @@ export async function POST(req: NextRequest) {
     // 10. Update session status to 'in_progress' if needed
     if (session.status === 'planned') {
       await supabaseAdmin
-        .from('mock_interviews')
+        .from('mock_interview_sessions')
         .update({
           status: 'in_progress',
           started_at: new Date().toISOString()
@@ -142,13 +141,13 @@ export async function POST(req: NextRequest) {
       },
       session: {
         id: session.id,
-        interviewerName: plannedQuestions.interviewer_name || persona.name,
-        interviewerTitle: plannedQuestions.interviewer_title || persona.default_title,
-        companyName: plannedQuestions.company_name,
-        jobTitle: plannedQuestions.job_title || session.focus,
+        interviewerName: session.interviewer_name || persona.name,
+        interviewerTitle: session.interviewer_title || persona.default_title,
+        companyName: session.company_name,
+        jobTitle: session.job_title,
         totalQuestions: questions.length,
-        currentPhase: plannedQuestions.current_phase || 'welcome',
-        currentQuestionIndex: plannedQuestions.current_question_index || 0
+        currentPhase: session.current_phase || 'welcome',
+        currentQuestionIndex: session.current_question_index || 0
       }
     })
 

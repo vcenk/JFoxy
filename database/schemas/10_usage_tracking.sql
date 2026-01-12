@@ -48,6 +48,15 @@ BEGIN
   SET
     ai_tokens_used_this_month = 0,
     practice_sessions_this_month = 0,
-    mock_interviews_this_month = 0;
+    mock_interviews_this_month = 0,
+    -- Reset new counters
+    resume_builds_this_month = 0,
+    job_analyses_this_month = 0,
+    audio_practice_sessions_this_month = 0,
+    -- Reset monthly_video_credits based on tier
+    monthly_video_credits = CASE
+      WHEN subscription_tier = 'premium' THEN 20 -- Premium gets 4 sessions * 5 credits
+      ELSE 0
+    END;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

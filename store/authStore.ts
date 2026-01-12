@@ -11,6 +11,7 @@ export interface Profile {
 
   // Subscription
   subscription_status: 'free' | 'active' | 'past_due' | 'canceled' | 'trialing'
+  subscription_tier?: 'basic' | 'pro' | 'premium'
   subscription_price_id: string | null
   subscription_current_period_end: string | null
   stripe_customer_id: string | null
@@ -19,6 +20,11 @@ export interface Profile {
   ai_tokens_used_this_month: number
   practice_sessions_this_month: number
   mock_interviews_this_month: number
+  resume_builds_this_month?: number
+  job_analyses_this_month?: number
+  audio_practice_sessions_this_month?: number
+  monthly_video_credits?: number
+  purchased_video_credits?: number
 
   // User preferences
   preferences: Record<string, unknown> | null

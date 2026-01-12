@@ -39,7 +39,7 @@ export async function POST(
   try {
     // 1. Fetch Session (using mock_interviews table)
     const { data: session, error: sessionError } = await supabaseAdmin
-      .from('mock_interviews')
+      .from('mock_interview_sessions')
       .select('*')
       .eq('id', sessionId)
       .eq('user_id', user.id)
@@ -49,24 +49,21 @@ export async function POST(
       return badRequestResponse('Interview session not found or access denied')
     }
 
-    const plannedQuestions = session.planned_questions || {}
+    const interviewPlan = session.interview_plan || {}
 
     if (session.status === 'completed') {
       // Already completed, fetch existing report
       const { data: exchanges } = await supabaseAdmin
         .from('mock_interview_exchanges')
         .select('*')
-        .eq('mock_interview_id', sessionId)
-        .order('exchange_order', { ascending: true })
+        .eq('session_id', sessionId)
+        .order('order_index', { ascending: true })
 
       return successResponse({
         report: {
           overallScore: session.overall_score,
-          verdict: session.verdict,
-          summary: session.summary,
-          keyStrengths: session.key_strengths,
-          keyGaps: session.key_gaps,
-          improvementPlan: session.improvement_plan
+          summary: session.feedback_summary,
+          detailedFeedback: session.detailed_feedback
         },
         session: {
           id: session.id,
@@ -83,8 +80,8 @@ export async function POST(
     const { data: exchanges, error: exchangesError } = await supabaseAdmin
       .from('mock_interview_exchanges')
       .select('*')
-      .eq('mock_interview_id', sessionId)
-      .order('exchange_order', { ascending: true })
+      .eq('session_id', sessionId)
+      .order('order_index', { ascending: true })
 
     if (exchangesError) {
       console.error('[Complete] Exchanges fetch error:', exchangesError)
@@ -97,7 +94,7 @@ export async function POST(
 
     // 3. Filter Answered Questions and Build Exchanges Array
     const answeredExchanges = exchanges.filter(ex =>
-      ex.user_transcript && ex.answer_score !== null
+      ex.user_answer_text && ex.answer_score !== null
     )
 
     if (answeredExchanges.length === 0) {
@@ -108,12 +105,12 @@ export async function POST(
 
     // Build exchanges array for report generation
     const reportExchanges = answeredExchanges.map(ex => {
-      const starInfo = ex.star_completeness || {}
+      const starInfo = ex.star_components || {}
       const analysis: AnswerAnalysis = {
         score: ex.answer_score || 0,
-        strengths: [],
-        improvements: [],
-        detailedFeedback: '',
+        strengths: ex.strengths || [],
+        improvements: ex.improvements || [],
+        detailedFeedback: ex.feedback || '',
         starAnalysis: {
           hasSituation: starInfo.situation || false,
           hasTask: starInfo.task || false,
@@ -129,7 +126,7 @@ export async function POST(
 
       return {
         question: ex.question_text,
-        answer: ex.user_transcript || '',
+        answer: ex.user_answer_text || '',
         analysis
       }
     })
@@ -172,27 +169,21 @@ export async function POST(
 
     console.log('[Complete] Report generated, overall score:', report.overallScore)
 
-    // 6. Derive verdict from overall score
-    const getVerdict = (score: number): 'strong_hire' | 'hire' | 'borderline' | 'not_ready' => {
-      if (score >= 8) return 'strong_hire'
-      if (score >= 6) return 'hire'
-      if (score >= 4) return 'borderline'
-      return 'not_ready'
-    }
-
     // 7. Update Session with Report and Mark as Completed
     const { error: updateError } = await supabaseAdmin
-      .from('mock_interviews')
+      .from('mock_interview_sessions')
       .update({
         status: 'completed',
+        current_phase: 'completed',
         completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         overall_score: report.overallScore,
-        verdict: getVerdict(report.overallScore),
-        summary: report.summary,
-        key_strengths: report.keyStrengths,
-        key_gaps: report.areasForImprovement || [],
-        improvement_plan: { recommendations: report.recommendations }
+        feedback_summary: report.summary,
+        detailed_feedback: {
+          keyStrengths: report.keyStrengths,
+          areasForImprovement: report.areasForImprovement || [],
+          recommendations: report.recommendations
+        }
       })
       .eq('id', sessionId)
 
@@ -217,8 +208,8 @@ export async function POST(
         questionsSkipped: exchanges.length - answeredExchanges.length
       },
       interviewer: {
-        name: plannedQuestions.interviewer_name,
-        title: plannedQuestions.interviewer_title
+        name: session.interviewer_name,
+        title: session.interviewer_title
       }
     })
 

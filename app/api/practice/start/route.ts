@@ -43,74 +43,9 @@ export async function POST(req: NextRequest) {
       .single()
     if (!resume) return badRequestResponse('Resume not found')
 
-    let jobText: string | undefined
-    if (jobDescriptionId) {
-      const { data: jd } = await supabaseAdmin
-        .from('job_descriptions')
-        .select('description')
-        .eq('id', jobDescriptionId)
-        .eq('user_id', user.id)
-        .single()
-      jobText = jd?.description
-    }
-
-    // Generate a plan with a single question for now, then get more as needed
-    const generatedPlan = await generateInterviewPlan({
-        resumeText: resume.raw_text,
-        jobDescription: jobText,
-        difficulty: 'standard', // Default for practice
-        focus: questionCategory,
-        durationMinutes: totalQuestions * 3 // Estimate duration for question generation
-    });
-
-    if (!generatedPlan || generatedPlan.questions.length === 0) {
-        return serverErrorResponse('Failed to generate initial practice question.')
-    }
-
-    // Create a new practice session
-    const { data: session, error: sessionError } = await supabaseAdmin
-      .from('practice_sessions')
-      .insert({
-        user_id: user.id,
-        resume_id: resumeId,
-        job_description_id: jobDescriptionId,
-        question_category: questionCategory,
-        total_questions: generatedPlan.questions.length, // Use generated plan questions count
-        title: `${questionCategory} Practice`,
-        status: 'in_progress',
-      })
-      .select()
-      .single()
-
-    if (sessionError) {
-      console.error('Failed to create practice session:', sessionError)
-      return serverErrorResponse('Failed to create practice session')
-    }
-
-    // Insert the initial question
-    const firstQuestion = generatedPlan.questions[0];
-    const { data: newQuestion, error: questionError } = await supabaseAdmin
-        .from('practice_questions')
-        .insert({
-            session_id: session.id,
-            question_text: firstQuestion.text,
-            question_category: firstQuestion.type,
-            difficulty: 'medium', // Default
-            expected_components: firstQuestion.ideal_answer_points,
-            order_index: 0,
-        })
-        .select()
-        .single();
-
-    if (questionError) {
-        console.error('Failed to insert initial practice question:', questionError);
-        return serverErrorResponse('Failed to save initial question');
-    }
-
-    // Increment usage
-    await incrementUsage(user.id, 'audio_practice_sessions_this_month')
-
-    return successResponse({ session, currentQuestion: newQuestion })
+    // TODO: Implement practice session start with generateInterviewPlan
+    // This feature is not yet implemented - the generateInterviewPlan function needs to be created
+    return serverErrorResponse('Practice sessions are not yet implemented')
   } catch (error) {
     console.error('[API Start Practice Session Error]:', error)
     return serverErrorResponse()
