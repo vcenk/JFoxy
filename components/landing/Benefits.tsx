@@ -76,8 +76,8 @@ export function Benefits() {
 
             {/* CTA BUTTON */}
             <motion.div variants={fadeInUp}>
-              <Link 
-                href="/register"
+              <Link
+                href="/auth/register"
                 className="inline-flex items-center gap-2 text-[#1a1615] font-bold text-lg hover:gap-4 transition-all group"
               >
                 <span>Start your transformation</span>

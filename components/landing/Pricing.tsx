@@ -3,65 +3,81 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, Star, Zap } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { fadeInUp, staggerContainer, scaleIn } from './animations'
 
-// 1. UPDATED DATA STRUCTURE
-// Added 'monthlyPrice', 'annualPrice', and 'annualPeriod' to handle the toggle logic.
+// Pricing tiers configuration
 export const pricingPlans = [
   {
-    name: 'Basic',
-    monthlyPrice: 'Free',
-    annualPrice: 'Free',
-    period: 'forever',
-    description: 'For solo use with light needs.',
+    name: 'Free',
+    monthlyPrice: '$0',
+    annualPrice: '$0',
+    period: '',
+    description: 'See how JobFoxy can help you.',
     features: [
-      '3 resume gap analyses/mo',
-      '5 STAR practice sessions',
-      'Basic AI Mock Interview (15 min)',
-      'General question bank',
-      'Basic structure feedback'
+      '1 resume',
+      '1 job analysis',
+      '1 cover letter',
+      'Export to PDF/DOCX',
+      'Preview coaching tools'
     ],
-    cta: 'Try Job Foxy Free',
+    cta: 'Try Free',
     ctaLink: '/auth/register',
     popular: false,
     highlighted: false,
   },
   {
-    name: 'Pro',
-    monthlyPrice: '$19',
-    annualPrice: '$15', // Discounted rate (approx 20% off)
+    name: 'Basic',
+    monthlyPrice: '$14.90',
+    annualPrice: '$12.90',
     period: '/mo',
-    description: 'For pro use with heavy needs.',
+    description: 'Get interview-ready applications.',
     features: [
-      'Unlimited resume gap analyses',
-      'Unlimited Smart JD Breakdowns',
-      'Unlimited AI Mock Interviews',
-      'Actionable Insights & Scoring',
-      'Session recordings & history',
-      'Advanced feedback (Tone/Pacing)'
+      '5 resumes',
+      'Unlimited job analyses',
+      'Unlimited cover letters',
+      'AI-powered improvements',
+      'Full coaching suite',
+      'Unlimited exports'
     ],
-    cta: 'Get Started',
+    cta: 'Start Basic',
+    ctaLink: '/auth/register?plan=basic',
+    popular: false,
+    highlighted: false,
+  },
+  {
+    name: 'Pro',
+    monthlyPrice: '$24.90',
+    annualPrice: '$19.90',
+    period: '/mo',
+    description: 'Practice with voice feedback.',
+    features: [
+      'Everything in Basic',
+      '6 voice practice sessions/mo',
+      'AI feedback on your answers',
+      'Performance scoring',
+      'Personalized coaching'
+    ],
+    cta: 'Start Pro',
     ctaLink: '/auth/register?plan=pro',
     popular: true,
     highlighted: true,
   },
   {
-    name: 'Enterprise',
-    monthlyPrice: 'Flexible',
-    annualPrice: 'Flexible',
-    period: '',
-    description: 'For team use with custom needs.',
+    name: 'Interview Ready',
+    monthlyPrice: '$49.90',
+    annualPrice: '$39.90',
+    period: '/mo',
+    description: 'Realistic AI mock interviews.',
     features: [
       'Everything in Pro',
-      'Mock interview simulations',
-      'Industry-specific packs',
-      'Salary negotiation prep',
-      'Personal coaching insights',
-      'Admin dashboard'
+      '150 min mock interviews/mo',
+      '10 voice sessions/mo',
+      'Multiple interview styles',
+      'Detailed feedback reports'
     ],
-    cta: 'Contact Sales',
-    ctaLink: '/contact',
+    cta: 'Start Interview Ready',
+    ctaLink: '/auth/register?plan=interview-ready',
     popular: false,
     highlighted: false,
   },
@@ -100,10 +116,37 @@ export function Pricing({
           </motion.h2>
           <motion.p
             variants={fadeInUp}
-            className="text-xl text-[#6b6b6b] max-w-2xl mx-auto"
+            className="text-xl text-[#6b6b6b] max-w-2xl mx-auto mb-8"
           >
             {subtitle}
           </motion.p>
+
+          {/* Billing Toggle */}
+          <motion.div variants={fadeInUp} className="flex justify-center">
+            <div className="bg-white rounded-full p-1.5 flex items-center gap-1 shadow-sm border border-gray-200">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  billingCycle === 'monthly'
+                    ? 'bg-[#1a1615] text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingCycle('annually')}
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  billingCycle === 'annually'
+                    ? 'bg-[#1a1615] text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                Annually
+                <span className="ml-1.5 text-xs text-green-600 font-bold">Save 20%</span>
+              </button>
+            </div>
+          </motion.div>
         </motion.div>
 
         {/* Pricing Cards */}
@@ -112,7 +155,7 @@ export function Pricing({
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           variants={staggerContainer}
-          className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto items-start"
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto items-start"
         >
           {plans.map((plan, index) => (
             <motion.div
@@ -129,33 +172,6 @@ export function Pricing({
                   }
                 `}
               >
-                {/* 3. INTERACTIVE TOGGLE BUTTONS */}
-                {plan.highlighted && (
-                   <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-white/60 backdrop-blur-sm rounded-full p-1 flex items-center gap-1 text-xs font-semibold z-10">
-                      <button
-                        onClick={() => setBillingCycle('monthly')}
-                        className={`px-3 py-1.5 rounded-full transition-all duration-200 ${
-                          billingCycle === 'monthly' 
-                            ? 'bg-white shadow-sm text-black' 
-                            : 'text-gray-500 hover:text-gray-900'
-                        }`}
-                      >
-                        Monthly
-                      </button>
-                      <button 
-                        onClick={() => setBillingCycle('annually')}
-                        className={`px-3 py-1.5 rounded-full transition-all duration-200 ${
-                          billingCycle === 'annually' 
-                            ? 'bg-white shadow-sm text-black' 
-                            : 'text-gray-500 hover:text-gray-900'
-                        }`}
-                      >
-                        Annually
-                      </button>
-                   </div>
-                )}
-                
-                <div className={plan.highlighted ? "mt-12" : ""}></div>
 
                 {/* Header */}
                 <div className="mb-8 text-left">
@@ -163,7 +179,7 @@ export function Pricing({
                     <h3 className="text-lg font-medium text-[#1a1615]">{plan.name}</h3>
                     {plan.popular && (
                       <span className="px-2 py-0.5 rounded-full bg-[#dcfce7] border border-[#bbf7d0] text-[#166534] text-[10px] font-bold uppercase tracking-wider">
-                        {billingCycle === 'annually' ? 'Save $48/yr' : 'Save 20%'}
+                        Most Popular
                       </span>
                     )}
                   </div>
@@ -187,13 +203,13 @@ export function Pricing({
                   
                   {/* Annual billing subtitle */}
                   <div className="h-6">
-                    {billingCycle === 'annually' && plan.name === 'Pro' && (
-                      <motion.p 
-                        initial={{ opacity: 0 }} 
+                    {billingCycle === 'annually' && plan.annualPrice !== '$0' && (
+                      <motion.p
+                        initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         className="text-xs text-[#6b6b6b] font-medium"
                       >
-                        Billed $180 yearly
+                        Billed ${(parseFloat(plan.annualPrice.replace('$', '')) * 12).toFixed(0)} yearly
                       </motion.p>
                     )}
                   </div>

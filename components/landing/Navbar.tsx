@@ -114,7 +114,7 @@ export function Navbar({ navItems = defaultNavItems }: NavbarProps) {
             <div className="hidden lg:flex items-center">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
-                  href="auth\register"
+                  href="/auth/register"
                   className={`inline-flex items-center justify-center bg-[#0f0f0f] text-white font-semibold hover:bg-[#262626] transition-all ${
                     isScrolled 
                       ? 'px-5 py-2.5 text-[16px] rounded-full' 
@@ -129,7 +129,9 @@ export function Navbar({ navItems = defaultNavItems }: NavbarProps) {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2.5 rounded-full hover:bg-black/[0.0] transition-colors"
+              className="lg:hidden p-2.5 rounded-full hover:bg-black/5 transition-colors"
+              aria-label="Toggle menu"
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? (
                 <X className="h-6 w-6 text-[#0f0f0f]" />
@@ -166,7 +168,7 @@ export function Navbar({ navItems = defaultNavItems }: NavbarProps) {
                 ))}
                 <div className="mt-3 pt-3 border-t border-black/[0.06]">
                   <Link
-                    href="auth\register"
+                    href="/auth/register"
                     onClick={() => setMobileMenuOpen(false)}
                     className="block w-full px-4 py-3.5 text-center bg-[#0f0f0f] text-white text-[16px] font-semibold rounded-xl hover:bg-[#262626] transition-colors"
                   >

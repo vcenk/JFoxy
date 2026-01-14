@@ -29,15 +29,15 @@ export function ScrollVelocity({
   const phrases = children.length > 0 ? children : defaultPhrases
   
   return (
-    <div className={`relative overflow-hidden py-8 ${className}`}>
+    <div className={`relative overflow-hidden py-3 ${className}`}>
       {/* Gradient fade edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-[#fafafa] to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[#fafafa] to-transparent z-10 pointer-events-none" />
-      
-      {/* First row - moves right */}
+      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#fafafa] to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#fafafa] to-transparent z-10 pointer-events-none" />
+
+      {/* Single row - moves right */}
       <div className="flex overflow-hidden">
         <motion.div
-          className="flex items-center gap-12"
+          className="flex items-center gap-8"
           animate={{ x: ['0%', '-50%'] }}
           transition={{
             x: {
@@ -48,45 +48,15 @@ export function ScrollVelocity({
           }}
         >
           {[...Array(2)].map((_, setIdx) => (
-            <div key={setIdx} className="flex items-center gap-12">
+            <div key={setIdx} className="flex items-center gap-8">
               {phrases.map((phrase, i) => (
                 <span
                   key={i}
-                  className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#0f0f0f]/[0.4] tracking-tight whitespace-nowrap"
-                  style={{ letterSpacing: '-0.03em' }}
+                  className="text-lg sm:text-xl md:text-2xl font-semibold text-[#0f0f0f]/60 tracking-tight whitespace-nowrap"
+                  style={{ letterSpacing: '-0.01em' }}
                 >
                   {phrase}
-                  <span className="mx-8 text-violet-500">✦</span>
-                </span>
-              ))}
-            </div>
-          ))}
-        </motion.div>
-      </div>
-      
-      {/* Second row - moves left */}
-      <div className="flex overflow-hidden mt-4">
-        <motion.div
-          className="flex items-center gap-12"
-          animate={{ x: ['-50%', '0%'] }}
-          transition={{
-            x: {
-              duration: baseVelocity * 1.2, // This will now take 60s (slower)
-              repeat: Infinity,
-              ease: 'linear',
-            },
-          }}
-        >
-          {[...Array(2)].map((_, setIdx) => (
-            <div key={setIdx} className="flex items-center gap-12">
-              {[...phrases].reverse().map((phrase, i) => (
-                <span
-                  key={i}
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#0f0f0f]/[0.3] tracking-tight whitespace-nowrap"
-                  style={{ letterSpacing: '-0.03em' }}
-                >
-                  {phrase}
-                  <span className="mx-8 text-blue-500">◆</span>
+                  <span className="mx-5 text-violet-500">✦</span>
                 </span>
               ))}
             </div>

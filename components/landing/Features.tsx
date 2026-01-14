@@ -1,304 +1,225 @@
 'use client'
 
-import React, { useRef, useState, useEffect } from 'react'
-import { motion, useMotionValue, animate } from 'framer-motion'
-import { FileText, Search, Mic, Zap, BarChart3, ArrowRight, BrainCircuit, Sparkles, AlertCircle, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
-
-// --- MAIN DATA ---
+import { motion } from 'framer-motion'
+import Link from 'next/link'
+import {
+  Search,
+  FileText,
+  Mic,
+  Zap,
+  CheckCircle2,
+  BrainCircuit,
+  Sparkles
+} from 'lucide-react'
 
 const FEATURES = [
   {
-    id: 0,
-    title: "Gap Analysis",
-    subtitle: "Resume Intelligence",
-    description: "Don't guess. See exactly what's missing in your resume vs the job description.",
-    details: [
-      { label: "Missing Skills", value: "React, AWS" },
-      { label: "Score Impact", value: "-15 pts" },
-      { label: "Fix Difficulty", value: "Easy" },
-    ],
-    themeColor: "text-blue-600",
-    bgColor: "bg-blue-50",
-    icon: Search,
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800" // Data analysis/charts
-  },
-  {
     id: 1,
-    title: "ATS Match",
-    subtitle: "System Optimization",
-    description: "Pass the robot gatekeepers with optimized keywords and formatting.",
-    details: [
-      { label: "Parse Rate", value: "98%" },
-      { label: "Keyword Match", value: "High" },
-      { label: "Formatting", value: "Clean" },
-    ],
-    themeColor: "text-emerald-600",
-    bgColor: "bg-emerald-50",
-    icon: CheckCircle2,
-    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&q=80&w=800" // Typing/Checklist
-  },
-  {
-    id: 4,
-    title: "Resume Builder",
-    subtitle: "ATS Friendly",
-    description: "Build professional, parsable resumes in minutes with proven templates.",
-    details: [
-      { label: "Templates", value: "Proven" },
-      { label: "Export", value: "PDF/DOCX" },
-      { label: "Layout", value: "Auto" },
-    ],
-    themeColor: "text-pink-600",
-    bgColor: "bg-pink-50",
-    icon: FileText,
-    image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80&w=800" // Documents/Writing
-  },
-  {
-    id: 7,
-    title: "Voice Coach",
-    subtitle: "Live Feedback",
-    description: "Perfect your delivery, tone, pacing, and confidence in real-time.",
-    details: [
-      { label: "Clarity", value: "95%" },
-      { label: "Pacing", value: "Good" },
-      { label: "Fillers", value: "Detected" },
-    ],
-    themeColor: "text-rose-600",
-    bgColor: "bg-rose-50",
-    icon: Mic,
-    image: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=800" // Microphone
-  },
-  {
-    id: 3,
-    title: "STAR Practice",
-    subtitle: "Story Builder",
-    description: "Structure behavioral answers (Situation, Task, Action, Result) that sell.",
-    details: [
-      { label: "Situation", value: "Clear" },
-      { label: "Task/Action", value: "Strong" },
-      { label: "Result", value: "+20% ROI" },
-    ],
-    themeColor: "text-orange-600",
-    bgColor: "bg-orange-50",
-    icon: Zap,
-    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=800" // Interview setting
-  },
-  {
-    id: 5,
-    title: "Job Description",
-    subtitle: "Smart Breakdown",
-    description: "Decode exactly what hiring managers are looking for in any job post.",
-    details: [
-      { label: "Core Focus", value: "Leadership" },
-      { label: "Hidden Reqs", value: "Agile" },
-      { label: "Culture Fit", value: "High" },
-    ],
-    themeColor: "text-cyan-600",
-    bgColor: "bg-cyan-50",
-    icon: BrainCircuit,
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=800" // Tech/Connections
-  },
-  {
-    id: 6,
-    title: "Smart Insights",
-    subtitle: "Actionable Feedback",
-    description: "Specific advice on what to fix. No generic 'good job' scores.",
-    details: [
-      { label: "Action", value: "Identified" },
-      { label: "Result", value: "Metrics needed" },
-      { label: "Structure", value: "STAR" },
-    ],
-    themeColor: "text-violet-600",
-    bgColor: "bg-violet-50",
-    icon: Sparkles,
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800" // Dashboard/Analytics
+    title: "Gap Analysis",
+    icon: Search,
+    color: "bg-violet-500",
+    iconColor: "text-violet-500",
+    position: "top-[8%] left-[15%] md:top-[12%] md:left-[18%]",
   },
   {
     id: 2,
-    title: "SWOT Analysis",
-    subtitle: "Strategic Insight",
-    description: "Know your internal strengths and external threats before the interview.",
-    details: [
-      { label: "Strength", value: "Leadership" },
-      { label: "Weakness", value: "Tenure" },
-      { label: "Opportunity", value: "Remote" },
-    ],
-    themeColor: "text-indigo-600",
-    bgColor: "bg-indigo-50",
-    icon: BarChart3,
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800" // Strategy/Chess
+    title: "Mock Interviews",
+    icon: Mic,
+    color: "bg-rose-500",
+    iconColor: "text-rose-500",
+    position: "top-[5%] right-[10%] md:top-[8%] md:right-[15%]",
+  },
+  {
+    id: 3,
+    title: "STAR Framework",
+    icon: Zap,
+    color: "bg-amber-500",
+    iconColor: "text-amber-500",
+    position: "top-[32%] left-[3%] md:top-[35%] md:left-[8%]",
+  },
+  {
+    id: 4,
+    title: "Voice Coach",
+    icon: BrainCircuit,
+    color: "bg-emerald-500",
+    iconColor: "text-emerald-500",
+    position: "top-[30%] right-[2%] md:top-[32%] md:right-[6%]",
+  },
+  {
+    id: 5,
+    title: "Resume Builder",
+    icon: FileText,
+    color: "bg-blue-500",
+    iconColor: "text-blue-500",
+    position: "bottom-[28%] left-[8%] md:bottom-[25%] md:left-[12%]",
+  },
+  {
+    id: 6,
+    title: "ATS Optimizer",
+    icon: CheckCircle2,
+    color: "bg-cyan-500",
+    iconColor: "text-cyan-500",
+    position: "bottom-[30%] right-[5%] md:bottom-[28%] md:right-[10%]",
+  },
+  {
+    id: 7,
+    title: "Cover Letters",
+    icon: FileText,
+    color: "bg-pink-500",
+    iconColor: "text-pink-500",
+    position: "bottom-[8%] left-[20%] md:bottom-[10%] md:left-[25%]",
+  },
+  {
+    id: 8,
+    title: "Job Insights",
+    icon: Search,
+    color: "bg-indigo-500",
+    iconColor: "text-indigo-500",
+    position: "bottom-[5%] right-[18%] md:bottom-[8%] md:right-[22%]",
   },
 ]
 
+const floatAnimation = {
+  initial: { opacity: 0, scale: 0.8 },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      ease: [0.25, 0.1, 0.25, 1],
+    }
+  },
+}
+
+const hoverFloat = {
+  y: [0, -8, 0],
+  transition: {
+    duration: 3,
+    repeat: Infinity,
+    ease: "easeInOut",
+  }
+}
+
 export function Features() {
-  const ref = useRef<HTMLDivElement>(null)
-  const x = useMotionValue(0)
-  const [sliderWidth, setSliderWidth] = useState(0)
-  const [trackWidth, setTrackWidth] = useState(0)
-  const [isPaused, setIsPaused] = useState(false)
-
-  // 1. Measure track width
-  useEffect(() => {
-    const updateWidths = () => {
-      if (ref.current) {
-        setSliderWidth(ref.current.offsetWidth)
-        setTrackWidth(ref.current.scrollWidth)
-      }
-    }
-    
-    updateWidths()
-    window.addEventListener('resize', updateWidths)
-    // Small delay to ensure images loaded/layout settled
-    setTimeout(updateWidths, 500) 
-    return () => window.removeEventListener('resize', updateWidths)
-  }, [])
-
-  // 2. Movement Logic
-  const CARD_WIDTH = 700 // Updated for more compact card width
-  
-  const slideLeft = () => {
-    const current = x.get()
-    const newX = Math.min(current + CARD_WIDTH, 0)
-    animate(x, newX, { type: "spring", stiffness: 300, damping: 30 })
-  }
-
-  const slideRight = () => {
-    const current = x.get()
-    // If we're at the end, loop back to start (optional) or just stop
-    // Let's loop back for continuous auto-play feel
-    const maxScroll = -(trackWidth - sliderWidth)
-    
-    if (current <= maxScroll + 10) { // Tolerance
-       animate(x, 0, { type: "spring", stiffness: 200, damping: 30 }) // Reset to start
-    } else {
-       const newX = Math.max(current - CARD_WIDTH, maxScroll)
-       animate(x, newX, { type: "spring", stiffness: 300, damping: 30 })
-    }
-  }
-
-  // 3. Auto-Play Interval
-  useEffect(() => {
-    if (isPaused || trackWidth === 0) return
-
-    const interval = setInterval(() => {
-      slideRight()
-    }, 4500)
-
-    return () => clearInterval(interval)
-  }, [isPaused, trackWidth, sliderWidth]) // Dependencies matter here
-
   return (
-    <section id="features" className="py-20 bg-[#fafafa] overflow-hidden">
-      <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6 max-w-6xl mx-auto">
-          <div className="max-w-xl">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-block mb-3"
-            >
-              <span className="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider rounded-full border border-blue-100">
-                Powerful Features
-              </span>
-            </motion.div>
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-3xl md:text-4xl font-bold text-[#1a1615] tracking-tight mb-3"
-            >
-              Everything you need to succeed.
-            </motion.h2>
-            <p className="text-gray-500 text-base">
-              Swipe to explore the complete toolkit tailored for modern job seekers.
-            </p>
-          </div>
+    <section id="features" className="relative py-32 md:py-40 lg:py-48 bg-[#fafafa] overflow-hidden">
 
-          {/* Controls */}
-          <div className="flex gap-2 hidden md:flex">
-             <button onClick={slideLeft} className="p-2.5 rounded-full border border-gray-200 hover:bg-white hover:shadow-md transition-all">
-                <ChevronLeft className="w-4 h-4 text-gray-600" />
-             </button>
-             <button onClick={slideRight} className="p-2.5 rounded-full border border-gray-200 hover:bg-white hover:shadow-md transition-all">
-                <ChevronRight className="w-4 h-4 text-gray-600" />
-             </button>
-          </div>
-        </div>
+      {/* Subtle gradient orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-violet-200/30 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-blue-200/30 rounded-full blur-[120px]" />
+      </div>
 
-        {/* --- SLIDING CARDS TRACK --- */}
-        <div 
-           ref={ref} 
-           className="cursor-grab active:cursor-grabbing overflow-hidden -mx-4 px-4 py-4"
-           onMouseEnter={() => setIsPaused(true)}
-           onMouseLeave={() => setIsPaused(false)}
-           onTouchStart={() => setIsPaused(true)}
+      {/* Floating Feature Pills */}
+      {FEATURES.map((feature, index) => (
+        <motion.div
+          key={feature.id}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true }}
+          variants={floatAnimation}
+          transition={{ delay: index * 0.1 }}
+          className={`absolute ${feature.position} z-10 hidden sm:block`}
         >
-          <motion.div 
-            drag="x"
-            dragConstraints={{ right: 0, left: -(trackWidth - sliderWidth) }}
-            style={{ x }}
-            className="flex gap-6 w-max pl-4 md:pl-0"
+          <motion.div
+            animate={hoverFloat}
+            transition={{ delay: index * 0.2 }}
+            className="group cursor-pointer"
           >
-            {FEATURES.map((feature, idx) => (
-              <motion.div
-                key={feature.id}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="w-[85vw] md:w-[600px] lg:w-[700px] flex-shrink-0"
-              >
-                <div className="h-full bg-white rounded-[40px] border border-gray-100 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] hover:shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col md:flex-row group">
-                   
-                   {/* LEFT: CONTENT (45%) */}
-                   <div className="p-7 md:p-8 flex flex-col justify-center w-full md:w-[45%] border-b md:border-b-0 md:border-r border-gray-50 bg-white z-10">
-                        <div className={`w-12 h-12 rounded-xl ${feature.bgColor} flex items-center justify-center mb-5`}>
-                            <feature.icon className={`w-6 h-6 ${feature.themeColor}`} />
-                        </div>
-
-                        <h3 className="text-2xl font-bold text-[#1a1615] mb-1">{feature.title}</h3>
-                        <p className={`text-[10px] font-bold uppercase tracking-wider mb-3 ${feature.themeColor}`}>
-                            {feature.subtitle}
-                        </p>
-                        <p className="text-gray-500 text-sm leading-relaxed mb-6">
-                            {feature.description}
-                        </p>
-
-                        <div className="space-y-2 mb-6">
-                            {feature.details.map((d, i) => (
-                                <div key={i} className="flex justify-between items-center text-[13px] border-b border-gray-50 pb-2 last:border-0 last:pb-0">
-                                    <span className="text-gray-400 font-medium">{d.label}</span>
-                                    <span className="text-gray-900 font-bold">{d.value}</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        <button className={`w-full py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all hover:gap-3 ${feature.bgColor} ${feature.themeColor}`}>
-                            Explore <ArrowRight className="w-4 h-4" />
-                        </button>
-                   </div>
-
-
-                   {/* RIGHT: REAL IMAGE (55%) */}
-                   <div className="w-full md:w-[55%] relative overflow-hidden h-[240px] md:h-auto">
-                       {/* Overlay Gradient for Text readability if needed, or style */}
-                       <div className="absolute inset-0 bg-gradient-to-l from-transparent to-black/5 z-10" />
-                       
-                       <img 
-                          src={feature.image} 
-                          alt={feature.title}
-                          className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-                          loading="lazy"
-                       />
-                   </div>
-
-                </div>
-              </motion.div>
-            ))}
+            <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-full shadow-lg shadow-black/[0.08] border border-gray-100 hover:shadow-xl hover:scale-105 transition-all duration-300">
+              <div className={`w-10 h-10 ${feature.color} rounded-full flex items-center justify-center`}>
+                <feature.icon className="w-5 h-5 text-white" strokeWidth={2} />
+              </div>
+              <span className="text-[15px] font-semibold text-gray-800 pr-2">
+                {feature.title}
+              </span>
+            </div>
           </motion.div>
+        </motion.div>
+      ))}
+
+      {/* Center Content */}
+      <div className="relative z-20 max-w-3xl mx-auto px-4 text-center">
+
+        {/* Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 border border-violet-200 mb-8"
+        >
+          <Sparkles className="w-4 h-4 text-violet-600" />
+          <span className="text-sm font-semibold text-violet-700 uppercase tracking-wider">Features</span>
+        </motion.div>
+
+        {/* Headline */}
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#0f0f0f] tracking-tight leading-[1.1] mb-6"
+        >
+          More than a
+          <br />
+          <span className="bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 bg-clip-text text-transparent">
+            resume tool
+          </span>
+        </motion.h2>
+
+        {/* Subheadline */}
+        <motion.p
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+          className="text-lg md:text-xl text-gray-500 max-w-xl mx-auto mb-10 leading-relaxed"
+        >
+          A complete toolkit to analyze your resume, practice interviews, and land offers faster.
+        </motion.p>
+
+        {/* CTAs */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
+          <Link
+            href="/auth/register"
+            className="px-8 py-4 bg-[#0f0f0f] text-white font-semibold rounded-full hover:bg-gray-800 transition-colors shadow-lg shadow-black/20"
+          >
+            Get Started Free
+          </Link>
+          <Link
+            href="#how-it-works"
+            className="px-8 py-4 bg-white text-[#0f0f0f] font-semibold rounded-full border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
+          >
+            Learn More
+          </Link>
+        </motion.div>
+
+        {/* Mobile: Show features as simple list */}
+        <div className="sm:hidden mt-16 grid grid-cols-2 gap-3">
+          {FEATURES.map((feature) => (
+            <div
+              key={feature.id}
+              className="flex items-center gap-2 px-3 py-2 bg-white rounded-full shadow-sm border border-gray-100"
+            >
+              <div className={`w-8 h-8 ${feature.color} rounded-full flex items-center justify-center`}>
+                <feature.icon className="w-4 h-4 text-white" strokeWidth={2} />
+              </div>
+              <span className="text-xs font-medium text-gray-700 truncate">
+                {feature.title}
+              </span>
+            </div>
+          ))}
         </div>
 
       </div>
     </section>
   )
 }
+
+export default Features

@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Linkedin, Twitter, Send, CheckCircle2, Github } from 'lucide-react'
+import { Linkedin, Twitter, Send, CheckCircle2, Github, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface FooterProps {
@@ -16,7 +17,7 @@ const defaultProductLinks = [
   { name: 'Features', href: '#features' },
   { name: 'Pricing', href: '#pricing' },
   { name: 'Blog', href: '#blog' },
-  { name: 'Login', href: '/login' },
+  { name: 'Login', href: '/auth/login' },
 ]
 
 const defaultLegalLinks = [
@@ -30,6 +31,88 @@ const defaultSocialLinks = [
   { name: 'LinkedIn', href: '#', icon: Linkedin },
   { name: 'GitHub', href: '#', icon: Github },
 ]
+
+function NewsletterForm() {
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [message, setMessage] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!email.trim()) return
+
+    setStatus('loading')
+
+    try {
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setStatus('success')
+        setMessage(data.alreadySubscribed ? 'You\'re already subscribed!' : 'Thanks for subscribing!')
+        setEmail('')
+      } else {
+        setStatus('error')
+        setMessage(data.error || 'Something went wrong')
+      }
+    } catch {
+      setStatus('error')
+      setMessage('Failed to subscribe. Please try again.')
+    }
+
+    // Reset status after 3 seconds
+    setTimeout(() => {
+      setStatus('idle')
+      setMessage('')
+    }, 3000)
+  }
+
+  return (
+    <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+      <h3 className="font-bold text-[#1a1615] text-sm mb-2">Stay updated</h3>
+      <p className="text-xs text-[#6b6b6b] mb-4">Get the latest interview tips and feature updates.</p>
+
+      {status === 'success' ? (
+        <div className="flex items-center gap-2 text-emerald-600 text-sm font-medium py-2">
+          <CheckCircle2 className="w-4 h-4" />
+          <span>{message}</span>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter email"
+            disabled={status === 'loading'}
+            className="bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 w-full outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all disabled:opacity-50"
+          />
+          <button
+            type="submit"
+            disabled={status === 'loading' || !email.trim()}
+            className="bg-[#1a1615] text-white p-2 rounded-lg hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {status === 'loading' ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
+          </button>
+        </form>
+      )}
+
+      {status === 'error' && (
+        <p className="text-red-500 text-xs mt-2">{message}</p>
+      )}
+    </div>
+  )
+}
 
 export function Footer({
   brandDescription = 'AI-powered interview preparation that helps you land your dream job with confidence.',
@@ -114,30 +197,16 @@ export function Footer({
 
           {/* 3. NEWSLETTER & STATUS (New) */}
           <div className="xl:col-span-1 lg:col-span-3">
-             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                <h3 className="font-bold text-[#1a1615] text-sm mb-2">Stay updated</h3>
-                <p className="text-xs text-[#6b6b6b] mb-4">Get the latest interview tips and feature updates.</p>
-                
-                <div className="flex gap-2">
-                   <input 
-                      type="email" 
-                      placeholder="Enter email" 
-                      className="bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 w-full outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                   />
-                   <button className="bg-[#1a1615] text-white p-2 rounded-lg hover:bg-black transition-colors">
-                      <Send className="w-4 h-4" />
-                   </button>
-                </div>
-             </div>
+            <NewsletterForm />
 
-             {/* System Status Indicator */}
-             <div className="mt-6 flex items-center gap-2">
-                <div className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </div>
-                <span className="text-xs font-medium text-emerald-700">All systems operational</span>
-             </div>
+            {/* System Status Indicator */}
+            <div className="mt-6 flex items-center gap-2">
+              <div className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </div>
+              <span className="text-xs font-medium text-emerald-700">All systems operational</span>
+            </div>
           </div>
         </div>
 

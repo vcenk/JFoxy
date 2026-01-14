@@ -7,6 +7,7 @@ import {
   Hero,
   ScrollVelocity,
   Features,
+  ProductPreview,
   Benefits,
   HowItWorks,
   Pricing,
@@ -31,8 +32,11 @@ export default function LandingPage() {
       {/* Scroll Velocity Text Animation */}
       <ScrollVelocity />
 
-      {/* Features Section - 2×2 Grid */}
+      {/* Features Section */}
       <Features />
+
+      {/* Product Preview Section */}
+      <ProductPreview />
 
       {/* Benefits Section */}
       <Benefits />

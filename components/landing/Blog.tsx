@@ -2,20 +2,18 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ChevronRight, ArrowRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { blogPosts } from './blog-data'
 import { fadeInUp, staggerContainer, scaleIn } from './animations'
 
 interface BlogProps {
   title?: string
   subtitle?: string
-  showViewAll?: boolean
 }
 
 export function Blog({
   title = 'Interview Mastery Insights',
-  subtitle = 'Expert tips, strategies, and insider knowledge to help you ace every interview',
-  showViewAll = true
+  subtitle = 'Expert tips, strategies, and insider knowledge to help you ace every interview'
 }: BlogProps) {
   return (
     <section id="blog" className="py-24 px-6 lg:px-8 bg-white/40 backdrop-blur-sm">
@@ -86,24 +84,6 @@ export function Blog({
           ))}
         </motion.div>
 
-        {showViewAll && (
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-center mt-12"
-          >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-[#1a1615] text-white rounded-full hover:bg-[#453f3d] transition-all font-semibold shadow-xl"
-            >
-              View All Articles
-              <ArrowRight className="h-5 w-5" />
-            </motion.button>
-          </motion.div>
-        )}
       </div>
     </section>
   )

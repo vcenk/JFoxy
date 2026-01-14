@@ -2,7 +2,7 @@
 
 import React, { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { Link as LinkIcon, BrainCircuit, Mic, FileText, CheckCircle2, Search } from 'lucide-react'
+import { Link as LinkIcon, BrainCircuit, Mic, FileText, CheckCircle2 } from 'lucide-react'
 
 // --- ANIMATED VISUALS ---
 

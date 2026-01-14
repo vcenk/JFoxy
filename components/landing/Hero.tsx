@@ -13,17 +13,7 @@ interface HeroProps {
     line2: string
   }
   subheadline?: string
-  stats?: Array<{
-    number: string
-    label: string
-  }>
 }
-
-const defaultStats = [
-  { number: '10k+', label: 'Job Seekers' },
-  { number: '95%', label: 'Success Rate' },
-  { number: '50k+', label: 'Sessions' },
-]
 
 export function Hero({
   badge = 'AI-Powered Interview Intelligence',
@@ -32,7 +22,6 @@ export function Hero({
     line2: 'Master Your Interview with Clarity.'
   },
   subheadline = 'Go beyond generic advice. Get specific resume gap analysis, smart job description breakdowns, and AI-led mock interviews with actionable feedback.',
-  stats = defaultStats
 }: HeroProps) {
   return (
     <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#fafafa]">
@@ -95,7 +84,7 @@ export function Hero({
                   href="/auth/register"
                   className="relative flex items-center justify-center gap-2 px-8 py-4 bg-[#0f0f0f] text-white rounded-xl font-bold text-lg overflow-hidden w-full sm:w-auto"
                 >
-                   <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-shine" />
+                   <div className="absolute top-0 -inset-full h-full w-1/2 z-10 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-shine" />
                   <span>Start Improving Free</span>
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -104,28 +93,19 @@ export function Hero({
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <a
                   href="#how-it-works"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    const element = document.getElementById('how-it-works')
+                    if (element) {
+                      const offsetTop = element.getBoundingClientRect().top + window.scrollY - 100
+                      window.scrollTo({ top: offsetTop, behavior: 'smooth' })
+                    }
+                  }}
                   className="flex items-center justify-center gap-3 px-8 py-4 bg-white text-[#0f0f0f] rounded-xl hover:bg-gray-50 transition-all font-semibold text-lg border border-gray-200 hover:border-gray-300 w-full sm:w-auto"
                 >
                   See How It Works
                 </a>
               </motion.div>
-            </motion.div>
-
-            {/* Social Proof */}
-            <motion.div
-              variants={fadeInUp}
-              className="inline-flex items-center gap-8 sm:gap-12 pt-8 border-t border-gray-100"
-            >
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center lg:text-left">
-                  <div className="text-3xl font-bold text-[#0f0f0f] tracking-tight">
-                    {stat.number}
-                  </div>
-                  <div className="text-sm text-[#606060] font-medium mt-1">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
             </motion.div>
           </motion.div>
 
