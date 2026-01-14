@@ -52,21 +52,6 @@ CREATE TABLE public.gap_defenses (
   CONSTRAINT gap_defenses_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
   CONSTRAINT gap_defenses_swot_analysis_id_fkey FOREIGN KEY (swot_analysis_id) REFERENCES public.swot_analyses(id)
 );
-CREATE TABLE public.industry_keywords (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  industry text NOT NULL,
-  job_title text,
-  keyword text NOT NULL,
-  category text NOT NULL CHECK (category = ANY (ARRAY['must_have'::text, 'technical'::text, 'soft'::text, 'certification'::text, 'methodology'::text])),
-  importance_score integer CHECK (importance_score >= 1 AND importance_score <= 10),
-  frequency_in_jds numeric,
-  synonyms ARRAY DEFAULT '{}'::text[],
-  related_keywords ARRAY DEFAULT '{}'::text[],
-  is_active boolean DEFAULT true,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  updated_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT industry_keywords_pkey PRIMARY KEY (id)
-);
 CREATE TABLE public.intro_pitches (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
@@ -102,38 +87,6 @@ CREATE TABLE public.job_descriptions (
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT job_descriptions_pkey PRIMARY KEY (id),
   CONSTRAINT job_descriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
-);
-CREATE TABLE public.job_title_taxonomy (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  canonical_title text NOT NULL UNIQUE,
-  job_category text NOT NULL,
-  job_family text,
-  seniority_level text CHECK (seniority_level = ANY (ARRAY['entry'::text, 'mid'::text, 'senior'::text, 'executive'::text])),
-  aliases ARRAY DEFAULT '{}'::text[],
-  typical_industries ARRAY DEFAULT '{}'::text[],
-  average_salary_usd integer,
-  growth_rate numeric,
-  description text,
-  slug text UNIQUE,
-  search_volume integer,
-  competition_score integer CHECK (competition_score >= 0 AND competition_score <= 100),
-  is_active boolean DEFAULT true,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  updated_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT job_title_taxonomy_pkey PRIMARY KEY (id)
-);
-CREATE TABLE public.market_data (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  category text NOT NULL,
-  job_title text,
-  location text,
-  industry text,
-  data jsonb NOT NULL,
-  expires_at timestamp with time zone NOT NULL,
-  is_active boolean DEFAULT true,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  updated_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT market_data_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.mock_interview_exchanges (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -187,21 +140,13 @@ CREATE TABLE public.mock_interview_sessions (
   CONSTRAINT mock_interview_sessions_resume_id_fkey FOREIGN KEY (resume_id) REFERENCES public.resumes(id),
   CONSTRAINT mock_interview_sessions_job_description_id_fkey FOREIGN KEY (job_description_id) REFERENCES public.job_descriptions(id)
 );
-CREATE TABLE public.power_words_usage (
+CREATE TABLE public.newsletter_subscribers (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  resume_id uuid,
-  weak_word text NOT NULL,
-  suggested_word text NOT NULL,
-  action text NOT NULL CHECK (action = ANY (ARRAY['accepted'::text, 'rejected'::text, 'ignored'::text])),
-  original_sentence text,
-  modified_sentence text,
-  section text,
-  category text,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT power_words_usage_pkey PRIMARY KEY (id),
-  CONSTRAINT power_words_usage_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
-  CONSTRAINT power_words_usage_resume_id_fkey FOREIGN KEY (resume_id) REFERENCES public.resumes(id)
+  email text NOT NULL UNIQUE,
+  subscribed_at timestamp with time zone NOT NULL DEFAULT now(),
+  is_active boolean DEFAULT true,
+  source text DEFAULT 'landing_page'::text,
+  CONSTRAINT newsletter_subscribers_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.practice_answers (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -273,7 +218,7 @@ CREATE TABLE public.profiles (
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   mock_voice_id text DEFAULT 'default'::text,
   mock_avatar_quality text DEFAULT 'medium'::text CHECK (mock_avatar_quality = ANY (ARRAY['low'::text, 'medium'::text, 'high'::text])),
-  subscription_tier text DEFAULT 'basic'::text CHECK (subscription_tier = ANY (ARRAY['basic'::text, 'pro'::text, 'premium'::text])),
+  subscription_tier text DEFAULT 'free'::text CHECK (subscription_tier = ANY (ARRAY['free'::text, 'basic'::text, 'pro'::text, 'interview_ready'::text])),
   resume_builds_this_month integer DEFAULT 0,
   job_analyses_this_month integer DEFAULT 0,
   audio_practice_sessions_this_month integer DEFAULT 0,
@@ -283,6 +228,11 @@ CREATE TABLE public.profiles (
   is_admin boolean DEFAULT false,
   preferred_interviewer_voice text DEFAULT 'EXAVITQu4vr4xnSDxMaL'::text,
   preferred_interviewer_gender text DEFAULT 'female'::text CHECK (preferred_interviewer_gender = ANY (ARRAY['female'::text, 'male'::text, 'neutral'::text, 'any'::text])),
+  cover_letters_this_month integer DEFAULT 0,
+  star_voice_sessions_used integer DEFAULT 0,
+  mock_interview_minutes_used integer DEFAULT 0,
+  purchased_star_sessions integer DEFAULT 0,
+  purchased_mock_minutes integer DEFAULT 0,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );
@@ -327,25 +277,6 @@ CREATE TABLE public.resume_examples (
   CONSTRAINT resume_examples_pkey PRIMARY KEY (id),
   CONSTRAINT resume_examples_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES public.profiles(id),
   CONSTRAINT resume_examples_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
-);
-CREATE TABLE public.resume_synonyms (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  base_word text NOT NULL UNIQUE,
-  category text NOT NULL CHECK (category = ANY (ARRAY['achievement'::text, 'leadership'::text, 'technical'::text, 'analytical'::text, 'communication'::text, 'collaboration'::text, 'management'::text, 'innovation'::text, 'problem_solving'::text, 'financial'::text])),
-  word_type text CHECK (word_type = ANY (ARRAY['action_verb'::text, 'phrase'::text, 'adjective'::text])),
-  synonyms jsonb NOT NULL,
-  usage_tips text,
-  examples ARRAY,
-  industry_preference ARRAY,
-  slug text NOT NULL UNIQUE,
-  meta_title text,
-  meta_description text,
-  view_count integer DEFAULT 0,
-  usage_count integer DEFAULT 0,
-  is_published boolean DEFAULT true,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  updated_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT resume_synonyms_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.resume_templates (
   id text NOT NULL,

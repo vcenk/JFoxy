@@ -27,8 +27,17 @@ export const env = {
   stripe: {
     get secretKey() { return process.env.STRIPE_SECRET_KEY || '' },
     get webhookSecret() { return process.env.STRIPE_WEBHOOK_SECRET || '' },
+    // Subscription prices
+    get priceBasicMonthly() { return process.env.STRIPE_PRICE_BASIC_MONTHLY || '' },
+    get priceBasicAnnual() { return process.env.STRIPE_PRICE_BASIC_ANNUAL || '' },
     get priceProMonthly() { return process.env.STRIPE_PRICE_PRO_MONTHLY || '' },
     get priceProAnnual() { return process.env.STRIPE_PRICE_PRO_ANNUAL || '' },
+    get priceInterviewReadyMonthly() { return process.env.STRIPE_PRICE_INTERVIEW_READY_MONTHLY || '' },
+    get priceInterviewReadyAnnual() { return process.env.STRIPE_PRICE_INTERVIEW_READY_ANNUAL || '' },
+    // Add-on prices
+    get priceAddonMock15() { return process.env.STRIPE_PRICE_ADDON_MOCK_15 || '' },
+    get priceAddonMock30() { return process.env.STRIPE_PRICE_ADDON_MOCK_30 || '' },
+    get priceAddonStar5() { return process.env.STRIPE_PRICE_ADDON_STAR_5 || '' },
     get billingPortalReturnUrl() { return process.env.STRIPE_BILLING_PORTAL_RETURN_URL || '' },
   },
 

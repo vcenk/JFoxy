@@ -57,7 +57,8 @@
       "WebFetch(domain:word.cloud.microsoft)",
       "WebFetch(domain:react-pdf.org)",
       "WebFetch(domain:fonts.googleapis.com)",
-      "Bash(git remote set-url:*)"
+      "Bash(git remote set-url:*)",
+      "Bash(npm run lint)"
     ]
   }
 }

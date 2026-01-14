@@ -42,6 +42,7 @@
     "framer-motion": "^11.18.2",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.7",
     "livekit-client": "^2.16.1",
     "lucide-react": "^0.344.0",
     "mammoth": "^1.11.0",

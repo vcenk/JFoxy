@@ -251,178 +251,664 @@ export const JobAnalysisView = forwardRef<JobAnalysisViewRef, JobAnalysisViewPro
 
   const handleExportReport = async () => {
     if (!analysisResult) return
+    setIsExporting(true)
 
     try {
-      // Dynamically import jsPDF
+      // Dynamically import jsPDF and autoTable
       const { jsPDF } = await import('jspdf')
+      const autoTable = (await import('jspdf-autotable')).default
       const doc = new jsPDF()
 
       const pageWidth = doc.internal.pageSize.getWidth()
       const pageHeight = doc.internal.pageSize.getHeight()
-      const margin = 20
+      const margin = 15
       const maxWidth = pageWidth - (margin * 2)
       let yPos = 0
 
-      // --- Helper Functions ---
-      const addText = (text: string, fontSize: number, isBold: boolean = false, color: [number, number, number] = [60, 60, 60], align: 'left' | 'center' | 'right' = 'left', xOffset: number = margin) => {
+      // Color definitions (RGB)
+      const PURPLE: [number, number, number] = [106, 71, 255]
+      const GREEN: [number, number, number] = [34, 197, 94]
+      const RED: [number, number, number] = [239, 68, 68]
+      const ORANGE: [number, number, number] = [245, 158, 11]
+      const BLUE: [number, number, number] = [59, 130, 246]
+      const DARK: [number, number, number] = [51, 51, 51]
+      const LIGHT: [number, number, number] = [102, 102, 102]
+
+      // Helper: Get score color
+      const getScoreColor = (score: number): [number, number, number] => {
+        if (score >= 70) return GREEN
+        if (score >= 50) return ORANGE
+        return RED
+      }
+
+      // Helper: Check page break
+      const checkPageBreak = (neededHeight: number) => {
+        if (yPos + neededHeight > pageHeight - margin - 10) {
+          doc.addPage()
+          yPos = margin
+          return true
+        }
+        return false
+      }
+
+      // Helper: Add text with word wrap
+      const addText = (text: string, fontSize: number, isBold: boolean = false, color: [number, number, number] = DARK, indent: number = 0) => {
+        if (!text) return
         doc.setFontSize(fontSize)
         doc.setFont('helvetica', isBold ? 'bold' : 'normal')
         doc.setTextColor(color[0], color[1], color[2])
-
-        const lines = doc.splitTextToSize(text, maxWidth)
-
+        const lines = doc.splitTextToSize(text, maxWidth - indent)
         lines.forEach((line: string) => {
-          if (yPos + fontSize * 0.4 > pageHeight - margin) {
-            doc.addPage()
-            yPos = margin
-          }
-          doc.text(line, xOffset, yPos, { align })
-          yPos += fontSize * 0.5
+          checkPageBreak(fontSize * 0.5)
+          doc.text(line, margin + indent, yPos)
+          yPos += fontSize * 0.45
         })
       }
 
+      // Helper: Section header with purple underline
       const addSectionHeader = (title: string) => {
-        yPos += 5
-        if (yPos > pageHeight - margin - 20) { doc.addPage(); yPos = margin + 10; }
-
-        doc.setFillColor(245, 245, 245)
-        doc.roundedRect(margin - 5, yPos - 8, maxWidth + 10, 12, 2, 2, 'F')
-
-        addText(title.toUpperCase(), 12, true, [106, 71, 255])
-        yPos += 5
+        checkPageBreak(18)
+        yPos += 10
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(PURPLE[0], PURPLE[1], PURPLE[2])
+        doc.text(title.toUpperCase(), margin, yPos)
+        yPos += 2
+        doc.setDrawColor(PURPLE[0], PURPLE[1], PURPLE[2])
+        doc.setLineWidth(0.5)
+        doc.line(margin, yPos, margin + maxWidth, yPos)
+        yPos += 8
       }
 
-      // --- 1. Header Block ---
-      doc.setFillColor(106, 71, 255) // Purple
-      doc.rect(0, 0, pageWidth, 50, 'F')
+      // ============================================
+      // SECTION 1: HEADER
+      // ============================================
+      doc.setFillColor(PURPLE[0], PURPLE[1], PURPLE[2])
+      doc.rect(0, 0, pageWidth, 42, 'F')
 
-      yPos = 20
+      yPos = 16
       doc.setTextColor(255, 255, 255)
-      doc.setFontSize(24)
+      doc.setFontSize(22)
       doc.setFont('helvetica', 'bold')
-      doc.text('JOB FIT ANALYSIS', margin, yPos)
+      doc.text('RESUME ANALYSIS REPORT', margin, yPos)
 
       yPos += 10
-      doc.setFontSize(14)
+      doc.setFontSize(13)
       doc.setFont('helvetica', 'normal')
-      if (jobTitle) doc.text(jobTitle, margin, yPos)
+      doc.text(jobTitle || 'Job Analysis', margin, yPos)
 
-      yPos += 6
+      yPos += 7
       doc.setFontSize(10)
       doc.setTextColor(200, 200, 255)
       if (company) doc.text(`at ${company}`, margin, yPos)
-      doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth - margin, yPos, { align: 'right' })
+      doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth - margin, yPos, { align: 'right' })
 
-      yPos = 70 // Start content below header
+      yPos = 55
 
-      // --- 2. Score Dashboard ---
-      const drawScoreBox = (label: string, score: number, x: number) => {
-        const boxWidth = (maxWidth - 20) / 3
+      // ============================================
+      // SECTION 2: SCORE DASHBOARD (Table)
+      // ============================================
+      const scoreData = [
+        [
+          { content: `${analysisResult.ats_score}%`, styles: { fontSize: 24, fontStyle: 'bold' as const, textColor: getScoreColor(analysisResult.ats_score), halign: 'center' as const } },
+          { content: `${analysisResult.jd_match_score || 0}%`, styles: { fontSize: 24, fontStyle: 'bold' as const, textColor: getScoreColor(analysisResult.jd_match_score || 0), halign: 'center' as const } },
+          { content: `${analysisResult.skills_fit_score || 0}%`, styles: { fontSize: 24, fontStyle: 'bold' as const, textColor: getScoreColor(analysisResult.skills_fit_score || 0), halign: 'center' as const } }
+        ],
+        [
+          { content: 'ATS SCORE', styles: { fontSize: 9, textColor: LIGHT, halign: 'center' as const, fontStyle: 'bold' as const } },
+          { content: 'JOB MATCH', styles: { fontSize: 9, textColor: LIGHT, halign: 'center' as const, fontStyle: 'bold' as const } },
+          { content: 'SKILLS FIT', styles: { fontSize: 9, textColor: LIGHT, halign: 'center' as const, fontStyle: 'bold' as const } }
+        ]
+      ]
 
-        // Color based on score
-        let r = 255, g = 0, b = 0
-        if (score >= 70) { r = 34; g = 197; b = 94 } // Green
-        else if (score >= 50) { r = 245; g = 158; b = 11 } // Orange
+      autoTable(doc, {
+        startY: yPos,
+        body: scoreData,
+        theme: 'plain',
+        styles: { cellPadding: 4, valign: 'middle' },
+        columnStyles: {
+          0: { cellWidth: maxWidth / 3 },
+          1: { cellWidth: maxWidth / 3 },
+          2: { cellWidth: maxWidth / 3 }
+        },
+        margin: { left: margin, right: margin }
+      })
 
-        doc.setDrawColor(r, g, b)
-        doc.setLineWidth(1)
-        doc.roundedRect(x, yPos, boxWidth, 30, 3, 3, 'S')
+      yPos = (doc as any).lastAutoTable.finalY + 8
 
-        // Score
-        doc.setTextColor(r, g, b)
-        doc.setFontSize(28)
-        doc.setFont('helvetica', 'bold')
-        doc.text(`${score}%`, x + boxWidth / 2, yPos + 18, { align: 'center' })
+      // ============================================
+      // SECTION 3: EXECUTIVE SUMMARY
+      // ============================================
+      const coachingSummary = typeof analysisResult.coaching_summary === 'string'
+        ? analysisResult.coaching_summary
+        : analysisResult.coaching_summary?.insight
 
-        // Label
-        doc.setTextColor(100, 100, 100)
-        doc.setFontSize(9)
-        doc.setFont('helvetica', 'bold')
-        doc.text(label.toUpperCase(), x + boxWidth / 2, yPos + 26, { align: 'center' })
-      }
-
-      drawScoreBox("ATS Score", analysisResult.ats_score, margin)
-      drawScoreBox("Job Match", analysisResult.jd_match_score || 0, margin + ((maxWidth - 20) / 3) + 10)
-      drawScoreBox("Skills Fit", analysisResult.skills_fit_score || 0, margin + ((maxWidth - 20) / 3) * 2 + 20)
-
-      yPos += 45
-
-      // --- 3. Coaching Summary ---
-      if (analysisResult.coaching_summary) {
+      if (coachingSummary) {
         addSectionHeader("Executive Summary")
-        const summary = typeof analysisResult.coaching_summary === 'string'
-          ? analysisResult.coaching_summary
-          : analysisResult.coaching_summary.insight
-        addText(summary, 10, false, [60, 60, 60])
+        addText(coachingSummary, 10, false, DARK)
         yPos += 5
       }
 
-      // --- 4. Keywords ---
-      const matched = analysisResult.matched_keywords || [];
-      const missing = analysisResult.missing_keywords || [];
+      // ============================================
+      // SECTION 4: JD REQUIREMENTS ANALYSIS (Table)
+      // ============================================
+      if (analysisResult.jd_requirements && analysisResult.jd_requirements.length > 0) {
+        addSectionHeader("Job Requirements Analysis")
 
-      if (matched.length > 0 || missing.length > 0) {
+        const matched = analysisResult.jd_requirements.filter(r => r.status === 'matched').length
+        const partial = analysisResult.jd_requirements.filter(r => r.status === 'partial').length
+        const missing = analysisResult.jd_requirements.filter(r => r.status === 'missing').length
+        const total = analysisResult.jd_requirements.length
+
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(GREEN[0], GREEN[1], GREEN[2])
+        doc.text(`${matched} of ${total} requirements matched`, margin, yPos)
+        doc.setTextColor(LIGHT[0], LIGHT[1], LIGHT[2])
+        doc.setFont('helvetica', 'normal')
+        doc.text(` • ${partial} partial • ${missing} missing`, margin + 55, yPos)
+        yPos += 8
+
+        const reqTableData = analysisResult.jd_requirements.map(req => {
+          const statusColor = req.status === 'matched' ? GREEN : req.status === 'partial' ? ORANGE : RED
+          return [
+            { content: req.requirement.substring(0, 50) + (req.requirement.length > 50 ? '...' : ''), styles: { fontSize: 8 } },
+            { content: req.category, styles: { fontSize: 8, fontStyle: 'italic' as const } },
+            { content: req.importance, styles: { fontSize: 8 } },
+            { content: req.status.toUpperCase(), styles: { fontSize: 8, fontStyle: 'bold' as const, textColor: statusColor } },
+            { content: req.evidence?.substring(0, 30) || '-', styles: { fontSize: 7, textColor: LIGHT, fontStyle: 'italic' as const } }
+          ]
+        })
+
+        autoTable(doc, {
+          startY: yPos,
+          head: [[
+            { content: 'Requirement', styles: { fillColor: PURPLE, textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' } },
+            { content: 'Category', styles: { fillColor: PURPLE, textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' } },
+            { content: 'Importance', styles: { fillColor: PURPLE, textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' } },
+            { content: 'Status', styles: { fillColor: PURPLE, textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' } },
+            { content: 'Evidence', styles: { fillColor: PURPLE, textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' } }
+          ]],
+          body: reqTableData,
+          theme: 'grid',
+          styles: { cellPadding: 3, fontSize: 8 },
+          columnStyles: {
+            0: { cellWidth: maxWidth * 0.35 },
+            1: { cellWidth: maxWidth * 0.12 },
+            2: { cellWidth: maxWidth * 0.13 },
+            3: { cellWidth: maxWidth * 0.12 },
+            4: { cellWidth: maxWidth * 0.28 }
+          },
+          margin: { left: margin, right: margin }
+        })
+
+        yPos = (doc as any).lastAutoTable.finalY + 5
+      }
+
+      // ============================================
+      // SECTION 5: KEYWORD ANALYSIS (Two-column table)
+      // ============================================
+      const matchedKw = analysisResult.matched_keywords || []
+      const missingKw = analysisResult.missing_keywords || []
+
+      if (matchedKw.length > 0 || missingKw.length > 0) {
         addSectionHeader("Keyword Analysis")
 
-        if (matched.length > 0) {
-          addText("MATCHED KEYWORDS:", 9, true, [34, 197, 94])
-          addText(matched.join(', '), 9, false)
+        if (analysisResult.keyword_strategy) {
+          doc.setFontSize(9)
+          doc.setFont('helvetica', 'italic')
+          doc.setTextColor(LIGHT[0], LIGHT[1], LIGHT[2])
+          const strategyLines = doc.splitTextToSize(analysisResult.keyword_strategy, maxWidth)
+          strategyLines.slice(0, 2).forEach((line: string) => {
+            doc.text(line, margin, yPos)
+            yPos += 4
+          })
+          yPos += 4
+        }
+
+        autoTable(doc, {
+          startY: yPos,
+          head: [[
+            { content: `MATCHED (${matchedKw.length})`, styles: { fillColor: [240, 253, 244], textColor: GREEN, fontSize: 9, fontStyle: 'bold' } },
+            { content: `MISSING (${missingKw.length})`, styles: { fillColor: [254, 242, 242], textColor: RED, fontSize: 9, fontStyle: 'bold' } }
+          ]],
+          body: [[
+            { content: matchedKw.slice(0, 20).join(', ') || 'None', styles: { fontSize: 8 } },
+            { content: missingKw.slice(0, 20).join(', ') || 'None', styles: { fontSize: 8 } }
+          ]],
+          theme: 'grid',
+          styles: { cellPadding: 5 },
+          columnStyles: {
+            0: { cellWidth: maxWidth / 2 },
+            1: { cellWidth: maxWidth / 2 }
+          },
+          margin: { left: margin, right: margin }
+        })
+
+        yPos = (doc as any).lastAutoTable.finalY + 5
+      }
+
+      // ============================================
+      // SECTION 6: ATS HEALTH CHECK
+      // ============================================
+      if (analysisResult.ats_health_check || (analysisResult.ats_warnings && analysisResult.ats_warnings.length > 0) || (analysisResult.ats_good_practices && analysisResult.ats_good_practices.length > 0)) {
+        addSectionHeader("ATS Health Check")
+
+        if (analysisResult.ats_health_check) {
+          addText(analysisResult.ats_health_check, 9, false, DARK)
+          yPos += 5
+        }
+
+        const criticalWarnings = analysisResult.ats_warnings?.filter(w => w.severity === 'critical') || []
+        const regularWarnings = analysisResult.ats_warnings?.filter(w => w.severity === 'warning') || []
+
+        if (criticalWarnings.length > 0) {
+          doc.setFontSize(10)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(RED[0], RED[1], RED[2])
+          doc.text('CRITICAL ISSUES', margin, yPos)
+          yPos += 6
+
+          criticalWarnings.forEach(w => {
+            checkPageBreak(14)
+            doc.setFontSize(9)
+            doc.setFont('helvetica', 'bold')
+            doc.setTextColor(DARK[0], DARK[1], DARK[2])
+            doc.text(`Issue: `, margin + 3, yPos)
+            doc.setFont('helvetica', 'normal')
+            const issueLines = doc.splitTextToSize(w.issue, maxWidth - 20)
+            doc.text(issueLines[0], margin + 15, yPos)
+            yPos += 5
+            doc.setTextColor(GREEN[0], GREEN[1], GREEN[2])
+            doc.setFont('helvetica', 'bold')
+            doc.text(`Fix: `, margin + 3, yPos)
+            doc.setFont('helvetica', 'italic')
+            const fixLines = doc.splitTextToSize(w.recommendation, maxWidth - 15)
+            doc.text(fixLines[0], margin + 12, yPos)
+            yPos += 7
+          })
+        }
+
+        if (regularWarnings.length > 0) {
+          checkPageBreak(10)
+          doc.setFontSize(10)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(ORANGE[0], ORANGE[1], ORANGE[2])
+          doc.text('WARNINGS', margin, yPos)
+          yPos += 6
+
+          regularWarnings.forEach(w => {
+            checkPageBreak(8)
+            doc.setFontSize(8)
+            doc.setTextColor(DARK[0], DARK[1], DARK[2])
+            doc.text(`• ${w.issue}`, margin + 3, yPos)
+            doc.setTextColor(LIGHT[0], LIGHT[1], LIGHT[2])
+            doc.setFont('helvetica', 'italic')
+            const recLines = doc.splitTextToSize(` → ${w.recommendation}`, maxWidth - 10)
+            yPos += 4
+            doc.text(recLines[0], margin + 6, yPos)
+            yPos += 5
+          })
+        }
+
+        if (analysisResult.ats_good_practices && analysisResult.ats_good_practices.length > 0) {
+          checkPageBreak(10)
+          yPos += 3
+          doc.setFontSize(10)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(GREEN[0], GREEN[1], GREEN[2])
+          doc.text('WHAT YOU\'RE DOING RIGHT', margin, yPos)
+          yPos += 6
+
+          analysisResult.ats_good_practices.forEach(p => {
+            checkPageBreak(6)
+            doc.setFontSize(8)
+            doc.setTextColor(GREEN[0], GREEN[1], GREEN[2])
+            doc.text(`✓ ${p}`, margin + 3, yPos)
+            yPos += 5
+          })
+        }
+
+        if (analysisResult.formatting_issues && analysisResult.formatting_issues.length > 0) {
+          checkPageBreak(10)
+          yPos += 3
+          doc.setFontSize(10)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(ORANGE[0], ORANGE[1], ORANGE[2])
+          doc.text('FORMATTING ISSUES', margin, yPos)
+          yPos += 6
+
+          analysisResult.formatting_issues.forEach(issue => {
+            checkPageBreak(6)
+            doc.setFontSize(8)
+            doc.setTextColor(DARK[0], DARK[1], DARK[2])
+            doc.text(`• ${issue}`, margin + 3, yPos)
+            yPos += 5
+          })
+        }
+
+        yPos += 3
+      }
+
+      // ============================================
+      // SECTION 7: SKILLS ANALYSIS
+      // ============================================
+      if (analysisResult.skills_fit_explanation || analysisResult.skills_breakdown_coaching || (analysisResult.missing_skills && analysisResult.missing_skills.length > 0)) {
+        addSectionHeader("Skills Analysis")
+
+        if (analysisResult.skills_fit_explanation) {
+          addText(analysisResult.skills_fit_explanation, 9, false, DARK)
+          yPos += 5
+        }
+
+        if (analysisResult.missing_skills && analysisResult.missing_skills.length > 0) {
+          doc.setFontSize(10)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(ORANGE[0], ORANGE[1], ORANGE[2])
+          doc.text('Skills Gap - Consider adding:', margin, yPos)
+          yPos += 6
+
+          analysisResult.missing_skills.slice(0, 10).forEach(skill => {
+            checkPageBreak(5)
+            doc.setFontSize(8)
+            doc.setTextColor(DARK[0], DARK[1], DARK[2])
+            doc.text(`• ${skill}`, margin + 3, yPos)
+            yPos += 4
+          })
           yPos += 3
         }
 
-        if (missing.length > 0) {
-          addText("MISSING KEYWORDS:", 9, true, [239, 68, 68])
-          addText(missing.join(', '), 9, false)
-          yPos += 3
+        if (analysisResult.skills_breakdown_coaching) {
+          const categories = [
+            { key: 'technical', label: 'Technical Skills', color: PURPLE },
+            { key: 'tools', label: 'Tools & Technologies', color: BLUE },
+            { key: 'domain', label: 'Domain Knowledge', color: GREEN },
+            { key: 'soft_skills', label: 'Soft Skills', color: ORANGE }
+          ]
+
+          categories.forEach(cat => {
+            const content = analysisResult.skills_breakdown_coaching?.[cat.key as keyof typeof analysisResult.skills_breakdown_coaching]
+            if (content) {
+              checkPageBreak(15)
+              doc.setFontSize(9)
+              doc.setFont('helvetica', 'bold')
+              doc.setTextColor(cat.color[0], cat.color[1], cat.color[2])
+              doc.text(cat.label, margin, yPos)
+              yPos += 5
+              doc.setFont('helvetica', 'normal')
+              doc.setTextColor(LIGHT[0], LIGHT[1], LIGHT[2])
+              const contentLines = doc.splitTextToSize(content, maxWidth - 5)
+              contentLines.slice(0, 2).forEach((line: string) => {
+                doc.text(line, margin + 3, yPos)
+                yPos += 4
+              })
+              yPos += 3
+            }
+          })
         }
       }
 
-      // --- 5. Improvements ---
+      // ============================================
+      // SECTION 8: SECTION FEEDBACK (Table)
+      // ============================================
+      if (analysisResult.section_feedback && analysisResult.section_feedback.length > 0) {
+        addSectionHeader("Section-by-Section Feedback")
+
+        const feedbackData = analysisResult.section_feedback.map(sf => {
+          const scoreColor = getScoreColor(sf.score)
+          return [
+            { content: sf.section, styles: { fontSize: 9, fontStyle: 'bold' as const } },
+            { content: `${sf.score}%`, styles: { fontSize: 10, fontStyle: 'bold' as const, textColor: scoreColor, halign: 'center' as const } },
+            { content: sf.feedback, styles: { fontSize: 8 } }
+          ]
+        })
+
+        autoTable(doc, {
+          startY: yPos,
+          head: [[
+            { content: 'Section', styles: { fillColor: PURPLE, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' } },
+            { content: 'Score', styles: { fillColor: PURPLE, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' } },
+            { content: 'Feedback', styles: { fillColor: PURPLE, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' } }
+          ]],
+          body: feedbackData,
+          theme: 'grid',
+          styles: { cellPadding: 4 },
+          columnStyles: {
+            0: { cellWidth: maxWidth * 0.18 },
+            1: { cellWidth: maxWidth * 0.12 },
+            2: { cellWidth: maxWidth * 0.70 }
+          },
+          margin: { left: margin, right: margin }
+        })
+
+        yPos = (doc as any).lastAutoTable.finalY + 5
+      }
+
+      // ============================================
+      // SECTION 9: POWER WORDS (Table)
+      // ============================================
+      if (analysisResult.power_words && analysisResult.power_words.suggestions && analysisResult.power_words.suggestions.length > 0) {
+        addSectionHeader("Power Words & Language")
+
+        const pwColor = getScoreColor(analysisResult.power_words.score)
+        const impColor = analysisResult.power_words.improvementPotential === 'high' ? RED : analysisResult.power_words.improvementPotential === 'medium' ? ORANGE : GREEN
+
+        doc.setFontSize(10)
+        doc.setTextColor(DARK[0], DARK[1], DARK[2])
+        doc.text('Language Score: ', margin, yPos)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(pwColor[0], pwColor[1], pwColor[2])
+        doc.text(`${analysisResult.power_words.score}%`, margin + 30, yPos)
+        doc.setTextColor(DARK[0], DARK[1], DARK[2])
+        doc.setFont('helvetica', 'normal')
+        doc.text(' • Improvement Potential: ', margin + 45, yPos)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(impColor[0], impColor[1], impColor[2])
+        doc.text(analysisResult.power_words.improvementPotential.toUpperCase(), margin + 90, yPos)
+        yPos += 8
+
+        const pwData = analysisResult.power_words.suggestions.slice(0, 10).map(s => [
+          { content: s.weak, styles: { fontSize: 9, textColor: RED, fillColor: [254, 242, 242] as [number, number, number] } },
+          { content: s.alternatives.join(', '), styles: { fontSize: 9, textColor: GREEN, fillColor: [240, 253, 244] as [number, number, number] } }
+        ])
+
+        autoTable(doc, {
+          startY: yPos,
+          head: [[
+            { content: 'Weak Word', styles: { fillColor: RED, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' } },
+            { content: 'Suggested Alternatives', styles: { fillColor: GREEN, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' } }
+          ]],
+          body: pwData,
+          theme: 'grid',
+          styles: { cellPadding: 4 },
+          columnStyles: {
+            0: { cellWidth: maxWidth * 0.25 },
+            1: { cellWidth: maxWidth * 0.75 }
+          },
+          margin: { left: margin, right: margin }
+        })
+
+        yPos = (doc as any).lastAutoTable.finalY + 5
+      }
+
+      // ============================================
+      // SECTION 10: QUANTIFICATION
+      // ============================================
+      if (analysisResult.quantification) {
+        addSectionHeader("Quantification & Metrics")
+
+        const qColor = getScoreColor(analysisResult.quantification.score)
+        doc.setFontSize(10)
+        doc.setTextColor(DARK[0], DARK[1], DARK[2])
+        doc.text('Metrics Score: ', margin, yPos)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(qColor[0], qColor[1], qColor[2])
+        doc.text(`${analysisResult.quantification.score}%`, margin + 28, yPos)
+        doc.setTextColor(analysisResult.quantification.hasMetrics ? GREEN[0] : ORANGE[0], analysisResult.quantification.hasMetrics ? GREEN[1] : ORANGE[1], analysisResult.quantification.hasMetrics ? GREEN[2] : ORANGE[2])
+        doc.setFont('helvetica', 'normal')
+        doc.text(analysisResult.quantification.hasMetrics ? ' • Metrics found in resume' : ' • No metrics detected', margin + 42, yPos)
+        yPos += 7
+
+        if (analysisResult.quantification.metricTypes && analysisResult.quantification.metricTypes.length > 0) {
+          doc.setFontSize(9)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(DARK[0], DARK[1], DARK[2])
+          doc.text('Types of metrics found: ', margin, yPos)
+          doc.setFont('helvetica', 'normal')
+          doc.setTextColor(GREEN[0], GREEN[1], GREEN[2])
+          doc.text(analysisResult.quantification.metricTypes.join(', '), margin + 40, yPos)
+          yPos += 6
+        }
+
+        if (analysisResult.quantification.suggestions && analysisResult.quantification.suggestions.length > 0) {
+          yPos += 2
+          doc.setFontSize(9)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(DARK[0], DARK[1], DARK[2])
+          doc.text('Suggestions to add metrics:', margin, yPos)
+          yPos += 5
+
+          analysisResult.quantification.suggestions.forEach(s => {
+            checkPageBreak(5)
+            doc.setFontSize(8)
+            doc.setFont('helvetica', 'normal')
+            doc.text(`• ${s}`, margin + 3, yPos)
+            yPos += 4
+          })
+        }
+        yPos += 3
+      }
+
+      // ============================================
+      // SECTION 11: BULLET IMPROVEMENTS (Tables)
+      // ============================================
       if (analysisResult.bullet_improvements && analysisResult.bullet_improvements.length > 0) {
-        addSectionHeader("Recommended Improvements")
+        addSectionHeader("Bullet Point Improvements")
 
         analysisResult.bullet_improvements.forEach((imp, i) => {
-          if (yPos > pageHeight - margin - 40) { doc.addPage(); yPos = margin + 10; }
+          checkPageBreak(35)
 
-          yPos += 2
-          addText(`SUGGESTION ${i + 1}:`, 10, true, [106, 71, 255])
-
-          // Before
-          doc.setFillColor(255, 245, 245)
-          doc.roundedRect(margin, yPos, maxWidth, 10, 1, 1, 'F')
-          doc.setTextColor(220, 38, 38)
-          doc.setFontSize(9)
+          doc.setFontSize(11)
           doc.setFont('helvetica', 'bold')
-          doc.text("BEFORE:", margin + 2, yPos + 6)
-          doc.setFont('helvetica', 'normal')
-          doc.text(imp.before.substring(0, 90) + "...", margin + 20, yPos + 6)
-          yPos += 12
+          doc.setTextColor(PURPLE[0], PURPLE[1], PURPLE[2])
+          doc.text(`Improvement ${i + 1}`, margin, yPos)
+          yPos += 6
 
-          // After
-          doc.setFillColor(240, 253, 244)
-          doc.roundedRect(margin, yPos, maxWidth, 10, 1, 1, 'F')
-          doc.setTextColor(22, 163, 74)
-          doc.setFontSize(9)
+          autoTable(doc, {
+            startY: yPos,
+            body: [
+              [
+                { content: 'BEFORE', styles: { fontStyle: 'bold', fontSize: 8, textColor: RED, fillColor: [254, 242, 242], cellWidth: 18 } },
+                { content: imp.before, styles: { fontSize: 8, fillColor: [254, 242, 242] } }
+              ],
+              [
+                { content: 'AFTER', styles: { fontStyle: 'bold', fontSize: 8, textColor: GREEN, fillColor: [240, 253, 244], cellWidth: 18 } },
+                { content: imp.after, styles: { fontSize: 8, fillColor: [240, 253, 244] } }
+              ]
+            ],
+            theme: 'grid',
+            styles: { cellPadding: 4 },
+            margin: { left: margin, right: margin }
+          })
+
+          yPos = (doc as any).lastAutoTable.finalY + 3
+          doc.setFontSize(8)
           doc.setFont('helvetica', 'bold')
-          doc.text("AFTER:", margin + 2, yPos + 6)
-          doc.setFont('helvetica', 'normal')
-          doc.text(imp.after.substring(0, 90) + "...", margin + 20, yPos + 6)
-          yPos += 12
+          doc.setTextColor(LIGHT[0], LIGHT[1], LIGHT[2])
+          doc.text('Why: ', margin + 3, yPos)
+          doc.setFont('helvetica', 'italic')
+          const reasonLines = doc.splitTextToSize(imp.reason, maxWidth - 15)
+          doc.text(reasonLines[0], margin + 14, yPos)
+          yPos += 8
+        })
+      }
 
-          addText(`Why: ${imp.reason}`, 9, false, [100, 100, 100])
+      // ============================================
+      // SECTION 12: STRENGTHS & WEAKNESSES (Table)
+      // ============================================
+      if ((analysisResult.strengths && analysisResult.strengths.length > 0) || (analysisResult.weaknesses && analysisResult.weaknesses.length > 0)) {
+        addSectionHeader("Strengths & Areas for Improvement")
+
+        const maxRows = Math.max(analysisResult.strengths?.length || 0, analysisResult.weaknesses?.length || 0, 1)
+        const strengthsList = analysisResult.strengths?.slice(0, 8) || []
+        const weaknessesList = analysisResult.weaknesses?.slice(0, 8) || []
+
+        autoTable(doc, {
+          startY: yPos,
+          head: [[
+            { content: '✓ STRENGTHS', styles: { fillColor: [240, 253, 244], textColor: GREEN, fontSize: 10, fontStyle: 'bold' } },
+            { content: '⚠ AREAS FOR IMPROVEMENT', styles: { fillColor: [254, 247, 231], textColor: ORANGE, fontSize: 10, fontStyle: 'bold' } }
+          ]],
+          body: [[
+            { content: strengthsList.map(s => `• ${s}`).join('\n') || 'None identified', styles: { fontSize: 8 } },
+            { content: weaknessesList.map(w => `• ${w}`).join('\n') || 'None identified', styles: { fontSize: 8 } }
+          ]],
+          theme: 'grid',
+          styles: { cellPadding: 6, valign: 'top' },
+          columnStyles: {
+            0: { cellWidth: maxWidth / 2 },
+            1: { cellWidth: maxWidth / 2 }
+          },
+          margin: { left: margin, right: margin }
+        })
+
+        yPos = (doc as any).lastAutoTable.finalY + 5
+      }
+
+      // ============================================
+      // SECTION 13: NEXT STEPS
+      // ============================================
+      const actionItems: string[] = []
+      const criticalW = analysisResult.ats_warnings?.filter(w => w.severity === 'critical') || []
+      criticalW.forEach(w => actionItems.push(`[CRITICAL] ${w.recommendation}`))
+      if (missingKw.length > 0) actionItems.push(`Add missing keywords: ${missingKw.slice(0, 5).join(', ')}`)
+      if (analysisResult.missing_skills && analysisResult.missing_skills.length > 0) {
+        actionItems.push(`Highlight skills: ${analysisResult.missing_skills.slice(0, 3).join(', ')}`)
+      }
+      if (analysisResult.power_words?.improvementPotential === 'high') {
+        actionItems.push('Replace weak action verbs with power words')
+      }
+      if (analysisResult.quantification && analysisResult.quantification.score < 50) {
+        actionItems.push('Add quantifiable achievements (%, $, numbers)')
+      }
+
+      if (actionItems.length > 0) {
+        addSectionHeader("Recommended Next Steps")
+
+        actionItems.slice(0, 10).forEach((item, i) => {
+          checkPageBreak(8)
+          const isCritical = item.includes('[CRITICAL]')
+          doc.setFontSize(9)
+          doc.setFont('helvetica', isCritical ? 'bold' : 'normal')
+          doc.setTextColor(PURPLE[0], PURPLE[1], PURPLE[2])
+          doc.text(`${i + 1}. `, margin, yPos)
+          doc.setTextColor(isCritical ? RED[0] : DARK[0], isCritical ? RED[1] : DARK[1], isCritical ? RED[2] : DARK[2])
+          doc.text(item.replace('[CRITICAL] ', ''), margin + 8, yPos)
           yPos += 6
         })
       }
 
-      // Footer
-      const footerY = pageHeight - 10
-      doc.setFontSize(8)
-      doc.setTextColor(150, 150, 150)
-      doc.text('Generated by JobFoxy AI Analysis', pageWidth / 2, footerY, { align: 'center' })
+      // ============================================
+      // FOOTER (All pages)
+      // ============================================
+      const totalPages = doc.getNumberOfPages()
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i)
+        doc.setDrawColor(224, 224, 224)
+        doc.setLineWidth(0.3)
+        doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12)
+        doc.setFontSize(8)
+        doc.setTextColor(170, 170, 170)
+        doc.text('Generated by JobFoxy AI Analysis', margin, pageHeight - 6)
+        doc.setTextColor(PURPLE[0], PURPLE[1], PURPLE[2])
+        doc.text('www.jobfoxy.com', pageWidth / 2, pageHeight - 6, { align: 'center' })
+        doc.setTextColor(170, 170, 170)
+        doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 6, { align: 'right' })
+      }
 
       // Save PDF
-      const fileName = `Analysis-Report-${jobTitle?.replace(/\s+/g, '-') || 'JobFoxy'}.pdf`
-      doc.save(fileName)
+      const safeTitle = (jobTitle || 'Analysis').replace(/[^a-z0-9]/gi, '-').substring(0, 30)
+      doc.save(`JobFoxy_Analysis_${safeTitle}.pdf`)
     } catch (error) {
       console.error('PDF Export Error:', error)
       alert('Failed to export PDF. Please try again.')

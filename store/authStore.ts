@@ -9,22 +9,21 @@ export interface Profile {
   full_name: string | null
   avatar_url: string | null
 
-  // Subscription
+  // Subscription (sensitive fields like stripe_customer_id excluded from client)
   subscription_status: 'free' | 'active' | 'past_due' | 'canceled' | 'trialing'
-  subscription_tier?: 'basic' | 'pro' | 'premium'
-  subscription_price_id: string | null
+  subscription_tier?: 'free' | 'basic' | 'pro' | 'interview_ready'
   subscription_current_period_end: string | null
-  stripe_customer_id: string | null
 
-  // Usage tracking
-  ai_tokens_used_this_month: number
-  practice_sessions_this_month: number
-  mock_interviews_this_month: number
+  // Monthly usage tracking (reset each billing cycle)
   resume_builds_this_month?: number
   job_analyses_this_month?: number
-  audio_practice_sessions_this_month?: number
-  monthly_video_credits?: number
-  purchased_video_credits?: number
+  cover_letters_this_month?: number
+  star_voice_sessions_used?: number
+  mock_interview_minutes_used?: number
+
+  // Purchased add-ons (never expire)
+  purchased_star_sessions?: number
+  purchased_mock_minutes?: number
 
   // User preferences
   preferences: Record<string, unknown> | null
@@ -183,9 +182,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const supabase = createClient()
+      // Select specific columns - exclude sensitive fields (stripe_customer_id, subscription_price_id)
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          id, email, full_name, avatar_url,
+          subscription_status, subscription_tier, subscription_current_period_end,
+          resume_builds_this_month, job_analyses_this_month, cover_letters_this_month,
+          star_voice_sessions_used, mock_interview_minutes_used,
+          purchased_star_sessions, purchased_mock_minutes,
+          preferences, is_admin, created_at, updated_at
+        `)
         .eq('id', user.id)
         .maybeSingle()  // Use maybeSingle() instead of single() to avoid errors when not found
 

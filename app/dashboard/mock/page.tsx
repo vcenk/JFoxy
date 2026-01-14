@@ -82,7 +82,7 @@ export default function MockInterviewsPage() {
         streak: 0,
         averageScore: 0,
         totalCompleted: 0,
-        interviewsThisMonth: profile?.mock_interviews_this_month || 0,
+        minutesUsedThisMonth: profile?.mock_interview_minutes_used || 0,
         trend: 0,
       }
     }
@@ -139,7 +139,7 @@ export default function MockInterviewsPage() {
       streak,
       averageScore,
       totalCompleted: completedInterviews.length,
-      interviewsThisMonth: profile?.mock_interviews_this_month || 0,
+      minutesUsedThisMonth: profile?.mock_interview_minutes_used || 0,
       trend,
     }
   }, [interviews, profile])
@@ -323,24 +323,14 @@ export default function MockInterviewsPage() {
             gradient="from-green-500 to-emerald-500"
           />
 
-          {!isPro ? (
-            <PracticeStatsCard
-              title="Monthly Usage"
-              value={`${stats.interviewsThisMonth} / 3`}
-              subtitle="Free tier limit"
-              icon={Clock}
-              gradient="from-blue-500 to-cyan-500"
-              progress={(stats.interviewsThisMonth / 3) * 100}
-            />
-          ) : (
-            <PracticeStatsCard
-              title="Pro Member"
-              value="∞"
-              subtitle="Unlimited interviews"
-              icon={Star}
-              gradient="from-yellow-500 to-orange-500"
-            />
-          )}
+          <PracticeStatsCard
+            title="Minutes Used"
+            value={`${stats.minutesUsedThisMonth} min`}
+            subtitle="This month"
+            icon={Clock}
+            gradient="from-blue-500 to-cyan-500"
+            progress={Math.min(100, (stats.minutesUsedThisMonth / 150) * 100)}
+          />
         </div>
 
         {/* Badges/Achievements Section */}

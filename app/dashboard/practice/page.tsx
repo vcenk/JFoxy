@@ -84,7 +84,7 @@ export default function PracticePage() {
         streak: 0,
         averageScore: 0,
         totalCompleted: 0,
-        sessionsThisMonth: profile?.practice_sessions_this_month || 0,
+        sessionsThisMonth: profile?.star_voice_sessions_used || 0,
         trend: 0,
       }
     }
@@ -141,7 +141,7 @@ export default function PracticePage() {
       streak,
       averageScore,
       totalCompleted: completedSessions.length,
-      sessionsThisMonth: profile?.practice_sessions_this_month || 0,
+      sessionsThisMonth: profile?.star_voice_sessions_used || 0,
       trend,
     }
   }, [sessions, profile])
@@ -185,7 +185,7 @@ export default function PracticePage() {
     if (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing') {
       return true
     }
-    return (profile?.practice_sessions_this_month || 0) < 5
+    return (profile?.star_voice_sessions_used || 0) < 5
   }
 
   // Handle session deletion

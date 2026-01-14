@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/clients/supabaseBrowserClient'
 import {
   User, CreditCard, Settings, Mic, Bell, Database,
-  Save, Loader2, CheckCircle
+  Save, Loader2, CheckCircle, Zap, Video, Check, Clock
 } from 'lucide-react'
 import { SimpleSwitch } from '@/components/ui/simple-switch'
 import { IntegrationsTab } from '@/components/account/IntegrationsTab'
@@ -49,7 +49,20 @@ const DEFAULT_PREFS: UserPreferences = {
 // Components
 // ------------------------------------------------------------------
 
+// Wrapper component with Suspense for useSearchParams
 export default function AccountPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+      </div>
+    }>
+      <AccountPageContent />
+    </Suspense>
+  )
+}
+
+function AccountPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<Tab>('profile')
@@ -163,28 +176,52 @@ export default function AccountPage() {
   )
 }
 
-import { SUBSCRIPTION_TIERS, TIER_LIMITS, CREDIT_PACKS } from '@/lib/config/constants'
-import { Sparkles, Zap, Video, Check } from 'lucide-react'
+import { SUBSCRIPTION_TIERS, TIER_LIMITS, ADDON_PACKS } from '@/lib/config/constants'
 import { loadStripe } from '@stripe/stripe-js'
 
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) 
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null;
 
+// Helper to format tier names for display
+const getTierDisplayName = (tier: string) => {
+  switch (tier) {
+    case SUBSCRIPTION_TIERS.FREE: return 'Free'
+    case SUBSCRIPTION_TIERS.BASIC: return 'Basic'
+    case SUBSCRIPTION_TIERS.PRO: return 'Pro'
+    case SUBSCRIPTION_TIERS.INTERVIEW_READY: return 'Interview Ready'
+    default: return tier.charAt(0).toUpperCase() + tier.slice(1)
+  }
+}
+
+// Helper to get next tier upgrade
+const getNextTier = (currentTier: string) => {
+  switch (currentTier) {
+    case SUBSCRIPTION_TIERS.FREE: return SUBSCRIPTION_TIERS.BASIC
+    case SUBSCRIPTION_TIERS.BASIC: return SUBSCRIPTION_TIERS.PRO
+    case SUBSCRIPTION_TIERS.PRO: return SUBSCRIPTION_TIERS.INTERVIEW_READY
+    default: return null
+  }
+}
+
 function SubscriptionTab({ profile }: { profile: any }) {
-  const tier = profile?.subscription_tier || SUBSCRIPTION_TIERS.BASIC
-  const limits = TIER_LIMITS[tier as keyof typeof TIER_LIMITS] || TIER_LIMITS[SUBSCRIPTION_TIERS.BASIC]
-  
-  const monthlyCredits = profile?.monthly_video_credits || 0
-  const purchasedCredits = profile?.purchased_video_credits || 0
-  
+  const tier = profile?.subscription_tier || SUBSCRIPTION_TIERS.FREE
+  const limits = TIER_LIMITS[tier as keyof typeof TIER_LIMITS] || TIER_LIMITS[SUBSCRIPTION_TIERS.FREE]
+
+  // Usage tracking
+  const starSessionsUsed = profile?.star_voice_sessions_used || 0
+  const mockMinutesUsed = profile?.mock_interview_minutes_used || 0
+  const purchasedStarSessions = profile?.purchased_star_sessions || 0
+  const purchasedMockMinutes = profile?.purchased_mock_minutes || 0
+
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month')
 
-  // Format tier name for display
-  const tierDisplay = tier.charAt(0).toUpperCase() + tier.slice(1)
-  const isPremium = tier === SUBSCRIPTION_TIERS.PREMIUM
+  const tierDisplay = getTierDisplayName(tier)
+  const isInterviewReady = tier === SUBSCRIPTION_TIERS.INTERVIEW_READY
   const isPro = tier === SUBSCRIPTION_TIERS.PRO
+  const isFree = tier === SUBSCRIPTION_TIERS.FREE
+  const nextTier = getNextTier(tier)
 
   const handlePurchase = async (itemId: string, isSubscription: boolean) => {
     setLoadingId(itemId)
@@ -207,154 +244,204 @@ function SubscriptionTab({ profile }: { profile: any }) {
     }
   }
 
+  // Calculate totals for voice features
+  const totalStarSessions = Math.max(0, limits.starVoiceSessions - starSessionsUsed) + purchasedStarSessions
+  const totalMockMinutes = Math.max(0, limits.mockInterviewMinutes - mockMinutesUsed) + purchasedMockMinutes
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-      
+
       {/* Current Plan Card */}
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700 p-8 shadow-xl relative overflow-hidden">
-        {isPremium && (
+        {isInterviewReady && (
           <div className="absolute top-0 right-0 bg-gradient-to-l from-yellow-500/20 to-transparent w-32 h-full" />
         )}
-        
+
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-3xl font-bold text-white">{tierDisplay} Plan</h2>
-              {isPremium && <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-bold rounded-full border border-yellow-500/30">PREMIUM</span>}
+              {isInterviewReady && <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-bold rounded-full border border-yellow-500/30">TOP TIER</span>}
               {isPro && <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full border border-purple-500/30">PRO</span>}
             </div>
             <p className="text-gray-400 max-w-md">
-              {tier === 'basic' ? 'Basic access to resume building and analysis.' : 
-               tier === 'pro' ? 'Advanced tools for serious job seekers.' : 
-               'Unlimited access with priority AI processing.'}
+              {isFree ? 'Try JobFoxy with limited access to all features.' :
+               tier === SUBSCRIPTION_TIERS.BASIC ? 'Unlimited resume building and job analysis tools.' :
+               isPro ? 'Voice-powered STAR practice with AI feedback.' :
+               'Full access including realistic AI mock interviews.'}
             </p>
           </div>
-          
-          <div className="flex flex-col items-end gap-3">
-            {tier !== SUBSCRIPTION_TIERS.PREMIUM && (
-              <div className="bg-gray-900/50 p-1 rounded-lg flex items-center border border-gray-600">
-                <button 
-                  type="button"
-                  onClick={() => setBillingInterval('month')}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${billingInterval === 'month' ? 'bg-gray-700 text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
-                >
-                  Monthly
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => setBillingInterval('year')}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${billingInterval === 'year' ? 'bg-gray-700 text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
-                >
-                  Yearly (-20%)
-                </button>
-              </div>
-            )}
 
-            {tier !== SUBSCRIPTION_TIERS.PREMIUM && (
-              <button
-                onClick={() => handlePurchase(tier === SUBSCRIPTION_TIERS.BASIC ? 'pro' : 'premium', true)}
-                disabled={loadingId !== null}
-                className="px-6 py-3 bg-white text-gray-900 font-bold rounded-xl hover:bg-gray-200 transition-colors shadow-lg flex items-center gap-2 disabled:opacity-50 w-full justify-center"
-              >
-                {loadingId === 'pro' || loadingId === 'premium' ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Zap className="w-4 h-4 fill-yellow-500 text-yellow-600" />
-                )}
-                Upgrade to {tier === SUBSCRIPTION_TIERS.BASIC ? 'Pro' : 'Premium'}
-              </button>
+          <div className="flex flex-col items-end gap-3">
+            {nextTier && (
+              <>
+                <div className="bg-gray-900/50 p-1 rounded-lg flex items-center border border-gray-600">
+                  <button
+                    type="button"
+                    onClick={() => setBillingInterval('month')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${billingInterval === 'month' ? 'bg-gray-700 text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBillingInterval('year')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${billingInterval === 'year' ? 'bg-gray-700 text-white shadow-sm' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Yearly (-20%)
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => handlePurchase(nextTier, true)}
+                  disabled={loadingId !== null}
+                  className="px-6 py-3 bg-white text-gray-900 font-bold rounded-xl hover:bg-gray-200 transition-colors shadow-lg flex items-center gap-2 disabled:opacity-50 w-full justify-center"
+                >
+                  {loadingId === nextTier ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Zap className="w-4 h-4 fill-yellow-500 text-yellow-600" />
+                  )}
+                  Upgrade to {getTierDisplayName(nextTier)}
+                </button>
+              </>
             )}
           </div>
         </div>
 
         {/* Usage Meters */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 border-t border-gray-700 pt-8">
-          <UsageMeter 
-            label="Resume Builds" 
-            used={profile?.resume_builds_this_month || 0} 
-            limit={limits.resumeBuilds} 
+          <UsageMeter
+            label="Resumes"
+            used={profile?.resume_builds_this_month || 0}
+            limit={limits.resumes}
           />
-          <UsageMeter 
-            label="Job Analyses" 
-            used={profile?.job_analyses_this_month || 0} 
-            limit={limits.jobAnalyses} 
+          <UsageMeter
+            label="Job Analyses"
+            used={profile?.job_analyses_this_month || 0}
+            limit={limits.jobAnalyses}
           />
-          <UsageMeter 
-            label="Audio Practice" 
-            used={profile?.audio_practice_sessions_this_month || 0} 
-            limit={limits.audioPractice} 
+          <UsageMeter
+            label="Cover Letters"
+            used={profile?.cover_letters_this_month || 0}
+            limit={limits.coverLetters}
           />
         </div>
       </div>
 
-      {/* Mock Interview Credits */}
+      {/* Voice Features Section */}
       <div className="bg-gray-800 rounded-2xl border border-gray-700 p-8 shadow-xl">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-blue-500/20 rounded-xl">
-            <Video className="w-6 h-6 text-blue-400" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-white">Mock Interview Credits</h2>
-            <p className="text-sm text-gray-400">Used for AI-powered voice interview practice sessions</p>
-          </div>
-        </div>
+        <h2 className="text-xl font-bold text-white mb-6">Voice Practice & Mock Interviews</h2>
 
-        <div className="bg-gray-900/50 rounded-xl p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-gray-700/50">
-          <div>
-            <p className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-1">Total Balance</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-white">{monthlyCredits + purchasedCredits}</span>
-              <span className="text-gray-500 font-medium">credits available</span>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {monthlyCredits} Monthly (Expires soon) • {purchasedCredits} Purchased (Never expires)
-            </p>
-          </div>
-          
-          <div className="text-right">
-             <p className="text-sm text-gray-400 mb-1">Cost per session</p>
-             <p className="text-white font-bold">5 Credits</p>
-          </div>
-        </div>
-
-        <h3 className="text-lg font-bold text-white mb-4">Buy More Credits</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {CREDIT_PACKS.map(pack => (
-            <div key={pack.id} className="bg-gray-900 border border-gray-700 rounded-xl p-6 hover:border-purple-500/50 transition-colors group relative">
-              {pack.id === 'pro' && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-full">
-                  POPULAR
-                </div>
-              )}
-              <h4 className="text-white font-bold text-lg mb-1">{pack.name}</h4>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-bold text-white">${pack.price}</span>
-                <span className="text-gray-500">/ {pack.credits} credits</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* STAR Voice Sessions */}
+          <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-purple-500/20 rounded-lg">
+                <Mic className="w-5 h-5 text-purple-400" />
               </div>
-              <ul className="space-y-2 mb-6">
-                <li className="flex items-center gap-2 text-sm text-gray-300">
-                  <Check className="w-4 h-4 text-green-500" />
-                  {pack.credits / 5} Interview Sessions
-                </li>
-                <li className="flex items-center gap-2 text-sm text-gray-300">
-                  <Check className="w-4 h-4 text-green-500" />
-                  Never expires
-                </li>
-              </ul>
-              <button
-                onClick={() => handlePurchase(pack.id, false)}
-                disabled={loadingId !== null}
-                className="w-full py-2 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg border border-white/10 transition-colors group-hover:bg-purple-600 group-hover:border-purple-600 disabled:opacity-50"
-              >
-                {loadingId === pack.id ? (
-                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                ) : (
-                  'Buy Now'
-                )}
-              </button>
+              <div>
+                <h3 className="text-white font-semibold">STAR Voice Sessions</h3>
+                <p className="text-xs text-gray-400">Practice behavioral questions with voice</p>
+              </div>
             </div>
-          ))}
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-3xl font-bold text-white">{totalStarSessions}</span>
+              <span className="text-gray-500">sessions available</span>
+            </div>
+            {(isPro || isInterviewReady) && (
+              <p className="text-xs text-gray-500">
+                {Math.max(0, limits.starVoiceSessions - starSessionsUsed)} monthly + {purchasedStarSessions} purchased
+              </p>
+            )}
+            {!isPro && !isInterviewReady && (
+              <p className="text-xs text-orange-400">Upgrade to Pro for voice practice</p>
+            )}
+          </div>
+
+          {/* Mock Interview Minutes */}
+          <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <Video className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">Mock Interview Minutes</h3>
+                <p className="text-xs text-gray-400">Realistic AI interview simulations</p>
+              </div>
+            </div>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-3xl font-bold text-white">{totalMockMinutes}</span>
+              <span className="text-gray-500">minutes available</span>
+            </div>
+            {isInterviewReady && (
+              <p className="text-xs text-gray-500">
+                {Math.max(0, limits.mockInterviewMinutes - mockMinutesUsed)} monthly + {purchasedMockMinutes} purchased
+              </p>
+            )}
+            {!isInterviewReady && (
+              <p className="text-xs text-orange-400">Upgrade to Interview Ready for mock interviews</p>
+            )}
+          </div>
         </div>
+
+        {/* Add-on Packs - Only show for Pro and Interview Ready tiers */}
+        {(isPro || isInterviewReady) && (
+          <>
+            <h3 className="text-lg font-bold text-white mb-4">Buy Add-ons</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {ADDON_PACKS.map(pack => {
+                // Only show mock interview add-ons for Interview Ready tier
+                if (pack.type === 'mock_minutes' && !isInterviewReady) return null
+
+                const isMinutes = pack.type === 'mock_minutes'
+                const amount = isMinutes ? (pack as any).minutes : (pack as any).sessions
+
+                return (
+                  <div key={pack.id} className="bg-gray-900 border border-gray-700 rounded-xl p-6 hover:border-purple-500/50 transition-colors group relative">
+                    {pack.id === 'mock_30' && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-full">
+                        BEST VALUE
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 mb-2">
+                      {isMinutes ? (
+                        <Clock className="w-4 h-4 text-blue-400" />
+                      ) : (
+                        <Mic className="w-4 h-4 text-purple-400" />
+                      )}
+                      <h4 className="text-white font-bold">{pack.name}</h4>
+                    </div>
+                    <div className="flex items-baseline gap-1 mb-4">
+                      <span className="text-2xl font-bold text-white">${pack.price}</span>
+                    </div>
+                    <ul className="space-y-2 mb-6">
+                      <li className="flex items-center gap-2 text-sm text-gray-300">
+                        <Check className="w-4 h-4 text-green-500" />
+                        {isMinutes ? `${amount} extra minutes` : `${amount} extra sessions`}
+                      </li>
+                      <li className="flex items-center gap-2 text-sm text-gray-300">
+                        <Check className="w-4 h-4 text-green-500" />
+                        Never expires
+                      </li>
+                    </ul>
+                    <button
+                      onClick={() => handlePurchase(pack.id, false)}
+                      disabled={loadingId !== null}
+                      className="w-full py-2 bg-white/5 hover:bg-white/10 text-white font-bold rounded-lg border border-white/10 transition-colors group-hover:bg-purple-600 group-hover:border-purple-600 disabled:opacity-50"
+                    >
+                      {loadingId === pack.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                      ) : (
+                        'Buy Now'
+                      )}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
@@ -440,30 +527,37 @@ function ProfileTab({ profile, user }: { profile: any, user: any }) {
 }
 
 function BillingTab({ profile }: { profile: any }) {
-  const isPro = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
+  const tier = profile?.subscription_tier || SUBSCRIPTION_TIERS.FREE
+  const isPaid = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
+  const tierDisplay = getTierDisplayName(tier)
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
       <div className="bg-gray-800 rounded-2xl border border-gray-700 p-8 shadow-xl">
         <h2 className="text-2xl font-bold text-white mb-6">Current Plan</h2>
-        
+
         <div className="flex items-center justify-between p-6 bg-gray-900 rounded-xl border border-gray-700 mb-6">
            <div>
              <p className="text-gray-400 text-sm mb-1">Status</p>
-             <p className={`text-xl font-bold ${isPro ? 'text-green-400' : 'text-gray-200'}`}>
-               {isPro ? 'Pro Subscription' : 'Free Tier'}
+             <p className={`text-xl font-bold ${isPaid ? 'text-green-400' : 'text-gray-200'}`}>
+               {isPaid ? `${tierDisplay} Subscription` : 'Free Plan'}
              </p>
+             {profile?.subscription_current_period_end && isPaid && (
+               <p className="text-xs text-gray-500 mt-1">
+                 Renews on {new Date(profile.subscription_current_period_end).toLocaleDateString()}
+               </p>
+             )}
            </div>
-           {isPro ? <CheckCircle className="w-8 h-8 text-green-500" /> : <CreditCard className="w-8 h-8 text-gray-500" />}
+           {isPaid ? <CheckCircle className="w-8 h-8 text-green-500" /> : <CreditCard className="w-8 h-8 text-gray-500" />}
         </div>
 
-        {!isPro && (
+        {tier === SUBSCRIPTION_TIERS.FREE && (
           <div className="bg-purple-900/20 border border-purple-800/50 rounded-xl p-6 mb-6">
-            <h3 className="text-lg font-bold text-white mb-2">Upgrade to Pro</h3>
-            <p className="text-purple-200 mb-4 text-sm">Unlock unlimited mock interviews, advanced AI coaching, and premium voices.</p>
-            <button className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-purple-900/20">
+            <h3 className="text-lg font-bold text-white mb-2">Upgrade Your Plan</h3>
+            <p className="text-purple-200 mb-4 text-sm">Get unlimited resume builds, AI improvements, and voice practice features.</p>
+            <a href="/dashboard/account?tab=subscription" className="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-purple-900/20">
               View Plans
-            </button>
+            </a>
           </div>
         )}
 

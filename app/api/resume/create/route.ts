@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check usage limits
-    const limitCheck = await checkUsageLimits(user.id, 'resume_build')
+    const limitCheck = await checkUsageLimits(user.id, 'resume')
     if (!limitCheck.allowed) {
       return NextResponse.json(
         { success: false, error: limitCheck.reason, code: 'LIMIT_REACHED' },

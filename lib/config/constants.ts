@@ -5,59 +5,73 @@ export const APP_DESCRIPTION = 'AI-Powered Interview Preparation Platform'
 
 // Subscription plans
 export const SUBSCRIPTION_TIERS = {
-  BASIC: 'basic',  // Free
-  PRO: 'pro',      // $19/mo
-  PREMIUM: 'premium' // $49/mo
+  FREE: 'free',              // $0/mo
+  BASIC: 'basic',            // $14.90/mo
+  PRO: 'pro',                // $24.90/mo
+  INTERVIEW_READY: 'interview_ready' // $49.90/mo
 } as const
 
-export const TIER_LIMITS = {
+export const TIER_LIMITS: Record<string, {
+  resumes: number
+  jobAnalyses: number
+  coverLetters: number
+  coachingAccess: 'preview' | 'full'
+  starVoiceSessions: number
+  mockInterviewMinutes: number
+  exports: boolean
+  aiImprovements: boolean
+}> = {
+  [SUBSCRIPTION_TIERS.FREE]: {
+    resumes: 1,
+    jobAnalyses: 1,
+    coverLetters: 1,
+    coachingAccess: 'preview', // Some areas blurred
+    starVoiceSessions: 0,
+    mockInterviewMinutes: 0,
+    exports: true, // But no AI improvements
+    aiImprovements: false,
+  },
   [SUBSCRIPTION_TIERS.BASIC]: {
-    resumeBuilds: 1,
-    jobAnalyses: 3,
-    audioPractice: 1, // Trial session (e.g. 15 min)
-    videoMockInterviews: 0, // No direct access
-    monthlyVideoCredits: 0,
-    avatars: [], // None
-    analytics: 'basic',
-    languages: ['english'], // Basic voice only
-    voiceGenders: ['default'], // 1 default
-    voiceStyles: ['professional'], // 1 professional
+    resumes: 5,
+    jobAnalyses: Infinity,
+    coverLetters: Infinity,
+    coachingAccess: 'full',
+    starVoiceSessions: 0,
+    mockInterviewMinutes: 0,
+    exports: true,
+    aiImprovements: true,
   },
   [SUBSCRIPTION_TIERS.PRO]: {
-    resumeBuilds: Infinity,
+    resumes: 5,
     jobAnalyses: Infinity,
-    audioPractice: Infinity,
-    videoMockInterviews: 'pay-per-use', // Needs credits
-    monthlyVideoCredits: 0,
-    avatars: ['standard'], // Standard avatars
-    analytics: 'standard',
-    languages: ['all'], // All 35+
-    voiceGenders: ['all'], // All 3
-    voiceStyles: ['professional', 'conversational', 'calm'], // 3 styles
+    coverLetters: Infinity,
+    coachingAccess: 'full',
+    starVoiceSessions: 6, // 6 sessions/month, 5 questions each = 30 total
+    mockInterviewMinutes: 0,
+    exports: true,
+    aiImprovements: true,
   },
-  [SUBSCRIPTION_TIERS.PREMIUM]: {
-    resumeBuilds: Infinity,
+  [SUBSCRIPTION_TIERS.INTERVIEW_READY]: {
+    resumes: 5,
     jobAnalyses: Infinity,
-    audioPractice: Infinity,
-    videoMockInterviews: Infinity, // Unlimited, or specific number of included sessions
-    monthlyVideoCredits: 20, // 4 sessions * 5 credits
-    avatars: ['standard', 'premium'], // All avatars
-    analytics: 'advanced',
-    languages: ['all'],
-    voiceGenders: ['all'],
-    voiceStyles: ['all'], // All 6 styles
+    coverLetters: Infinity,
+    coachingAccess: 'full',
+    starVoiceSessions: 10, // 10 sessions/month = 50 questions
+    mockInterviewMinutes: 150, // 150 minutes/month
+    exports: true,
+    aiImprovements: true,
   }
 }
 
-export const CREDIT_COSTS = {
-  VIDEO_INTERVIEW_SESSION: 5, // 1 session = 5 credits
-}
-
-export const CREDIT_PACKS = [
-  { id: 'starter', name: 'Starter Pack', credits: 10, price: 12 },
-  { id: 'pro', name: 'Pro Pack', credits: 25, price: 25 },
-  { id: 'founders', name: 'Founders Pack', credits: 50, price: 45 },
+// Add-on packs (for Pro & Interview Ready tiers)
+export const ADDON_PACKS = [
+  { id: 'mock_15', name: '+15 min Mock Interview', minutes: 15, price: 6, type: 'mock_minutes' as const },
+  { id: 'mock_30', name: '+30 min Mock Interview', minutes: 30, price: 10, type: 'mock_minutes' as const },
+  { id: 'star_5', name: '+5 STAR Voice Sessions', sessions: 5, price: 5, type: 'star_sessions' as const },
 ]
+
+// Backward compatibility alias (deprecated - use ADDON_PACKS)
+export const CREDIT_PACKS = ADDON_PACKS
 
 // Interview personas
 export const INTERVIEW_PERSONAS = [

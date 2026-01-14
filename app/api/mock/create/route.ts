@@ -72,8 +72,8 @@ export async function POST(req: NextRequest) {
       return badRequestResponse('Duration must be 15, 20, or 30 minutes')
     }
 
-    // 1. Check Usage Limits (Mock Interview)
-    const limitCheck = await checkUsageLimits(user.id, 'mock_interview')
+    // 1. Check Usage Limits (Mock Interview Minutes)
+    const limitCheck = await checkUsageLimits(user.id, 'mock_interview_minutes', durationMinutes)
     if (!limitCheck.allowed) {
       console.warn('[Mock Create] Usage limit reached for user:', user.id)
       return NextResponse.json(
@@ -243,15 +243,15 @@ export async function POST(req: NextRequest) {
       return serverErrorResponse('Failed to initialize interview questions')
     }
 
-    // 10. Track Usage
+    // 10. Track Usage (mock interview minutes)
     await trackUsage({
       userId: user.id,
       resourceType: 'mock_interview',
-      resourceCount: 1,
+      resourceCount: durationMinutes,
       sessionId: session.id
     })
 
-    await incrementUsage(user.id, 'mock_interviews_this_month')
+    await incrementUsage(user.id, 'mock_interview_minutes_used', durationMinutes)
 
     // 11. Return Success
     return successResponse({

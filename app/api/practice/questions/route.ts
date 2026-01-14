@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
 
     const { category, difficulty, questionCount, resumeId, jobDescriptionId } = body
 
-    // Check usage limits for practice sessions
-    const limitCheck = await checkUsageLimits(user.id, 'audio_practice')
+    // Check usage limits for STAR voice practice sessions
+    const limitCheck = await checkUsageLimits(user.id, 'star_voice_session')
     if (!limitCheck.allowed) {
       return badRequestResponse(limitCheck.reason || 'Practice session limit reached')
     }

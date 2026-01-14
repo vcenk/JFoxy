@@ -33,15 +33,15 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
   const [playingPreview, setPlayingPreview] = useState(false)
 
   // Access user's tier from profile
-  const userTier = profile?.subscription_tier || SUBSCRIPTION_TIERS.BASIC
-  const isPro = userTier === SUBSCRIPTION_TIERS.PRO || userTier === SUBSCRIPTION_TIERS.PREMIUM
-  const isPremium = userTier === SUBSCRIPTION_TIERS.PREMIUM
+  const userTier = profile?.subscription_tier || SUBSCRIPTION_TIERS.FREE
+  const isPro = userTier === SUBSCRIPTION_TIERS.PRO || userTier === SUBSCRIPTION_TIERS.INTERVIEW_READY
+  const isInterviewReady = userTier === SUBSCRIPTION_TIERS.INTERVIEW_READY
 
   // Determine access based on tier
   const canAccessAllLanguages = isPro
   const canAccessAllGenders = isPro
   const canAccessProStyles = isPro // Professional, Conversational, Calm
-  const canAccessPremiumStyles = isPremium // All 6
+  const canAccessPremiumStyles = isInterviewReady // All 6
 
   // Get personas based on gender filter
   const filteredPersonas = genderFilter === 'all'

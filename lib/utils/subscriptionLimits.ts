@@ -1,153 +1,150 @@
 // lib/utils/subscriptionLimits.ts
-// Dynamic subscription limit fetching from database
+// Subscription limit management for new 4-tier pricing system
 
-import { supabaseAdmin } from '@/lib/clients/supabaseClient'
+import { SUBSCRIPTION_TIERS, TIER_LIMITS } from '@/lib/config/constants'
 
-interface SubscriptionLimits {
-  resumeBuilds: number
+export type SubscriptionTier = typeof SUBSCRIPTION_TIERS[keyof typeof SUBSCRIPTION_TIERS]
+
+export interface TierLimits {
+  resumes: number
   jobAnalyses: number
-  audioPractice: number
-  videoMockInterviews: number | string
-  monthlyVideoCredits: number
-  starStories: number
-  swotAnalyses: number
-  gapDefenses: number
-  introPitches: number
-  analytics: string
-}
-
-interface PlanLimits {
-  basic: SubscriptionLimits
-  pro: SubscriptionLimits
-  premium: SubscriptionLimits
-}
-
-// In-memory cache for limits (refreshed every 5 minutes)
-let cachedLimits: PlanLimits | null = null
-let lastFetchTime = 0
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
-
-/**
- * Fetch subscription limits from database with caching
- */
-export async function getSubscriptionLimits(): Promise<PlanLimits> {
-  const now = Date.now()
-
-  // Return cached limits if still valid
-  if (cachedLimits && (now - lastFetchTime) < CACHE_DURATION) {
-    return cachedLimits
-  }
-
-  try {
-    const { data: plans, error } = await supabaseAdmin
-      .from('subscription_plans')
-      .select(`
-        tier,
-        resume_builds_limit,
-        job_analyses_limit,
-        audio_practice_sessions_limit,
-        video_mock_interviews_limit,
-        monthly_video_credits,
-        star_stories_limit,
-        swot_analyses_limit,
-        gap_defenses_limit,
-        intro_pitches_limit,
-        analytics_level
-      `)
-      .eq('is_active', true)
-
-    if (error || !plans) {
-      console.error('[Subscription Limits] Error fetching from database:', error)
-      return getFallbackLimits()
-    }
-
-    // Convert array to object keyed by tier
-    const limitsMap: any = {}
-    plans.forEach((plan) => {
-      limitsMap[plan.tier] = {
-        resumeBuilds: plan.resume_builds_limit === -1 ? Infinity : plan.resume_builds_limit,
-        jobAnalyses: plan.job_analyses_limit === -1 ? Infinity : plan.job_analyses_limit,
-        audioPractice: plan.audio_practice_sessions_limit === -1 ? Infinity : plan.audio_practice_sessions_limit,
-        videoMockInterviews: plan.video_mock_interviews_limit === 0 ? 'pay-per-use' :
-                            plan.video_mock_interviews_limit === -1 ? Infinity :
-                            plan.video_mock_interviews_limit,
-        monthlyVideoCredits: plan.monthly_video_credits,
-        starStories: plan.star_stories_limit === -1 ? Infinity : plan.star_stories_limit,
-        swotAnalyses: plan.swot_analyses_limit === -1 ? Infinity : plan.swot_analyses_limit,
-        gapDefenses: plan.gap_defenses_limit === -1 ? Infinity : plan.gap_defenses_limit,
-        introPitches: plan.intro_pitches_limit === -1 ? Infinity : plan.intro_pitches_limit,
-        analytics: plan.analytics_level,
-      }
-    })
-
-    cachedLimits = limitsMap as PlanLimits
-    lastFetchTime = now
-
-    console.log('[Subscription Limits] Refreshed from database')
-    return cachedLimits
-  } catch (error) {
-    console.error('[Subscription Limits] Failed to fetch:', error)
-    return getFallbackLimits()
-  }
+  coverLetters: number
+  coachingAccess: 'preview' | 'full'
+  starVoiceSessions: number
+  mockInterviewMinutes: number
+  exports: boolean
+  aiImprovements: boolean
 }
 
 /**
- * Get limits for a specific tier
- */
-export async function getLimitsForTier(tier: 'basic' | 'pro' | 'premium'): Promise<SubscriptionLimits> {
-  const allLimits = await getSubscriptionLimits()
-  return allLimits[tier]
-}
-
-/**
- * Invalidate cache (call this after updating plans in admin)
+ * Invalidate limits cache - no-op in new implementation
+ * Kept for backward compatibility with admin routes
  */
 export function invalidateLimitsCache() {
-  cachedLimits = null
-  lastFetchTime = 0
-  console.log('[Subscription Limits] Cache invalidated')
+  console.log('[Subscription Limits] Cache invalidation called (no-op in new implementation)')
 }
 
 /**
- * Fallback limits if database fetch fails
+ * Get limits for a specific subscription tier
+ * Uses constants as the source of truth (no database dependency)
  */
-function getFallbackLimits(): PlanLimits {
-  return {
-    basic: {
-      resumeBuilds: 1,
-      jobAnalyses: 3,
-      audioPractice: 1,
-      videoMockInterviews: 0,
-      monthlyVideoCredits: 0,
-      starStories: 1,
-      swotAnalyses: 1,
-      gapDefenses: 1,
-      introPitches: 1,
-      analytics: 'basic',
-    },
-    pro: {
-      resumeBuilds: Infinity,
-      jobAnalyses: Infinity,
-      audioPractice: Infinity,
-      videoMockInterviews: 'pay-per-use',
-      monthlyVideoCredits: 0,
-      starStories: Infinity,
-      swotAnalyses: Infinity,
-      gapDefenses: Infinity,
-      introPitches: Infinity,
-      analytics: 'standard',
-    },
-    premium: {
-      resumeBuilds: Infinity,
-      jobAnalyses: Infinity,
-      audioPractice: Infinity,
-      videoMockInterviews: Infinity,
-      monthlyVideoCredits: 20,
-      starStories: Infinity,
-      swotAnalyses: Infinity,
-      gapDefenses: Infinity,
-      introPitches: Infinity,
-      analytics: 'advanced',
-    },
+export function getLimitsForTier(tier: SubscriptionTier): TierLimits {
+  const limits = TIER_LIMITS[tier]
+
+  if (!limits) {
+    console.warn(`[Subscription Limits] Unknown tier: ${tier}, defaulting to FREE`)
+    return TIER_LIMITS[SUBSCRIPTION_TIERS.FREE] as TierLimits
+  }
+
+  return limits as TierLimits
+}
+
+/**
+ * Check if user has reached their limit for a specific resource
+ */
+export function hasReachedLimit(
+  tier: SubscriptionTier,
+  resourceType: keyof TierLimits,
+  currentUsage: number
+): boolean {
+  const limits = getLimitsForTier(tier)
+  const limit = limits[resourceType]
+
+  // Handle special cases
+  if (limit === Infinity) return false
+  if (typeof limit === 'boolean') return false
+  if (typeof limit === 'string') return false
+
+  return currentUsage >= limit
+}
+
+/**
+ * Get remaining allowance for a resource
+ */
+export function getRemainingAllowance(
+  tier: SubscriptionTier,
+  resourceType: 'resumes' | 'jobAnalyses' | 'coverLetters' | 'starVoiceSessions' | 'mockInterviewMinutes',
+  currentUsage: number
+): number {
+  const limits = getLimitsForTier(tier)
+  const limit = limits[resourceType]
+
+  if (limit === Infinity) return Infinity
+
+  return Math.max(0, limit - currentUsage)
+}
+
+/**
+ * Check if tier has access to a feature
+ */
+export function hasFeatureAccess(
+  tier: SubscriptionTier,
+  feature: 'aiImprovements' | 'exports' | 'starVoiceSessions' | 'mockInterviewMinutes'
+): boolean {
+  const limits = getLimitsForTier(tier)
+
+  switch (feature) {
+    case 'aiImprovements':
+      return limits.aiImprovements
+    case 'exports':
+      return limits.exports
+    case 'starVoiceSessions':
+      return limits.starVoiceSessions > 0
+    case 'mockInterviewMinutes':
+      return limits.mockInterviewMinutes > 0
+    default:
+      return false
+  }
+}
+
+/**
+ * Check if tier has full coaching access
+ */
+export function hasFullCoachingAccess(tier: SubscriptionTier): boolean {
+  const limits = getLimitsForTier(tier)
+  return limits.coachingAccess === 'full'
+}
+
+/**
+ * Get tier upgrade suggestion based on what limit was hit
+ */
+export function getUpgradeSuggestion(
+  currentTier: SubscriptionTier,
+  limitReached: keyof TierLimits
+): SubscriptionTier | null {
+  // Already at highest tier
+  if (currentTier === SUBSCRIPTION_TIERS.INTERVIEW_READY) {
+    return null
+  }
+
+  switch (limitReached) {
+    case 'resumes':
+    case 'jobAnalyses':
+    case 'coverLetters':
+    case 'aiImprovements':
+      // Basic tier solves these
+      if (currentTier === SUBSCRIPTION_TIERS.FREE) {
+        return SUBSCRIPTION_TIERS.BASIC
+      }
+      return null
+
+    case 'starVoiceSessions':
+      // Pro tier or higher needed
+      if (currentTier === SUBSCRIPTION_TIERS.FREE || currentTier === SUBSCRIPTION_TIERS.BASIC) {
+        return SUBSCRIPTION_TIERS.PRO
+      }
+      // Interview Ready has more sessions
+      if (currentTier === SUBSCRIPTION_TIERS.PRO) {
+        return SUBSCRIPTION_TIERS.INTERVIEW_READY
+      }
+      return null
+
+    case 'mockInterviewMinutes':
+      // Only Interview Ready tier has mock interviews
+      // If we get here, currentTier is not INTERVIEW_READY (checked above)
+      return SUBSCRIPTION_TIERS.INTERVIEW_READY
+
+    default:
+      return null
   }
 }

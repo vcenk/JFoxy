@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { env } from '@/lib/config/env'
 import { supabaseAdmin } from '@/lib/clients/supabaseClient'
-import { CREDIT_PACKS, SUBSCRIPTION_TIERS } from '@/lib/config/constants'
+import { ADDON_PACKS, SUBSCRIPTION_TIERS } from '@/lib/config/constants'
 
 const stripe = new Stripe(env.stripe.secretKey)
 const webhookSecret = env.stripe.webhookSecret
@@ -48,72 +48,106 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const userId = session.metadata?.userId // Note: Changed from supabase_user_id to match create-checkout logic
+  const userId = session.metadata?.userId
   const type = session.metadata?.type
   const itemId = session.metadata?.itemId
 
   if (!userId) return
 
   if (type === 'payment' && itemId) {
-    // Credit Pack Purchase
-    const pack = CREDIT_PACKS.find(p => p.id === itemId)
+    // Add-on Pack Purchase
+    const pack = ADDON_PACKS.find(p => p.id === itemId)
     if (pack) {
-      // Atomic increment for purchased credits
-      const { error } = await supabaseAdmin.rpc('increment_profile_counter', {
-        user_id: userId,
-        counter_name: 'purchased_video_credits',
-        value: pack.credits // Ensure RPC supports value param, or loop increment
-      })
+      // Determine what to add based on pack type
+      if (pack.type === 'mock_minutes' && 'minutes' in pack) {
+        // Mock interview minutes add-on
+        const { data } = await supabaseAdmin
+          .from('profiles')
+          .select('purchased_mock_minutes')
+          .eq('id', userId)
+          .single()
 
-      if (error) {
-         // Fallback if RPC doesn't support value param (our previous migration only supported +1)
-         // We need to fetch and update manually or update the RPC.
-         // Let's assume we do a fetch-update for safety here unless we update the RPC.
-         const { data } = await supabaseAdmin.from('profiles').select('purchased_video_credits').eq('id', userId).single()
-         const current = data?.purchased_video_credits || 0
-         await supabaseAdmin.from('profiles').update({
-           purchased_video_credits: current + pack.credits
-         }).eq('id', userId)
+        const current = data?.purchased_mock_minutes || 0
+        await supabaseAdmin.from('profiles').update({
+          purchased_mock_minutes: current + pack.minutes
+        }).eq('id', userId)
+
+        // Log purchase
+        await supabaseAdmin.from('usage_tracking').insert({
+          user_id: userId,
+          resource_type: 'addon_purchase',
+          resource_count: pack.minutes,
+          estimated_cost_cents: pack.price * 100,
+          metadata: { pack_id: pack.id, pack_type: 'mock_minutes', session_id: session.id }
+        })
+      } else if (pack.type === 'star_sessions' && 'sessions' in pack) {
+        // STAR voice sessions add-on
+        const { data } = await supabaseAdmin
+          .from('profiles')
+          .select('purchased_star_sessions')
+          .eq('id', userId)
+          .single()
+
+        const current = data?.purchased_star_sessions || 0
+        await supabaseAdmin.from('profiles').update({
+          purchased_star_sessions: current + pack.sessions
+        }).eq('id', userId)
+
+        // Log purchase
+        await supabaseAdmin.from('usage_tracking').insert({
+          user_id: userId,
+          resource_type: 'addon_purchase',
+          resource_count: pack.sessions,
+          estimated_cost_cents: pack.price * 100,
+          metadata: { pack_id: pack.id, pack_type: 'star_sessions', session_id: session.id }
+        })
       }
-      
-      // Log purchase
-      await supabaseAdmin.from('usage_tracking').insert({
-        user_id: userId,
-        resource_type: 'credit_purchase',
-        resource_count: pack.credits,
-        estimated_cost_cents: pack.price * 100,
-        metadata: { pack_id: pack.id, session_id: session.id }
-      })
     }
   }
 }
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
-  const userId = subscription.metadata?.userId // Ensure metadata is passed to subscription
-  if (!userId) return // Sometimes metadata is on customer, check that if null
+  const userId = subscription.metadata?.userId
+  if (!userId) {
+    // Try to find user by customer ID if metadata is missing
+    const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('stripe_customer_id', customerId)
+      .single()
+    if (!profile) return
+  }
 
   const priceId = subscription.items.data[0].price.id
-  let tier: typeof SUBSCRIPTION_TIERS[keyof typeof SUBSCRIPTION_TIERS] = SUBSCRIPTION_TIERS.BASIC
+  let tier: typeof SUBSCRIPTION_TIERS[keyof typeof SUBSCRIPTION_TIERS] = SUBSCRIPTION_TIERS.FREE
 
-  // Map Price ID to Tier
-  if (priceId === process.env.STRIPE_PRICE_PREMIUM) tier = SUBSCRIPTION_TIERS.PREMIUM
-  else if (priceId === process.env.STRIPE_PRICE_PRO) tier = SUBSCRIPTION_TIERS.PRO
+  // Map Price ID to Tier (check both monthly and annual prices)
+  const basicPrices = [process.env.STRIPE_PRICE_BASIC_MONTHLY, process.env.STRIPE_PRICE_BASIC_ANNUAL]
+  const proPrices = [process.env.STRIPE_PRICE_PRO_MONTHLY, process.env.STRIPE_PRICE_PRO_ANNUAL]
+  const interviewReadyPrices = [process.env.STRIPE_PRICE_INTERVIEW_READY_MONTHLY, process.env.STRIPE_PRICE_INTERVIEW_READY_ANNUAL]
+
+  if (interviewReadyPrices.includes(priceId)) tier = SUBSCRIPTION_TIERS.INTERVIEW_READY
+  else if (proPrices.includes(priceId)) tier = SUBSCRIPTION_TIERS.PRO
+  else if (basicPrices.includes(priceId)) tier = SUBSCRIPTION_TIERS.BASIC
+
+  const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
 
   await supabaseAdmin.from('profiles').update({
     subscription_status: subscription.status,
     subscription_tier: tier,
     subscription_price_id: priceId,
     subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
-  }).eq('id', userId)
+  }).eq(userId ? 'id' : 'stripe_customer_id', userId || customerId)
 }
 
 async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
   // We need to find the user by stripe_customer_id if metadata isn't present
   const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
-  
+
   await supabaseAdmin.from('profiles').update({
     subscription_status: 'canceled',
-    subscription_tier: SUBSCRIPTION_TIERS.BASIC, // Revert to basic
+    subscription_tier: SUBSCRIPTION_TIERS.FREE, // Revert to free tier
     subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
   }).eq('stripe_customer_id', customerId)
 }
@@ -123,26 +157,35 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   if (invoice.billing_reason === 'subscription_cycle') {
     const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
     const priceId = subscription.items.data[0].price.id
-    
-    // Find user (via customer ID usually reliable)
     const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
-    
-    if (priceId === process.env.STRIPE_PRICE_PREMIUM) {
-      // Reset monthly video credits for Premium users
+
+    // Determine tier from price ID
+    const interviewReadyPrices = [process.env.STRIPE_PRICE_INTERVIEW_READY_MONTHLY, process.env.STRIPE_PRICE_INTERVIEW_READY_ANNUAL]
+    const proPrices = [process.env.STRIPE_PRICE_PRO_MONTHLY, process.env.STRIPE_PRICE_PRO_ANNUAL]
+
+    // Base reset for all paid tiers (Basic and above)
+    const baseReset = {
+      resume_builds_this_month: 0,
+      job_analyses_this_month: 0,
+      cover_letters_this_month: 0,
+    }
+
+    if (interviewReadyPrices.includes(priceId)) {
+      // Interview Ready: Reset all including mock interview minutes and STAR voice sessions
       await supabaseAdmin.from('profiles').update({
-        monthly_video_credits: 20, // Reset to 20
-        // Also reset usage counters? Usually handled by cron, but syncing with billing is cleaner for user
-        resume_builds_this_month: 0,
-        job_analyses_this_month: 0,
-        audio_practice_sessions_this_month: 0
+        ...baseReset,
+        mock_interview_minutes_used: 0,
+        star_voice_sessions_used: 0,
+      }).eq('stripe_customer_id', customerId)
+    } else if (proPrices.includes(priceId)) {
+      // Pro: Reset including STAR voice sessions (no mock interview minutes)
+      await supabaseAdmin.from('profiles').update({
+        ...baseReset,
+        star_voice_sessions_used: 0,
       }).eq('stripe_customer_id', customerId)
     } else {
-        // Pro users (reset usage, but 0 video credits)
-        await supabaseAdmin.from('profiles').update({
-        resume_builds_this_month: 0,
-        job_analyses_this_month: 0,
-        audio_practice_sessions_this_month: 0
-      }).eq('stripe_customer_id', customerId)
+      // Basic: Reset base counters only
+      await supabaseAdmin.from('profiles').update(baseReset).eq('stripe_customer_id', customerId)
     }
   }
 }

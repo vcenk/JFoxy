@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
   const user = await getAuthUser(req)
   if (!user) return unauthorizedResponse()
 
-  // Check usage limits
-  const limitCheck = await checkUsageLimits(user.id, 'audio_practice')
+  // Check usage limits (STAR voice sessions)
+  const limitCheck = await checkUsageLimits(user.id, 'star_voice_session')
   if (!limitCheck.allowed) {
     return Response.json(
       { success: false, error: limitCheck.reason, code: 'LIMIT_REACHED' },
