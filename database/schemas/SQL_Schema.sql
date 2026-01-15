@@ -350,7 +350,7 @@ CREATE TABLE public.star_stories (
 );
 CREATE TABLE public.subscription_plans (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  tier text NOT NULL UNIQUE CHECK (tier = ANY (ARRAY['basic'::text, 'pro'::text, 'premium'::text])),
+  tier text NOT NULL UNIQUE CHECK (tier = ANY (ARRAY['free'::text, 'basic'::text, 'pro'::text, 'interview_ready'::text])),
   name text NOT NULL,
   description text,
   price_monthly numeric NOT NULL DEFAULT 0,

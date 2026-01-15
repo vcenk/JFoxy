@@ -17,6 +17,7 @@ export async function createCheckoutSession({
   cancelUrl,
   metadata,
   mode = 'subscription',
+  promotionCodeId,
 }: {
   customerId: string
   priceId: string
@@ -24,6 +25,7 @@ export async function createCheckoutSession({
   cancelUrl: string
   metadata?: Record<string, string>
   mode?: 'subscription' | 'payment'
+  promotionCodeId?: string
 }) {
   const sessionConfig: Stripe.Checkout.SessionCreateParams = {
     mode,
@@ -32,6 +34,13 @@ export async function createCheckoutSession({
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata,
+  }
+
+  // If a promo code is provided, apply it; otherwise allow manual entry
+  if (promotionCodeId) {
+    sessionConfig.discounts = [{ promotion_code: promotionCodeId }]
+  } else {
+    sessionConfig.allow_promotion_codes = true
   }
 
   if (mode === 'subscription') {

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/clients/supabaseBrowserClient'
 import {
   User, CreditCard, Settings, Mic, Bell, Database,
-  Save, Loader2, CheckCircle, Zap, Video, Check, Clock
+  Save, Loader2, CheckCircle, Zap, Video, Check, Clock, Tag
 } from 'lucide-react'
 import { SimpleSwitch } from '@/components/ui/simple-switch'
 import { IntegrationsTab } from '@/components/account/IntegrationsTab'
@@ -216,6 +216,15 @@ function SubscriptionTab({ profile }: { profile: any }) {
 
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month')
+  const [promoCode, setPromoCode] = useState('')
+  const [promoValidating, setPromoValidating] = useState(false)
+  const [promoError, setPromoError] = useState('')
+  const [validatedPromo, setValidatedPromo] = useState<{
+    promoCodeId: string
+    code: string
+    discount: string
+    applicableTiers: string[]
+  } | null>(null)
 
   const tierDisplay = getTierDisplayName(tier)
   const isInterviewReady = tier === SUBSCRIPTION_TIERS.INTERVIEW_READY
@@ -223,13 +232,62 @@ function SubscriptionTab({ profile }: { profile: any }) {
   const isFree = tier === SUBSCRIPTION_TIERS.FREE
   const nextTier = getNextTier(tier)
 
+  const validatePromoCode = async () => {
+    if (!promoCode.trim()) return
+
+    setPromoValidating(true)
+    setPromoError('')
+    setValidatedPromo(null)
+
+    try {
+      const response = await fetch('/api/billing/validate-promo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode.trim() }),
+      })
+
+      const data = await response.json()
+
+      if (!data.success) {
+        setPromoError(data.error || 'Invalid promo code')
+        return
+      }
+
+      setValidatedPromo({
+        promoCodeId: data.data.promoCodeId,
+        code: data.data.code,
+        discount: data.data.discount,
+        applicableTiers: data.data.applicableTiers || [],
+      })
+    } catch (error) {
+      setPromoError('Failed to validate code')
+    } finally {
+      setPromoValidating(false)
+    }
+  }
+
+  const clearPromoCode = () => {
+    setPromoCode('')
+    setValidatedPromo(null)
+    setPromoError('')
+  }
+
   const handlePurchase = async (itemId: string, isSubscription: boolean) => {
     setLoadingId(itemId)
     try {
+      const payload: any = isSubscription
+        ? { planId: itemId, interval: billingInterval }
+        : { packId: itemId }
+
+      // Add promo code if validated
+      if (validatedPromo?.promoCodeId) {
+        payload.promotionCodeId = validatedPromo.promoCodeId
+      }
+
       const response = await fetch('/api/billing/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(isSubscription ? { planId: itemId, interval: billingInterval } : { packId: itemId }),
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()
@@ -327,6 +385,106 @@ function SubscriptionTab({ profile }: { profile: any }) {
             limit={limits.coverLetters}
           />
         </div>
+      </div>
+
+      {/* Promo Code Section */}
+      <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-2xl border border-purple-700/50 p-6 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-purple-500/20 rounded-lg">
+            <Tag className="w-5 h-5 text-purple-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white">Have a Promo Code?</h3>
+            <p className="text-gray-400 text-sm">Enter your code to get a discount on any plan</p>
+          </div>
+        </div>
+
+        {validatedPromo ? (
+          <div className="bg-green-900/30 border border-green-700/50 rounded-xl p-4 mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <div>
+                  <p className="text-green-400 font-bold">{validatedPromo.code}</p>
+                  <p className="text-green-300 text-sm">{validatedPromo.discount}</p>
+                </div>
+              </div>
+              <button
+                onClick={clearPromoCode}
+                className="text-gray-400 hover:text-white text-sm underline"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-3 mb-4">
+            <input
+              type="text"
+              value={promoCode}
+              onChange={(e) => {
+                setPromoCode(e.target.value.toUpperCase())
+                setPromoError('')
+              }}
+              placeholder="Enter promo code"
+              className="flex-1 px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+            />
+            <button
+              onClick={validatePromoCode}
+              disabled={!promoCode.trim() || promoValidating}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {promoValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+            </button>
+          </div>
+        )}
+
+        {promoError && (
+          <p className="text-red-400 text-sm mb-4">{promoError}</p>
+        )}
+
+        {/* Plan Selection with Promo */}
+        {validatedPromo && (
+          <div className="border-t border-purple-700/50 pt-4 mt-4">
+            <p className="text-gray-300 text-sm mb-4">
+              {validatedPromo.applicableTiers.length === 1
+                ? `This code applies to the ${getTierDisplayName(validatedPromo.applicableTiers[0])} plan:`
+                : 'Select a plan to upgrade with your discount:'}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {validatedPromo.applicableTiers.map((planTier) => {
+                if (planTier === tier) return null // Don't show current tier
+                return (
+                  <button
+                    key={planTier}
+                    onClick={() => handlePurchase(planTier, true)}
+                    disabled={loadingId !== null}
+                    className="p-4 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-purple-500 rounded-xl transition-all text-left disabled:opacity-50"
+                  >
+                    <p className="text-white font-bold">{getTierDisplayName(planTier)}</p>
+                    <p className="text-gray-400 text-sm">
+                      {billingInterval === 'month' ? 'Monthly' : 'Yearly'}
+                    </p>
+                    {loadingId === planTier && (
+                      <Loader2 className="w-4 h-4 animate-spin text-purple-500 mt-2" />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+            {validatedPromo.applicableTiers.every(t => t === tier) && (
+              <p className="text-yellow-400 text-sm mt-3">
+                You're already on the {getTierDisplayName(tier)} plan that this code applies to.
+              </p>
+            )}
+          </div>
+        )}
+
+        {!validatedPromo && (
+          <p className="text-gray-500 text-xs">
+            Or upgrade above and enter your code at checkout
+          </p>
+        )}
       </div>
 
       {/* Voice Features Section */}

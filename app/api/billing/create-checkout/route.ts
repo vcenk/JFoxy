@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     if (!user) return unauthorizedResponse()
 
     const body = await req.json()
-    const { planId, packId, interval = 'month' } = body // interval: 'month' | 'year'
+    const { planId, packId, interval = 'month', promotionCodeId } = body // interval: 'month' | 'year'
 
     if (!planId && !packId) {
       return badRequestResponse('Missing planId or packId')
@@ -89,6 +89,7 @@ export async function POST(req: NextRequest) {
       cancelUrl: `${env.app.url}/dashboard/account?canceled=true`,
       metadata,
       mode,
+      promotionCodeId,
     })
 
     return successResponse({ url: session.url })
