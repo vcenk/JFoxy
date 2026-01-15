@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { createClient } from '@/lib/clients/supabaseBrowserClient'  // lib/clients/supabaseBrowserClient.ts
-import { AlertCircle, Loader2, CheckCircle2, Lock } from 'lucide-react'
+import { AlertCircle, Loader2, CheckCircle2, Lock, ArrowLeft, Circle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import JobFoxyLogo from '@/components/assets/JobFoxy.svg'
 
@@ -16,7 +16,8 @@ const resetPasswordSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, 'Password must contain at least one symbol'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -107,6 +108,10 @@ export default function ResetPasswordPage() {
               <CheckCircle2 className="w-4 h-4 text-green-400" />
               Include numbers
             </div>
+            <div className="flex items-center gap-3 text-sm text-gray-300">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              Include symbols (!@#$%...)
+            </div>
           </div>
         </div>
 
@@ -119,6 +124,15 @@ export default function ResetPasswordPage() {
       {/* RIGHT SIDE: Form (Light Theme) */}
       <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center items-center p-6 lg:p-12">
         <div className="w-full max-w-md space-y-8">
+
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
+          </Link>
+
           <div className="text-center lg:text-left">
             <h2 className="text-3xl font-bold text-[#1a1615] tracking-tight">
               Set new password
@@ -155,24 +169,28 @@ export default function ResetPasswordPage() {
                 <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>
               )}
 
-              {/* Password Strength Pills */}
-              <div className="flex flex-wrap gap-2 pt-2">
+              {/* Password Strength Indicators */}
+              <div className="flex flex-wrap gap-x-4 gap-y-2 pt-3">
                 {[
-                  { label: '8+ chars', valid: password.length >= 8 },
+                  { label: '8+ characters', valid: password.length >= 8 },
                   { label: 'Uppercase', valid: /[A-Z]/.test(password) },
                   { label: 'Lowercase', valid: /[a-z]/.test(password) },
                   { label: 'Number', valid: /[0-9]/.test(password) },
+                  { label: 'Symbol', valid: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) },
                 ].map((req) => (
-                  <span
+                  <div
                     key={req.label}
-                    className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-colors ${
-                      req.valid
-                        ? 'bg-green-50 border-green-200 text-green-700'
-                        : 'bg-gray-50 border-gray-200 text-gray-400'
+                    className={`flex items-center gap-1.5 text-xs transition-colors ${
+                      req.valid ? 'text-green-600' : 'text-gray-400'
                     }`}
                   >
+                    {req.valid ? (
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    ) : (
+                      <Circle className="w-3.5 h-3.5" />
+                    )}
                     {req.label}
-                  </span>
+                  </div>
                 ))}
               </div>
             </div>

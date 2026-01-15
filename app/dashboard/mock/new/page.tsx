@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mic, Clock, Sparkles, ArrowRight, Loader2, Volume2 } from 'lucide-react'
+import { Mic, Clock, Sparkles, ArrowRight, Loader2, Volume2, AlertCircle, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface Resume {
   id: string
@@ -37,6 +38,7 @@ export default function NewMockInterviewPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [resumes, setResumes] = useState<Resume[]>([])
   const [jobDescriptions, setJobDescriptions] = useState<JobDescription[]>([])
   const [voices, setVoices] = useState<VoicePersona[]>([])
@@ -51,6 +53,13 @@ export default function NewMockInterviewPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Check subscription/usage limits first
+        const limitsRes = await fetch('/api/mock/check-limits')
+        const limitsData = await limitsRes.json()
+        if (limitsData.success && !limitsData.data?.allowed) {
+          setError(limitsData.data?.reason || 'Mock interviews require Interview Ready subscription.')
+        }
+
         // Load resumes (same endpoint as practice section)
         const resumesRes = await fetch('/api/resumes')
         const resumesData = await resumesRes.json()
@@ -93,11 +102,12 @@ export default function NewMockInterviewPage() {
 
   const handleStartInterview = async () => {
     if (!selectedResumeId) {
-      alert('Please select a resume')
+      setError('Please select a resume')
       return
     }
 
     setCreating(true)
+    setError(null)
 
     try {
       const response = await fetch('/api/mock/create', {
@@ -117,12 +127,12 @@ export default function NewMockInterviewPage() {
         // Navigate to interview page
         router.push(`/dashboard/mock/${data.data.session.id}`)
       } else {
-        alert(data.error || 'Failed to create interview session')
+        setError(data.error || 'Failed to create interview session')
         setCreating(false)
       }
     } catch (error) {
       console.error('Failed to start interview:', error)
-      alert('An error occurred while starting the interview')
+      setError('An error occurred while starting the interview')
       setCreating(false)
     }
   }
@@ -149,6 +159,27 @@ export default function NewMockInterviewPage() {
 
       {/* Setup Form */}
       <div className="bg-[#1E1E2E] rounded-xl p-6 space-y-6">
+
+        {/* Error/Warning Banner */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3"
+            >
+              <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+              <p className="text-sm text-amber-300 flex-1">{error}</p>
+              <button
+                onClick={() => setError(null)}
+                className="text-sm text-amber-400 hover:text-amber-300 transition-colors font-medium"
+              >
+                Dismiss
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Resume Selection */}
         <div>

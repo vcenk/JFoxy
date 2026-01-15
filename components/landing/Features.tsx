@@ -106,8 +106,8 @@ export function Features() {
 
       {/* Subtle gradient orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-violet-200/30 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-blue-200/30 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 left-1/4 w-[250px] sm:w-[350px] md:w-[500px] h-[250px] sm:h-[350px] md:h-[500px] bg-violet-200/30 rounded-full blur-[80px] sm:blur-[100px] md:blur-[120px]" />
+        <div className="absolute bottom-1/3 right-1/4 w-[200px] sm:w-[300px] md:w-[400px] h-[200px] sm:h-[300px] md:h-[400px] bg-blue-200/30 rounded-full blur-[80px] sm:blur-[100px] md:blur-[120px]" />
       </div>
 
       {/* Floating Feature Pills */}
@@ -158,7 +158,7 @@ export function Features() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.1 }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#0f0f0f] tracking-tight leading-[1.1] mb-6"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-[#0f0f0f] tracking-tight leading-[1.1] mb-6"
         >
           More than a
           <br />

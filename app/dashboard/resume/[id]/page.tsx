@@ -244,18 +244,18 @@ function ResumeEditorContent({ params }: ResumeEditorContentProps) {
     <>
       <div className="h-screen flex flex-col p-2 sm:p-4 overflow-hidden">
         {/* Studio Header */}
-        <div className="glass-panel py-1.5 px-4 mb-3 mx-auto w-full max-w-6xl">
-          <div className="flex items-center justify-between gap-4">
+        <div className="glass-panel py-1.5 px-2 sm:px-4 mb-3 mx-auto w-full max-w-6xl">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
             {/* Left: Back + Title */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-shrink">
               <button
                 onClick={() => router.push('/dashboard/resume')}
-                className="glass-panel px-3 py-1.5 hover:bg-white/15 transition-all"
+                className="glass-panel px-2 sm:px-3 py-1.5 hover:bg-white/15 transition-all flex-shrink-0"
               >
-                <ArrowLeft className="w-5 h-5 text-white/80" />
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white/80" />
               </button>
 
-              <div>
+              <div className="min-w-0 flex-shrink">
                 <input
                   type="text"
                   value={resumeTitle}
@@ -263,14 +263,10 @@ function ResumeEditorContent({ params }: ResumeEditorContentProps) {
                     setResumeTitle(e.target.value)
                     triggerSave()
                   }}
-                  className="text-lg font-bold text-white bg-transparent border-none focus:outline-none focus:ring-0 px-2 py-0.5 rounded hover:bg-white/10 transition-all"
-                  style={{
-                    width: resumeTitle ? `${Math.min(Math.max(resumeTitle.length + 2, 12), 40)}ch` : '15ch',
-                    maxWidth: 'calc(100vw - 450px)'
-                  }}
+                  className="text-sm sm:text-lg font-bold text-white bg-transparent border-none focus:outline-none focus:ring-0 px-1 sm:px-2 py-0.5 rounded hover:bg-white/10 transition-all w-full max-w-[120px] sm:max-w-[200px] md:max-w-[300px] truncate"
                   placeholder="Resume Title"
                 />
-                <div className="flex items-center space-x-2 text-sm text-white/60 px-2">
+                <div className="hidden sm:flex items-center space-x-2 text-sm text-white/60 px-2">
                   {saving ? (
                     <>
                       <Loader2 className="w-3 h-3 animate-spin" />
@@ -287,25 +283,26 @@ function ResumeEditorContent({ params }: ResumeEditorContentProps) {
             </div>
 
             {/* Right: Actions */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-3 flex-shrink-0">
 
               {/* Resume-JD Analysis Button */}
               <button
                 onClick={() => setViewMode('job-analysis')}
                 className={`
-                  px-3 py-1.5 sm:px-4 rounded-xl border border-white/10 transition-all flex items-center gap-1 sm:gap-2 relative
+                  px-2 py-1.5 sm:px-3 md:px-4 rounded-lg sm:rounded-xl border border-white/10 transition-all flex items-center gap-1 sm:gap-2 relative flex-shrink-0
                   ${viewMode === 'job-analysis'
                     ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'
                     : hasAnalysisResults
                       ? 'glass-panel border-green-500/30 bg-green-500/5 hover:bg-green-500/10 text-white'
                       : 'glass-panel hover:bg-white/15 text-white/80 hover:text-white'}
                 `}
+                title="Resume Analysis"
               >
                 <ScanSearch className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm font-medium min-w-0 truncate hidden sm:inline">Analysis</span>
+                <span className="text-xs sm:text-sm font-medium min-w-0 truncate hidden md:inline">Analysis</span>
                 {hasAnalysisResults && viewMode !== 'job-analysis' && (
-                  <span className="absolute -top-2 -right-2 flex items-center gap-1 bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg animate-pulse">
-                    <Check className="w-3 h-3" />
+                  <span className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 flex items-center justify-center w-4 h-4 sm:w-auto sm:h-auto sm:gap-1 bg-green-500 text-white sm:px-2 sm:py-0.5 rounded-full text-[10px] font-bold shadow-lg">
+                    <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     <span className="hidden sm:inline">Ready</span>
                   </span>
                 )}
@@ -315,19 +312,20 @@ function ResumeEditorContent({ params }: ResumeEditorContentProps) {
               <button
                 onClick={() => setViewMode('cover-letter')}
                 className={`
-                  px-3 py-1.5 sm:px-4 rounded-xl border border-white/10 transition-all flex items-center gap-1 sm:gap-2 relative
+                  px-2 py-1.5 sm:px-3 md:px-4 rounded-lg sm:rounded-xl border border-white/10 transition-all flex items-center gap-1 sm:gap-2 relative flex-shrink-0
                   ${viewMode === 'cover-letter'
                     ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'
                     : hasCoverLetter
                       ? 'glass-panel border-green-500/30 bg-green-500/5 hover:bg-green-500/10 text-white'
                       : 'glass-panel hover:bg-white/15 text-white/80 hover:text-white'}
                 `}
+                title="Cover Letter"
               >
                 <FileText className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm font-medium min-w-0 truncate hidden sm:inline">Cover Letter</span>
+                <span className="text-xs sm:text-sm font-medium min-w-0 truncate hidden md:inline">Cover Letter</span>
                 {hasCoverLetter && viewMode !== 'cover-letter' && (
-                  <span className="absolute -top-2 -right-2 flex items-center gap-1 bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg animate-pulse">
-                    <Check className="w-3 h-3" />
+                  <span className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 flex items-center justify-center w-4 h-4 sm:w-auto sm:h-auto sm:gap-1 bg-green-500 text-white sm:px-2 sm:py-0.5 rounded-full text-[10px] font-bold shadow-lg">
+                    <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     <span className="hidden sm:inline">Ready</span>
                   </span>
                 )}
@@ -337,10 +335,11 @@ function ResumeEditorContent({ params }: ResumeEditorContentProps) {
               {viewMode !== 'builder' && (
                 <button
                   onClick={() => setViewMode('builder')}
-                  className="glass-panel px-3 py-1.5 sm:px-4 rounded-xl border border-white/10 hover:bg-white/15 transition-all flex items-center gap-1 sm:gap-2 text-white/80 hover:text-white"
+                  className="glass-panel px-2 py-1.5 sm:px-3 md:px-4 rounded-lg sm:rounded-xl border border-white/10 hover:bg-white/15 transition-all flex items-center gap-1 sm:gap-2 text-white/80 hover:text-white flex-shrink-0"
+                  title="Back to Editor"
                 >
                   <FileEdit className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-sm font-medium min-w-0 truncate hidden sm:inline">Editor</span>
+                  <span className="text-xs sm:text-sm font-medium min-w-0 truncate hidden md:inline">Editor</span>
                 </button>
               )}
 

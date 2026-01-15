@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuthStore } from '@/store/authStore'
-import { AlertCircle, Loader2, AlertTriangle, ArrowRight, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react'
+import { AlertCircle, Loader2, AlertTriangle, ArrowRight, ArrowLeft, CheckCircle2, ShieldCheck, Sparkles, Circle, Mail, RefreshCw } from 'lucide-react'
 import { motion } from 'framer-motion'
 import JobFoxyLogo from '@/components/assets/JobFoxyDark.svg'
 
@@ -19,7 +19,8 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, 'Password must contain at least one symbol'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -34,6 +35,8 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
   const isSupabaseConfigured = !process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder')
 
   const {
@@ -58,8 +61,12 @@ export default function RegisterPage() {
     setError(null)
     try {
       const { error } = await signUp(data.email, data.password, data.fullName)
-      if (error) setError(error)
-      else router.push('/dashboard')
+      if (error) {
+        setError(error)
+      } else {
+        setRegisteredEmail(data.email)
+        setSuccess(true)
+      }
     } catch (err: any) {
       setError(err?.message || 'An error occurred during registration')
     } finally {
@@ -155,15 +162,88 @@ export default function RegisterPage() {
       {/* RIGHT SIDE: Form (Light Theme) */}
       <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center items-center p-6 lg:p-12 overflow-y-auto">
         <div className="w-full max-w-md space-y-6">
-          
-          <div className="text-center lg:text-left mb-8">
-            <h2 className="text-3xl font-bold text-[#1a1615] tracking-tight">Create account</h2>
-            <p className="mt-2 text-gray-500">
-              Get started with your free account today.
-            </p>
-          </div>
 
-          {!isSupabaseConfigured && (
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
+          </Link>
+
+          {success ? (
+            // Success State - Email Confirmation Message
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="space-y-6"
+            >
+              <div className="text-center">
+                <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
+                  <Mail className="w-8 h-8 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-[#1a1615] tracking-tight">Check your email</h2>
+                <p className="mt-3 text-gray-500">
+                  We've sent a confirmation link to
+                </p>
+                <p className="mt-1 font-semibold text-[#1a1615]">
+                  {registeredEmail}
+                </p>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-amber-800">
+                    <p className="font-semibold mb-1">Can't find the email?</p>
+                    <ul className="list-disc list-inside space-y-1 text-amber-700">
+                      <li>Check your <span className="font-medium">spam or junk folder</span></li>
+                      <li>Make sure you entered the correct email</li>
+                      <li>Wait a few minutes and refresh</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setSuccess(false)
+                    setRegisteredEmail('')
+                  }}
+                  className="w-full flex justify-center items-center py-3 px-4 rounded-xl text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Try a different email
+                </button>
+
+                <Link
+                  href="/auth/login"
+                  className="w-full flex justify-center items-center py-3.5 px-4 rounded-full text-sm font-bold text-white bg-[#1a1615] hover:bg-black transition-all shadow-lg hover:shadow-xl"
+                >
+                  Go to Login
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              </div>
+
+              <p className="text-center text-xs text-gray-500">
+                Already confirmed?{' '}
+                <Link href="/auth/login" className="font-semibold text-blue-600 hover:text-blue-500">
+                  Sign in here
+                </Link>
+              </p>
+            </motion.div>
+          ) : (
+            // Registration Form
+            <>
+              <div className="text-center lg:text-left mb-8">
+                <h2 className="text-3xl font-bold text-[#1a1615] tracking-tight">Create account</h2>
+                <p className="mt-2 text-gray-500">
+                  Get started with your free account today.
+                </p>
+              </div>
+
+              {!isSupabaseConfigured && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-amber-800">
@@ -246,24 +326,28 @@ export default function RegisterPage() {
               />
               {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
 
-              {/* Password Strength Pills */}
-              <div className="flex flex-wrap gap-2 pt-2">
+              {/* Password Strength Indicators */}
+              <div className="flex flex-wrap gap-x-4 gap-y-2 pt-3">
                 {[
-                  { label: '8+ chars', valid: password.length >= 8 },
+                  { label: '8+ characters', valid: password.length >= 8 },
                   { label: 'Uppercase', valid: /[A-Z]/.test(password) },
                   { label: 'Lowercase', valid: /[a-z]/.test(password) },
                   { label: 'Number', valid: /[0-9]/.test(password) },
+                  { label: 'Symbol', valid: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) },
                 ].map((req) => (
-                  <span 
+                  <div
                     key={req.label}
-                    className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-colors ${
-                      req.valid 
-                        ? 'bg-green-50 border-green-200 text-green-700' 
-                        : 'bg-gray-50 border-gray-200 text-gray-400'
+                    className={`flex items-center gap-1.5 text-xs transition-colors ${
+                      req.valid ? 'text-green-600' : 'text-gray-400'
                     }`}
                   >
+                    {req.valid ? (
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    ) : (
+                      <Circle className="w-3.5 h-3.5" />
+                    )}
                     {req.label}
-                  </span>
+                  </div>
                 ))}
               </div>
             </div>
@@ -305,11 +389,13 @@ export default function RegisterPage() {
           </form>
 
           <p className="text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link href="/auth/login" className="font-bold text-blue-600 hover:text-blue-500 transition-colors">
-              Sign in
-            </Link>
-          </p>
+                Already have an account?{' '}
+                <Link href="/auth/login" className="font-bold text-blue-600 hover:text-blue-500 transition-colors">
+                  Sign in
+                </Link>
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>

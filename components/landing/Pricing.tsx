@@ -98,7 +98,7 @@ export function Pricing({
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly')
 
   return (
-    <section id="pricing" className="py-24 px-6 lg:px-8 bg-[#f8f9fb]">
+    <section id="pricing" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-[#f8f9fb]">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial="hidden"
@@ -109,14 +109,14 @@ export function Pricing({
         >
           <motion.h2
             variants={fadeInUp}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#1a1615] mb-6 tracking-tight"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#1a1615] mb-6 tracking-tight"
             style={{ letterSpacing: '-0.03em' }}
           >
             {title}
           </motion.h2>
           <motion.p
             variants={fadeInUp}
-            className="text-xl text-[#6b6b6b] max-w-2xl mx-auto mb-8"
+            className="text-base sm:text-lg md:text-xl text-[#6b6b6b] max-w-2xl mx-auto mb-8"
           >
             {subtitle}
           </motion.p>
@@ -155,7 +155,7 @@ export function Pricing({
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           variants={staggerContainer}
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto items-start"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto items-start"
         >
           {plans.map((plan, index) => (
             <motion.div
@@ -164,10 +164,10 @@ export function Pricing({
               whileHover={{ y: -8 }}
               className="relative h-full"
             >
-              <div 
-                className={`h-full rounded-[32px] p-8 transition-all duration-300 flex flex-col
-                  ${plan.highlighted 
-                    ? 'bg-[#e8e6e4] border-4 border-[#8AB6F9] shadow-xl relative overflow-hidden' 
+              <div
+                className={`h-full rounded-[24px] sm:rounded-[28px] lg:rounded-[32px] p-5 sm:p-6 lg:p-8 transition-all duration-300 flex flex-col
+                  ${plan.highlighted
+                    ? 'bg-[#e8e6e4] border-4 border-[#8AB6F9] shadow-xl relative overflow-hidden'
                     : 'bg-white shadow-sm border border-transparent'
                   }
                 `}
@@ -193,7 +193,7 @@ export function Pricing({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="text-5xl font-bold text-[#1a1615] tracking-tight"
+                        className="text-4xl sm:text-5xl font-bold text-[#1a1615] tracking-tight"
                       >
                         {billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice}
                       </motion.span>

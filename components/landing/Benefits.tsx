@@ -25,7 +25,7 @@ export function Benefits() {
   ]
 
   return (
-    <section id="benefits" className="py-24 px-6 lg:px-8 bg-[#f4f7fa] overflow-hidden">
+    <section id="benefits" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-[#f4f7fa] overflow-hidden">
       <div className="max-w-7xl mx-auto">
         
         <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -44,7 +44,7 @@ export function Benefits() {
                 Why Job Foxy?
               </div>
 
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#1a1615] mb-6 tracking-tight leading-[1.1]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#1a1615] mb-6 tracking-tight leading-[1.1]">
                 Transform how you <br/>
                 perform under pressure
               </h2>
@@ -95,10 +95,10 @@ export function Benefits() {
             className="relative lg:sticky lg:top-32"
           >
             {/* Soft Gradient Blob Background (Matches Dreelio) */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#E0E7FF] to-[#FAE8FF] rounded-[48px] transform rotate-2 scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#E0E7FF] to-[#FAE8FF] rounded-[32px] sm:rounded-[40px] lg:rounded-[48px] transform rotate-2 scale-105" />
 
             {/* Main White Card */}
-            <div className="relative bg-white rounded-[40px] p-8 md:p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)]">
+            <div className="relative bg-white rounded-[28px] sm:rounded-[32px] lg:rounded-[40px] p-6 sm:p-8 md:p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)]">
               
               <div className="flex items-center justify-between mb-8">
                 <h3 className="font-bold text-[#1a1615] text-xl">Session Analysis</h3>
@@ -151,16 +151,16 @@ export function Benefits() {
 
               {/* Floating "Streak" Card */}
               <motion.div
-                className="absolute -bottom-6 -right-6 bg-[#1a1615] rounded-[24px] p-5 shadow-2xl flex items-center gap-4 text-white max-w-[240px]"
+                className="absolute -bottom-4 -right-4 sm:-bottom-6 sm:-right-6 bg-[#1a1615] rounded-[20px] sm:rounded-[24px] p-3 sm:p-5 shadow-2xl flex items-center gap-3 sm:gap-4 text-white max-w-[200px] sm:max-w-[240px] hidden sm:flex"
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               >
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                  <Award className="h-5 w-5 text-[#fbbf24]" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/10 flex items-center justify-center">
+                  <Award className="h-4 w-4 sm:h-5 sm:w-5 text-[#fbbf24]" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm">5-Day Streak! 🔥</div>
-                  <div className="text-[11px] text-gray-400 mt-0.5">Top 10% this week</div>
+                  <div className="font-bold text-xs sm:text-sm">5-Day Streak! 🔥</div>
+                  <div className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">Top 10% this week</div>
                 </div>
               </motion.div>
 

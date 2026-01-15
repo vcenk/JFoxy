@@ -233,22 +233,22 @@ export default function MockInterviewsPage() {
   return (
     <div className="flex flex-col max-w-[1800px] mx-auto">
       {/* Header Section */}
-      <div className="flex flex-col px-4 pt-1 mb-6">
-        <div className="flex items-center justify-between gap-6 mb-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
-              <Video className="w-6 h-6 text-white" />
+      <div className="flex flex-col px-3 sm:px-4 pt-1 mb-4 sm:mb-6">
+        <div className="flex items-center justify-between gap-3 sm:gap-6 mb-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20 flex-shrink-0">
+              <Video className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white leading-tight">Mock Interview Studio</h1>
-              <p className="text-white/40 text-sm">Practice with AI interviewers and ace your next interview</p>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-white leading-tight truncate">Mock Interview Studio</h1>
+              <p className="text-white/40 text-xs sm:text-sm hidden sm:block">Practice with AI interviewers and ace your next interview</p>
             </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
             <Link
               href="/dashboard/mock/new"
-              className="group/btn inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-purple-500/20"
+              className="group/btn inline-flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-purple-500/20"
             >
               <Sparkles className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" />
               Start Interview
@@ -257,17 +257,17 @@ export default function MockInterviewsPage() {
         </div>
 
         {/* Toolbar */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-2 glass-panel border-white/5 bg-white/5">
-          <div className="flex items-center gap-2 px-2">
-            <span className="text-white/60 text-sm">View:</span>
+        <div className="flex flex-row items-center justify-between gap-2 sm:gap-4 p-2 glass-panel border-white/5 bg-white/5">
+          <div className="flex items-center gap-2 px-1 sm:px-2">
+            <span className="text-white/60 text-xs sm:text-sm">View:</span>
           </div>
 
-          <div className="flex items-center gap-4 px-2">
+          <div className="flex items-center gap-2 sm:gap-4 px-1 sm:px-2">
             {/* View Mode Toggle */}
-            <div className="flex p-1 bg-black/40 rounded-xl border border-white/5">
+            <div className="flex p-1 bg-black/40 rounded-lg sm:rounded-xl border border-white/5">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg transition-all ${viewMode === 'grid'
+                className={`p-1.5 sm:p-2 rounded-md sm:rounded-lg transition-all ${viewMode === 'grid'
                   ? 'bg-purple-500 text-white'
                   : 'text-white/40 hover:text-white'
                   }`}
@@ -276,7 +276,7 @@ export default function MockInterviewsPage() {
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg transition-all ${viewMode === 'list'
+                className={`p-1.5 sm:p-2 rounded-md sm:rounded-lg transition-all ${viewMode === 'list'
                   ? 'bg-purple-500 text-white'
                   : 'text-white/40 hover:text-white'
                   }`}
@@ -288,9 +288,9 @@ export default function MockInterviewsPage() {
         </div>
       </div>
 
-      <div className="px-4 pb-8">
+      <div className="px-3 sm:px-4 pb-8">
         {/* Stats Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <PracticeStatsCard
             title="Interview Streak"
             value={stats.streak}
@@ -401,7 +401,7 @@ export default function MockInterviewsPage() {
             <div>
               {/* Grid/List Views */}
               {viewMode === 'list' && (
-                <div className="glass-panel p-4 mb-4">
+                <div className="hidden lg:block glass-panel p-4 mb-4">
                   <div className="grid grid-cols-12 gap-4 text-sm font-medium text-white/50">
                     <div className="col-span-1">Interviewer</div>
                     <div className="col-span-3">Position</div>
@@ -416,7 +416,7 @@ export default function MockInterviewsPage() {
               <div
                 className={
                   viewMode === 'grid'
-                    ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'
                     : 'space-y-3'
                 }
               >

@@ -127,42 +127,76 @@ function AccountPageContent() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-8">
-      <div className="flex flex-col md:flex-row gap-8">
-        
-        {/* Sidebar Navigation */}
-        <nav className="w-full md:w-64 flex-shrink-0 space-y-1">
-          {[
-            { id: 'profile', name: 'Profile', icon: User },
-            { id: 'subscription', name: 'Plan & Credits', icon: CreditCard },
-            { id: 'integrations', name: 'Integrations & AI', icon: Mic },
-            { id: 'settings', name: 'App Settings', icon: Settings },
-            { id: 'billing', name: 'Billing History', icon: Database }, // Moved billing history to bottom
-          ].map((item) => {
-            const Icon = item.icon
-            const isActive = activeTab === item.id
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id as Tab)
-                  router.push(`/dashboard/account?tab=${item.id}`, { scroll: false })
-                }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                  isActive 
-                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20' 
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.name}</span>
-              </button>
-            )
-          })}
+    <div className="max-w-6xl mx-auto py-4 sm:py-6 lg:py-8 px-2 sm:px-4">
+      <div className="flex flex-col md:flex-row gap-4 sm:gap-6 lg:gap-8">
+
+        {/* Mobile Horizontal Scroll Tabs + Desktop Sidebar */}
+        <nav className="w-full md:w-64 flex-shrink-0">
+          {/* Mobile: Horizontal scrolling tabs */}
+          <div className="md:hidden flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
+            {[
+              { id: 'profile', name: 'Profile', icon: User },
+              { id: 'subscription', name: 'Plan', icon: CreditCard },
+              { id: 'integrations', name: 'AI', icon: Mic },
+              { id: 'settings', name: 'Settings', icon: Settings },
+              { id: 'billing', name: 'Billing', icon: Database },
+            ].map((item) => {
+              const Icon = item.icon
+              const isActive = activeTab === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveTab(item.id as Tab)
+                    router.push(`/dashboard/account?tab=${item.id}`, { scroll: false })
+                  }}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all whitespace-nowrap flex-shrink-0 text-sm ${
+                    isActive
+                      ? 'bg-purple-600 text-white shadow-lg'
+                      : 'bg-gray-800/50 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="font-medium">{item.name}</span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Desktop: Vertical sidebar */}
+          <div className="hidden md:block space-y-1">
+            {[
+              { id: 'profile', name: 'Profile', icon: User },
+              { id: 'subscription', name: 'Plan & Credits', icon: CreditCard },
+              { id: 'integrations', name: 'Integrations & AI', icon: Mic },
+              { id: 'settings', name: 'App Settings', icon: Settings },
+              { id: 'billing', name: 'Billing History', icon: Database },
+            ].map((item) => {
+              const Icon = item.icon
+              const isActive = activeTab === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveTab(item.id as Tab)
+                    router.push(`/dashboard/account?tab=${item.id}`, { scroll: false })
+                  }}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
+                    isActive
+                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20'
+                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.name}</span>
+                </button>
+              )
+            })}
+          </div>
         </nav>
 
         {/* Main Content Area */}
-        <div className="flex-1 min-h-[500px]">
+        <div className="flex-1 min-h-[400px] sm:min-h-[500px]">
           {loading ? (
              <div className="flex items-center justify-center h-full">
                <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />

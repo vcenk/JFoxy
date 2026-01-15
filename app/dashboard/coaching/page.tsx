@@ -254,30 +254,31 @@ export default function CoachingPage() {
   ]
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-4rem)] md:h-[calc(100vh-2rem)] overflow-hidden">
       {/* ============================================
           HEADER: Context Selectors + Actions
           ============================================ */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-6 py-4 border-b border-white/5">
+      <div className="flex flex-col gap-3 sm:gap-4 px-3 sm:px-6 py-3 sm:py-4 border-b border-white/5">
+        {/* Title row */}
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/20">
-            <LayoutDashboard className="w-6 h-6 text-purple-400" />
+          <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/20">
+            <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Career Coaching</h1>
-            <p className="text-sm text-white/50">AI-powered interview preparation tools</p>
+            <h1 className="text-lg sm:text-xl font-bold text-white">Career Coaching</h1>
+            <p className="text-xs sm:text-sm text-white/50 hidden sm:block">AI-powered interview preparation tools</p>
           </div>
         </div>
 
-        {/* Context Selectors - Inline */}
-        <div className="flex items-center gap-3 flex-wrap">
+        {/* Context Selectors - Stack on mobile */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           {/* Resume Selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-white/40 uppercase tracking-wider">Resume:</span>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="text-xs text-white/40 uppercase tracking-wider flex-shrink-0">Resume:</span>
             <select
               value={selectedResumeId || ''}
               onChange={(e) => handleResumeChange(e.target.value)}
-              className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-purple-500 outline-none min-w-[180px]"
+              className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 bg-black/30 border border-white/10 rounded-lg text-white text-xs sm:text-sm focus:ring-2 focus:ring-purple-500 outline-none sm:min-w-[180px]"
             >
               <option value="" disabled>Select Resume</option>
               {resumes.map(r => (
@@ -287,42 +288,42 @@ export default function CoachingPage() {
           </div>
 
           {/* Job Selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-white/40 uppercase tracking-wider">Job:</span>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="text-xs text-white/40 uppercase tracking-wider flex-shrink-0">Job:</span>
             {showNewJobInput ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-none flex-wrap sm:flex-nowrap">
                 <input
                   placeholder="Job Title"
                   value={newJobTitle}
                   onChange={e => setNewJobTitle(e.target.value)}
-                  className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm w-32"
+                  className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 bg-black/30 border border-white/10 rounded-lg text-white text-xs sm:text-sm w-full sm:w-28"
                 />
                 <input
                   placeholder="Company"
                   value={newJobCompany}
                   onChange={e => setNewJobCompany(e.target.value)}
-                  className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm w-28"
+                  className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 bg-black/30 border border-white/10 rounded-lg text-white text-xs sm:text-sm w-full sm:w-24"
                 />
                 <button
                   onClick={handleCreateNewJob}
                   disabled={!newJobTitle}
-                  className="px-3 py-2 bg-purple-500 rounded-lg text-xs font-medium text-white hover:bg-purple-400 transition-colors"
+                  className="px-2 sm:px-3 py-1.5 sm:py-2 bg-purple-500 rounded-lg text-xs font-medium text-white hover:bg-purple-400 transition-colors"
                 >
                   Add
                 </button>
                 <button
                   onClick={() => setShowNewJobInput(false)}
-                  className="px-3 py-2 bg-white/10 rounded-lg text-xs font-medium text-white hover:bg-white/20 transition-colors"
+                  className="px-2 sm:px-3 py-1.5 sm:py-2 bg-white/10 rounded-lg text-xs font-medium text-white hover:bg-white/20 transition-colors"
                 >
                   Cancel
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-1 sm:flex-none">
                 <select
                   value={selectedJobId || ''}
                   onChange={(e) => setSelectedJobId(e.target.value === 'none' ? null : e.target.value)}
-                  className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-purple-500 outline-none min-w-[180px]"
+                  className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 bg-black/30 border border-white/10 rounded-lg text-white text-xs sm:text-sm focus:ring-2 focus:ring-purple-500 outline-none sm:min-w-[180px]"
                 >
                   <option value="none">General / No Specific Job</option>
                   {jobDescriptions.map(j => (
@@ -331,7 +332,7 @@ export default function CoachingPage() {
                 </select>
                 <button
                   onClick={() => setShowNewJobInput(true)}
-                  className="p-2 bg-white/5 rounded-lg text-purple-400 hover:bg-purple-500/20 transition-colors"
+                  className="p-1.5 sm:p-2 bg-white/5 rounded-lg text-purple-400 hover:bg-purple-500/20 transition-colors flex-shrink-0"
                   title="Add new job"
                 >
                   <Plus className="w-4 h-4" />
@@ -345,8 +346,8 @@ export default function CoachingPage() {
       {/* ============================================
           TABS: Tool Navigation (Horizontal)
           ============================================ */}
-      <div className="px-6 py-3 border-b border-white/5 bg-black/20">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="px-3 sm:px-6 py-2 sm:py-3 border-b border-white/5 bg-black/20">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           {tools.map((tool) => {
             const Icon = tool.icon
             const isActive = activeTool === tool.id

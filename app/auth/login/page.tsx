@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuthStore } from '@/store/authStore'
-import { AlertCircle, Loader2, AlertTriangle, ArrowRight, CheckCircle2, Star } from 'lucide-react'
+import { AlertCircle, Loader2, AlertTriangle, ArrowRight, ArrowLeft, CheckCircle2, Star } from 'lucide-react'
 import { motion } from 'framer-motion'
 import JobFoxyLogo from '@/components/assets/JobFoxyDark.svg'
 
@@ -175,7 +175,15 @@ function LoginPageContent() {
       {/* RIGHT SIDE: Login Form */}
       <div className="w-full lg:w-1/2 bg-white flex flex-col justify-center items-center p-6 lg:p-12">
         <div className="w-full max-w-md space-y-8">
-          
+
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
+          </Link>
+
           <div className="text-center lg:text-left">
             <h2 className="text-3xl font-bold text-[#1a1615] tracking-tight">Welcome back</h2>
             <p className="mt-2 text-gray-500">

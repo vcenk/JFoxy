@@ -24,16 +24,16 @@ export function Hero({
   subheadline = 'Go beyond generic advice. Get specific resume gap analysis, smart job description breakdowns, and AI-led mock interviews with actionable feedback.',
 }: HeroProps) {
   return (
-    <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#fafafa]">
+    <section className="pt-28 sm:pt-32 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#fafafa]">
       <div className="max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-16 lg:gap-8 items-center">
+        <div className="grid md:grid-cols-2 gap-12 md:gap-8 lg:gap-16 items-center">
           
           {/* Left Content */}
           <motion.div
             initial="hidden"
             animate="visible"
             variants={staggerContainer}
-            className="text-center lg:text-left relative z-20"
+            className="text-center md:text-left relative z-20"
           >
             {/* Badge */}
             <motion.div variants={fadeInUp} className="inline-block mb-8">
@@ -64,7 +64,7 @@ export function Hero({
             {/* Subheadline */}
             <motion.p
               variants={fadeInUp}
-              className="text-[18px] text-gray-600 mb-8 max-w-xl leading-relaxed mx-auto lg:mx-0"
+              className="text-base sm:text-[18px] text-gray-600 mb-8 max-w-xl leading-relaxed mx-auto md:mx-0"
             >
               {subheadline}
             </motion.p>
@@ -72,7 +72,7 @@ export function Hero({
             {/* Buttons */}
             <motion.div
               variants={fadeInUp}
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12"
+              className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12"
             >
               <motion.div 
                 whileHover={{ scale: 1.03 }} 
@@ -110,15 +110,15 @@ export function Hero({
           </motion.div>
 
           {/* Right - NEW Interactive Avatar */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="hidden lg:block relative z-10"
+            className="hidden md:block relative z-10"
           >
              {/* Decorative blob behind the avatar */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-tr from-violet-200/40 to-blue-200/40 rounded-full blur-[80px] pointer-events-none" />
-            
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[400px] md:h-[400px] lg:w-[500px] lg:h-[500px] bg-gradient-to-tr from-violet-200/40 to-blue-200/40 rounded-full blur-[80px] pointer-events-none" />
+
             <InteractiveAvatar />
           </motion.div>
         </div>

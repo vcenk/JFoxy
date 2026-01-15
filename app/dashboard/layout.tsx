@@ -10,7 +10,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import {
   FileText, MessageSquare, User, Home, LogOut,
-  Mic, Video, ChevronLeft, ChevronRight
+  Mic, Video, ChevronLeft, ChevronRight, Menu, X
 } from 'lucide-react'
 import JobFoxyLogo from '@/components/assets/JobFoxyDark.svg'
 
@@ -20,6 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, profile, signOut, initialize } = useAuthStore()
   const [loading, setLoading] = useState(true)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // Check if we are inside specific pages for conditional styling
   const isResumePage = pathname?.startsWith('/dashboard/resume')
@@ -66,10 +67,63 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen relative flex bg-[#0f172a] text-white overflow-hidden">
-      {/* Sidebar */}
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/95 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <div className="relative w-8 h-8">
+            <Image src={JobFoxyLogo} alt="Job Foxy" fill className="object-contain" />
+          </div>
+          <span className="font-bold text-white">JobFoxy</span>
+        </Link>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+        >
+          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-[#0f172a]/98 backdrop-blur-xl pt-16">
+          <nav className="p-4 space-y-2">
+            {navItems.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href ||
+                (item.href !== '/dashboard' && pathname.startsWith(item.href))
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 p-4 rounded-xl transition-all ${
+                    isActive
+                      ? 'bg-purple-600/20 text-purple-200 border border-purple-500/30'
+                      : 'text-white/60 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.name}</span>
+                </Link>
+              )
+            })}
+            <div className="pt-4 border-t border-white/10 mt-4">
+              <button
+                onClick={() => { handleSignOut(); setIsMobileMenuOpen(false); }}
+                className="flex items-center gap-3 p-4 rounded-xl text-white/50 hover:text-red-300 hover:bg-red-500/10 transition-colors w-full"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="font-medium">Sign Out</span>
+              </button>
+            </div>
+          </nav>
+        </div>
+      )}
+
+      {/* Desktop Sidebar - Hidden on mobile */}
       <aside
         className={`
-          relative z-50 flex flex-col h-screen transition-all duration-300 ease-in-out
+          hidden md:flex relative z-50 flex-col h-screen transition-all duration-300 ease-in-out
           ${isCollapsed ? 'w-20' : 'w-64'}
           border-r border-white/10 bg-black/20 backdrop-blur-xl
         `}
@@ -163,11 +217,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main Content Area */}
-      <main 
+      <main
          className={`
             flex-1 relative overflow-y-auto h-screen
             transition-all duration-300
-            ${isResumePage || isPracticePage || isCoachingPage ? 'p-0' : 'p-6 md:p-10'}
+            pt-14 md:pt-0 pb-16 md:pb-0
+            ${isResumePage || isPracticePage || isCoachingPage ? 'p-0 pt-14 md:pt-0' : 'p-4 pt-16 md:p-6 md:pt-6 lg:p-10'}
          `}
       >
         {/* Top Header Area for specific pages if needed, otherwise clean */}
@@ -175,6 +230,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {children}
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0f172a]/95 backdrop-blur-xl border-t border-white/10 px-2 py-2 safe-area-inset-bottom">
+        <div className="flex items-center justify-around">
+          {navItems.slice(0, 5).map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href ||
+              (item.href !== '/dashboard' && pathname.startsWith(item.href))
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all min-w-[60px] ${
+                  isActive
+                    ? 'text-purple-400'
+                    : 'text-white/50 hover:text-white/80'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium">{item.name === 'Mock Interview' ? 'Mock' : item.name}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
     </div>
   )
 }

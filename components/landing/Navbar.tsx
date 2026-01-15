@@ -60,8 +60,7 @@ export function Navbar({ navItems = defaultNavItems }: NavbarProps) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          isScrolled ? 'h-24 px-4' : 'h-32 px-10'
-
+          isScrolled ? 'h-20 sm:h-24 px-2 sm:px-4' : 'h-24 sm:h-32 px-4 sm:px-10'
         }`}
       >
         <div
@@ -72,8 +71,7 @@ export function Navbar({ navItems = defaultNavItems }: NavbarProps) {
           }`}
         >
           <div className={`flex items-center justify-between transition-all duration-500 ${
-            isScrolled ? 'h-24 px-5 pl-7' : 'h-32 px-10 sm:px-12 lg:px-20'
-
+            isScrolled ? 'h-20 sm:h-24 px-3 sm:px-5 pl-4 sm:pl-7' : 'h-24 sm:h-32 px-4 sm:px-10 lg:px-20'
           }`}>
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
@@ -83,7 +81,7 @@ export function Navbar({ navItems = defaultNavItems }: NavbarProps) {
               >
                 {/* Logo Icon */}
                 <div className={`relative transition-all duration-500 ${
-                  isScrolled ? 'w-36 h-36' : 'w-48 h-48'
+                  isScrolled ? 'w-24 h-24 sm:w-32 sm:h-32 lg:w-36 lg:h-36' : 'w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48'
                 }`}>
                   <Image
                     src={JobFoxyLogo}

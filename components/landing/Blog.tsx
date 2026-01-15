@@ -16,7 +16,7 @@ export function Blog({
   subtitle = 'Expert tips, strategies, and insider knowledge to help you ace every interview'
 }: BlogProps) {
   return (
-    <section id="blog" className="py-24 px-6 lg:px-8 bg-white/40 backdrop-blur-sm">
+    <section id="blog" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-white/40 backdrop-blur-sm">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial="hidden"
@@ -27,14 +27,14 @@ export function Blog({
         >
           <motion.h2
             variants={fadeInUp}
-            className="text-4xl md:text-5xl font-bold text-[#1a1615] mb-6 tracking-tight"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1a1615] mb-6 tracking-tight"
             style={{ letterSpacing: '-0.03em' }}
           >
             {title}
           </motion.h2>
           <motion.p
             variants={fadeInUp}
-            className="text-xl text-[#453f3d] max-w-2xl mx-auto"
+            className="text-base sm:text-lg md:text-xl text-[#453f3d] max-w-2xl mx-auto"
           >
             {subtitle}
           </motion.p>
@@ -46,7 +46,7 @@ export function Blog({
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           variants={staggerContainer}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
         >
           {blogPosts.map((article, index) => (
             <Link key={article.slug} href={`/blog/${article.slug}`}>

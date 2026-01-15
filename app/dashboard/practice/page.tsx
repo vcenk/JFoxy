@@ -259,39 +259,40 @@ export default function PracticePage() {
   }, [sessions, stats.streak, reminderDismissed])
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] max-w-[1800px] mx-auto overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-4rem)] md:h-[calc(100vh-2rem)] max-w-[1800px] mx-auto overflow-hidden">
       {/* Header Section */}
-      <div className="flex flex-col px-4 pt-1 mb-6">
-        <div className="flex items-center justify-between gap-6 mb-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
-              <Mic className="w-6 h-6 text-white" />
+      <div className="flex flex-col px-3 sm:px-4 pt-1 mb-4 sm:mb-6">
+        <div className="flex items-center justify-between gap-3 sm:gap-6 mb-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20 flex-shrink-0">
+              <Mic className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white leading-tight">Practice Command Center</h1>
-              <p className="text-white/40 text-sm">Master your interview skills with AI-powered feedback</p>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-white leading-tight truncate">Practice Command Center</h1>
+              <p className="text-white/40 text-xs sm:text-sm hidden sm:block">Master your interview skills with AI-powered feedback</p>
             </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
             <Link
               href="/dashboard/practice/new"
-              className="group/btn inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-purple-500/20"
+              className="group/btn inline-flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-purple-500/20"
             >
               <Sparkles className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" />
-              Start New Session
+              <span className="hidden sm:inline">Start New Session</span>
+              <span className="sm:hidden">New</span>
             </Link>
           </div>
         </div>
 
         {/* Toolbar: Stats & Filters */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-2 glass-panel border-white/5 bg-white/5">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 custom-scrollbar whitespace-nowrap px-2">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 p-2 glass-panel border-white/5 bg-white/5">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 lg:pb-0 custom-scrollbar whitespace-nowrap px-1 sm:px-2 -mx-1">
             {(['all', 'behavioral', 'technical', 'leadership'] as FilterType[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-6 py-2 rounded-xl text-sm font-medium capitalize transition-all duration-300 ${filter === f
+                className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium capitalize transition-all duration-300 flex-shrink-0 ${filter === f
                   ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/20'
                   : 'text-white/40 hover:text-white hover:bg-white/10'
                   }`}
@@ -518,9 +519,9 @@ export default function PracticePage() {
             </motion.div>
           ) : (
             <div>
-              {/* List View Header */}
+              {/* List View Header - Hidden on mobile */}
               {viewMode === 'list' && (
-                <div className="glass-panel p-4 mb-4">
+                <div className="hidden lg:block glass-panel p-4 mb-4">
                   <div className="grid grid-cols-12 gap-4 text-sm font-medium text-white/50">
                     <div className="col-span-3">Session</div>
                     <div className="col-span-2 text-center">Questions</div>

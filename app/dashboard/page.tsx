@@ -81,74 +81,74 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header Section */}
-      <div className="space-y-2">
-        <h1 className="text-5xl font-bold text-white">
+      <div className="space-y-1 sm:space-y-2">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white">
           {greeting}, <span className="gradient-text">{profile?.full_name?.split(' ')[0] || 'there'}</span>!
         </h1>
-        <p className="text-white/60 text-lg">
+        <p className="text-white/60 text-sm sm:text-base lg:text-lg">
           Your AI-powered career coach is ready to help you succeed
         </p>
       </div>
 
       {/* Bento Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-auto">
 
         {/* HERO SECTION - Large Card (Span 2 columns on large screens) */}
         <Link
           href="/dashboard/resume"
-          className="glass-panel p-8 lg:col-span-2 lg:row-span-2 group cursor-pointer relative overflow-hidden"
+          className="glass-panel p-4 sm:p-6 lg:p-8 lg:col-span-2 lg:row-span-2 group cursor-pointer relative overflow-hidden"
         >
           {/* Background Gradient Orb */}
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-500/30 rounded-full blur-3xl group-hover:bg-purple-500/40 transition-all duration-700" />
+          <div className="absolute -top-20 -right-20 w-40 sm:w-64 h-40 sm:h-64 bg-purple-500/30 rounded-full blur-3xl group-hover:bg-purple-500/40 transition-all duration-700" />
 
           <div className="relative z-10 h-full flex flex-col justify-between">
             <div>
-              <div className="inline-flex items-center space-x-2 px-4 py-2 bg-purple-500/20 rounded-full mb-6">
-                <Sparkles className="w-4 h-4 text-purple-300" />
-                <span className="text-purple-200 text-sm font-semibold">AI-Powered</span>
+              <div className="inline-flex items-center space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-500/20 rounded-full mb-4 sm:mb-6">
+                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-purple-300" />
+                <span className="text-purple-200 text-xs sm:text-sm font-semibold">AI-Powered</span>
               </div>
 
-              <h2 className="text-4xl font-bold text-white mb-4">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-4">
                 {isPro ? 'Analyze Your Next Resume' : 'Create Your First Resume'}
               </h2>
-              <p className="text-white/70 text-lg mb-8 max-w-xl">
+              <p className="text-white/70 text-sm sm:text-base lg:text-lg mb-4 sm:mb-8 max-w-xl">
                 Upload your resume and get instant AI analysis with ATS optimization,
                 job matching scores, and personalized improvement suggestions.
               </p>
 
-              <button className="glow-button px-8 py-4 rounded-2xl text-white font-semibold inline-flex items-center space-x-2 group">
+              <button className="glow-button px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 rounded-xl sm:rounded-2xl text-white text-sm sm:text-base font-semibold inline-flex items-center space-x-2 group">
                 <span>{isPro ? 'Upload Resume' : 'Get Started'}</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
 
             {/* Decorative Stats - Now Real User Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6 sm:mt-8">
               <div className="text-center">
-                <div className="text-3xl font-bold text-white">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
                   {loading ? '-' : (stats.avgAtsScore || 0)}
                 </div>
-                <div className="text-white/50 text-sm">Avg ATS Score</div>
+                <div className="text-white/50 text-xs sm:text-sm">Avg ATS Score</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-white">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
                   {loading ? '-' : (stats.counts?.resumes || 0)}
                 </div>
-                <div className="text-white/50 text-sm">Resumes</div>
+                <div className="text-white/50 text-xs sm:text-sm">Resumes</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-white">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
                   {loading ? '-' : (stats.counts?.mocks || 0)}
                 </div>
-                <div className="text-white/50 text-sm">Mock Interviews</div>
+                <div className="text-white/50 text-xs sm:text-sm">Mock Interviews</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-white">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
                   {loading ? '-' : (stats.counts?.coverLetters || 0)}
                 </div>
-                <div className="text-white/50 text-sm">Cover Letters</div>
+                <div className="text-white/50 text-xs sm:text-sm">Cover Letters</div>
               </div>
             </div>
           </div>

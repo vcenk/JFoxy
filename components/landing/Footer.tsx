@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Linkedin, Twitter, Send, CheckCircle2, Github, Loader2 } from 'lucide-react'
+import { Linkedin, Twitter, Send, CheckCircle2, Facebook, Instagram, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface FooterProps {
@@ -27,9 +27,10 @@ const defaultLegalLinks = [
 ]
 
 const defaultSocialLinks = [
+  { name: 'LinkedIn', href: 'https://www.linkedin.com/company/jobfoxy/', icon: Linkedin },
   { name: 'Twitter', href: '#', icon: Twitter },
-  { name: 'LinkedIn', href: '#', icon: Linkedin },
-  { name: 'GitHub', href: '#', icon: Github },
+  { name: 'Facebook', href: '#', icon: Facebook },
+  { name: 'Instagram', href: '#', icon: Instagram },
 ]
 
 function NewsletterForm() {
@@ -123,9 +124,9 @@ export function Footer({
 }: FooterProps) {
   return (
     // CHANGED: Matched background to #f4f7fa for consistency
-    <footer className="pt-20 pb-10 px-6 lg:px-8 bg-[#f4f7fa] border-t border-black/[0.04]">
+    <footer className="pt-12 sm:pt-16 lg:pt-20 pb-8 sm:pb-10 px-4 sm:px-6 lg:px-8 bg-[#f4f7fa] border-t border-black/[0.04]">
       <div className="max-w-7xl mx-auto">
-        <div className="grid xl:grid-cols-4 lg:grid-cols-3 gap-12 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 sm:gap-10 lg:gap-12 mb-12 sm:mb-16">
           
           {/* 1. BRAND COLUMN */}
           <div className="xl:col-span-1 lg:col-span-1">
@@ -196,7 +197,7 @@ export function Footer({
           </div>
 
           {/* 3. NEWSLETTER & STATUS (New) */}
-          <div className="xl:col-span-1 lg:col-span-3">
+          <div className="sm:col-span-2 lg:col-span-3 xl:col-span-1">
             <NewsletterForm />
 
             {/* System Status Indicator */}

@@ -19,7 +19,7 @@ export function InteractiveAvatar() {
   }, [])
 
   return (
-    <div className="relative w-full max-w-[420px] mx-auto perspective-1000">
+    <div className="relative w-full max-w-[320px] md:max-w-[360px] lg:max-w-[420px] mx-auto perspective-1000">
       {/* Floating Card Container */}
       <motion.div
         initial={{ opacity: 0, y: 20, rotateX: 5 }}
@@ -41,7 +41,7 @@ export function InteractiveAvatar() {
         </div>
 
         {/* Main Avatar Display */}
-        <div className="relative h-[480px] w-full bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center overflow-hidden">
+        <div className="relative h-[360px] md:h-[420px] lg:h-[480px] w-full bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center overflow-hidden">
           
           {/* Background Ambient Glow */}
           <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/10 via-transparent to-blue-500/10" />
@@ -130,7 +130,7 @@ export function InteractiveAvatar() {
 
       {/* Floating Dialogue Bubble (Simulated Transcript) */}
       <motion.div
-         className="absolute -right-8 top-24 max-w-[200px] bg-white rounded-2xl p-4 shadow-xl border border-gray-100 z-30 hidden sm:block"
+         className="absolute -right-4 lg:-right-8 top-20 lg:top-24 max-w-[180px] lg:max-w-[200px] bg-white rounded-xl lg:rounded-2xl p-3 lg:p-4 shadow-xl border border-gray-100 z-30 hidden lg:block"
          initial={{ opacity: 0, scale: 0.8, x: -20 }}
          animate={{ opacity: 1, scale: 1, x: 0 }}
          transition={{ delay: 1, duration: 0.5 }}
