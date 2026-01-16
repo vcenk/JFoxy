@@ -28,9 +28,8 @@ const defaultLegalLinks = [
 
 const defaultSocialLinks = [
   { name: 'LinkedIn', href: 'https://www.linkedin.com/company/jobfoxy/', icon: Linkedin },
-  { name: 'Twitter', href: '#', icon: Twitter },
-  { name: 'Facebook', href: '#', icon: Facebook },
-  { name: 'Instagram', href: '#', icon: Instagram },
+  { name: 'Twitter', href: 'https://x.com/JobFoxy', icon: Twitter },
+  { name: 'Instagram', href: 'https://www.instagram.com/job.foxy/', icon: Instagram },
 ]
 
 function NewsletterForm() {

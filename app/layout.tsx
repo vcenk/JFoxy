@@ -93,7 +93,8 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Job Foxy | AI Interview Coach',
     description: 'Stop guessing. Master your interview with clarity.',
-    creator: '@jobfoxy',
+    site: '@JobFoxy',
+    creator: '@JobFoxy',
   },
   robots: {
     index: true,
@@ -133,8 +134,9 @@ export default function RootLayout({
               logo: 'https://jobfoxy.com/logo.png',
               description: 'AI-powered interview coaching and resume analysis platform.',
               sameAs: [
-                'https://twitter.com/jobfoxy',
-                'https://linkedin.com/company/jobfoxy'
+                'https://x.com/JobFoxy',
+                'https://www.linkedin.com/company/jobfoxy/',
+                'https://www.instagram.com/job.foxy/'
               ],
               contactPoint: {
                 '@type': 'ContactPoint',
