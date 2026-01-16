@@ -183,9 +183,9 @@ export default function CoverLetterPage() {
         primaryCTA={{ text: 'Try AI Cover Letter', href: '/auth/register' }}
         secondaryCTA={{ text: 'See Examples', href: '#structure' }}
         stats={[
-          { value: '83%', label: 'Hiring Managers Read Them', color: 'text-green-400' },
-          { value: '250-400', label: 'Ideal Word Count', color: 'text-purple-400' },
-          { value: '1 Page', label: 'Maximum Length', color: 'text-blue-400' },
+          { value: '83%', label: 'Hiring Managers Read Them', color: 'text-emerald-600' },
+          { value: '250-400', label: 'Ideal Word Count', color: 'text-purple-600' },
+          { value: '1 Page', label: 'Maximum Length', color: 'text-blue-600' },
         ]}
         breadcrumbs={[
           { name: 'Home', href: '/' },
@@ -194,21 +194,21 @@ export default function CoverLetterPage() {
       />
 
       {/* Why Cover Letters Matter */}
-      <section className="py-16 border-b border-white/10">
+      <section className="py-16 border-b border-gray-100">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-purple-500/10 to-violet-500/10 border border-purple-500/20 rounded-2xl p-8">
+          <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-100 rounded-2xl p-8">
             <div className="flex items-start gap-4">
-              <Lightbulb className="w-8 h-8 text-purple-400 flex-shrink-0 mt-1" />
+              <Lightbulb className="w-8 h-8 text-purple-600 flex-shrink-0 mt-1" />
               <div>
-                <h2 className="text-2xl font-bold text-white mb-4">
+                <h2 className="text-2xl font-bold text-[#1a1615] mb-4">
                   Why Cover Letters Still Matter
                 </h2>
-                <p className="text-white/70 mb-4">
+                <p className="text-[#6b6b6b] mb-4">
                   In a world of online applications and ATS systems, cover letters remain one of the
                   few opportunities to show your personality, explain career transitions, and
                   demonstrate genuine interest in a specific role.
                 </p>
-                <p className="text-white/70">
+                <p className="text-[#6b6b6b]">
                   A well-crafted cover letter can be the difference between your resume being
                   skimmed and being seriously considered.
                 </p>
@@ -222,8 +222,8 @@ export default function CoverLetterPage() {
       <section id="structure" className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">The Perfect Structure</h2>
-            <p className="text-lg text-white/60">
+            <h2 className="text-3xl font-bold text-[#1a1615] mb-4">The Perfect Structure</h2>
+            <p className="text-lg text-[#6b6b6b]">
               Every great cover letter follows this proven framework
             </p>
           </div>
@@ -232,32 +232,32 @@ export default function CoverLetterPage() {
             {coverLetterStructure.map((section, index) => (
               <div
                 key={index}
-                className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-purple-500/30 transition-colors"
+                className="bg-white border border-gray-100 rounded-2xl p-8 hover:border-purple-200 transition-colors shadow-sm"
               >
                 <div className="grid lg:grid-cols-3 gap-8">
                   <div>
                     <div className="flex items-center gap-4 mb-4">
-                      <span className="text-3xl font-bold text-purple-400">
+                      <span className="text-3xl font-bold text-purple-600">
                         {section.percentage}
                       </span>
-                      <h3 className="text-2xl font-bold text-white">{section.section}</h3>
+                      <h3 className="text-2xl font-bold text-[#1a1615]">{section.section}</h3>
                     </div>
-                    <p className="text-white/70 mb-4">{section.description}</p>
+                    <p className="text-[#6b6b6b] mb-4">{section.description}</p>
                     <ul className="space-y-2">
                       {section.tips.map((tip, i) => (
                         <li key={i} className="flex items-start gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-1" />
-                          <span className="text-sm text-white/60">{tip}</span>
+                          <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-1" />
+                          <span className="text-sm text-[#6b6b6b]">{tip}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                   <div className="lg:col-span-2">
-                    <div className="bg-black/20 rounded-xl p-6 h-full">
-                      <h4 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">
+                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-6 h-full">
+                      <h4 className="text-sm font-semibold text-[#6b6b6b] uppercase tracking-wider mb-3">
                         Example
                       </h4>
-                      <p className="text-white italic leading-relaxed">
+                      <p className="text-[#1a1615] italic leading-relaxed">
                         &ldquo;{section.example}&rdquo;
                       </p>
                     </div>
@@ -270,40 +270,40 @@ export default function CoverLetterPage() {
       </section>
 
       {/* Do's and Don'ts */}
-      <section className="py-16 border-t border-white/10">
+      <section className="py-16 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+          <h2 className="text-3xl font-bold text-[#1a1615] text-center mb-12">
             Cover Letter Do&apos;s and Don&apos;ts
           </h2>
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Do's */}
-            <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-8">
+            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-6">
-                <CheckCircle className="w-8 h-8 text-green-400" />
-                <h3 className="text-2xl font-bold text-white">Do</h3>
+                <CheckCircle className="w-8 h-8 text-emerald-600" />
+                <h3 className="text-2xl font-bold text-[#1a1615]">Do</h3>
               </div>
               <ul className="space-y-4">
                 {dosAndDonts.dos.map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-white/80">{item}</span>
+                    <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-[#1a1615]">{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
             {/* Don'ts */}
-            <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-8">
+            <div className="bg-red-50 border border-red-100 rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-6">
-                <XCircle className="w-8 h-8 text-red-400" />
-                <h3 className="text-2xl font-bold text-white">Don&apos;t</h3>
+                <XCircle className="w-8 h-8 text-red-600" />
+                <h3 className="text-2xl font-bold text-[#1a1615]">Don&apos;t</h3>
               </div>
               <ul className="space-y-4">
                 {dosAndDonts.donts.map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-white/80">{item}</span>
+                    <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-[#1a1615]">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -313,16 +313,16 @@ export default function CoverLetterPage() {
       </section>
 
       {/* AI Cover Letter Tool */}
-      <section className="py-16 border-t border-white/10">
+      <section className="py-16 border-t border-gray-100">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-purple-500/20 to-violet-500/20 border border-purple-500/30 rounded-2xl p-8 md:p-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mx-auto mb-6">
-              <Sparkles className="w-8 h-8 text-purple-400" />
+          <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-100 rounded-2xl p-8 md:p-12 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-purple-100 border border-purple-200 flex items-center justify-center mx-auto mb-6">
+              <Sparkles className="w-8 h-8 text-purple-600" />
             </div>
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl font-bold text-[#1a1615] mb-4">
               Write Cover Letters Faster with AI
             </h2>
-            <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-[#6b6b6b] mb-8 max-w-2xl mx-auto">
               Our AI cover letter tool analyzes the job description, matches it with your
               experience, and generates a personalized cover letter in seconds. Then customize it
               to make it your own.
@@ -330,14 +330,14 @@ export default function CoverLetterPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/auth/register"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-semibold rounded-xl hover:bg-gray-100 transition-colors"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[#1a1615] text-white font-semibold rounded-xl hover:bg-black transition-colors shadow-lg"
               >
                 Try AI Cover Letter Free
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href="/resume"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-transparent border border-white/20 text-white font-semibold rounded-xl hover:bg-white/10 transition-colors"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-white border border-gray-200 text-[#1a1615] font-semibold rounded-xl hover:bg-gray-50 transition-colors"
               >
                 Build Your Resume First
               </Link>
@@ -347,9 +347,9 @@ export default function CoverLetterPage() {
       </section>
 
       {/* Related Resources */}
-      <section className="py-16 border-t border-white/10">
+      <section className="py-16 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-white mb-8">Related Resources</h2>
+          <h2 className="text-2xl font-bold text-[#1a1615] mb-8">Related Resources</h2>
           <div className="grid sm:grid-cols-3 gap-6">
             {[
               {
@@ -376,15 +376,15 @@ export default function CoverLetterPage() {
                 <Link
                   key={index}
                   href={resource.href}
-                  className="group bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/30 rounded-xl p-6 transition-all"
+                  className="group bg-white hover:bg-gray-50 border border-gray-100 hover:border-purple-200 rounded-xl p-6 transition-all shadow-sm"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mb-4">
-                    <Icon className="w-5 h-5 text-purple-400" />
+                  <div className="w-10 h-10 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center mb-4">
+                    <Icon className="w-5 h-5 text-purple-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-purple-300 transition-colors">
+                  <h3 className="text-lg font-semibold text-[#1a1615] mb-2 group-hover:text-purple-600 transition-colors">
                     {resource.title}
                   </h3>
-                  <p className="text-sm text-white/60">{resource.description}</p>
+                  <p className="text-sm text-[#6b6b6b]">{resource.description}</p>
                 </Link>
               )
             })}

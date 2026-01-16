@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Linkedin, Twitter, Send, CheckCircle2, Facebook, Instagram, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
+import JobFoxyLogo from '@/components/assets/JobFoxy.svg'
 
 interface FooterProps {
   brandDescription?: string
@@ -130,14 +132,15 @@ export function Footer({
           {/* 1. BRAND COLUMN */}
           <div className="xl:col-span-1 lg:col-span-1">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-xl bg-[#1a1615] flex items-center justify-center">
-                 <svg className="w-5 h-5 text-white" viewBox="0 0 32 32" fill="none">
-                    <path d="M16 4C9.373 4 4 9.373 4 16s5.373 12 12 12 12-5.373 12-12S22.627 4 16 4z" fill="currentColor"/>
-                    <path d="M12 12c0-2.21 1.79-4 4-4s4 1.79 4 4v8c0 2.21-1.79 4-4 4s-4-1.79-4-4v-8z" fill="currentColor" fillOpacity="0.5"/>
-                 </svg>
+            <Link href="/" className="flex items-center mb-6">
+              <div className="relative w-32 h-16">
+                <Image
+                  src={JobFoxyLogo}
+                  alt="Job Foxy Logo"
+                  fill
+                  className="object-contain object-left"
+                />
               </div>
-              <span className="text-xl font-bold text-[#1a1615] tracking-tight">Job Foxy</span>
             </Link>
             
             <p className="text-[#6b6b6b] text-sm leading-relaxed mb-6 max-w-xs">
