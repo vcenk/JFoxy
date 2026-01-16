@@ -88,20 +88,11 @@ export const metadata: Metadata = {
     title: 'Job Foxy | Stop Guessing. Master Your Interview.',
     description: 'AI-powered interview intelligence. Get resume gap analysis, smart job description breakdowns, and realistic mock interviews.',
     siteName: 'Job Foxy',
-    images: [
-      {
-        url: '/og-image.png', // We will need to ensure this exists later
-        width: 1200,
-        height: 630,
-        alt: 'Job Foxy AI Interview Coach',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Job Foxy | AI Interview Coach',
     description: 'Stop guessing. Master your interview with clarity.',
-    images: ['/og-image.png'],
     creator: '@jobfoxy',
   },
   robots: {

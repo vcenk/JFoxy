@@ -1,5 +1,17 @@
+# robots.txt for jobfoxy.com
+
 User-agent: *
 Allow: /
+
+# Disallow private/authenticated areas
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /auth/callback
+Disallow: /auth/reset-password
+
+# Allow specific auth pages for indexing
+Allow: /auth/login
+Allow: /auth/register
 
 # Sitemap
 Sitemap: https://jobfoxy.com/sitemap.xml
