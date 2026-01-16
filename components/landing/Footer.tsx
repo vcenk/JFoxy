@@ -2,7 +2,21 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Linkedin, Twitter, Send, CheckCircle2, Facebook, Instagram, Loader2 } from 'lucide-react'
+import { Linkedin, Send, CheckCircle2, Facebook, Instagram, Loader2 } from 'lucide-react'
+
+// Custom X (formerly Twitter) icon component
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  )
+}
 import Link from 'next/link'
 import Image from 'next/image'
 import JobFoxyLogo from '@/components/assets/JobFoxy.svg'
@@ -30,7 +44,7 @@ const defaultLegalLinks = [
 
 const defaultSocialLinks = [
   { name: 'LinkedIn', href: 'https://www.linkedin.com/company/jobfoxy/', icon: Linkedin },
-  { name: 'Twitter', href: 'https://x.com/JobFoxy', icon: Twitter },
+  { name: 'X', href: 'https://x.com/JobFoxy', icon: XIcon },
   { name: 'Instagram', href: 'https://www.instagram.com/job.foxy/', icon: Instagram },
 ]
 
