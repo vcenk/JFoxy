@@ -46,21 +46,34 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Define protected routes
+  // Define protected routes (dashboard only - public pages handled separately)
   const protectedRoutes = [
     '/dashboard',
-    '/resume',
-    '/coaching',
-    '/practice',
-    '/mock',
-    '/market-insights',
-    '/cover-letter',
-    '/account',
   ]
+
+  // Public SEO pages that should NOT require auth
+  const publicPages = [
+    '/resume/examples',
+    '/resume/templates',
+    '/resume/tech',
+    '/resume/finance',
+    '/resume/healthcare',
+    '/resume/marketing',
+    '/resume',
+    '/interview',
+    '/star-method',
+    '/mock-interviews',
+    '/cover-letter',
+    '/blog',
+  ]
+
+  const isPublicPage = publicPages.some((page) =>
+    req.nextUrl.pathname === page || req.nextUrl.pathname.startsWith(page + '/')
+  )
 
   const isProtectedRoute = protectedRoutes.some((route) =>
     req.nextUrl.pathname.startsWith(route)
-  )
+  ) && !isPublicPage
 
   // Redirect to login if accessing protected route without session
   if (isProtectedRoute && !session) {

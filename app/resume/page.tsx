@@ -51,7 +51,7 @@ const resumeTools = [
     href: '/resume/templates',
     icon: Layout,
     badge: 'Popular',
-    badgeColor: 'bg-green-500/20 text-green-300',
+    badgeColor: 'bg-emerald-50 text-emerald-600',
   },
   {
     title: 'Resume Examples',
@@ -71,7 +71,7 @@ const resumeTools = [
     href: '/auth/register',
     icon: Wand2,
     badge: 'Free',
-    badgeColor: 'bg-purple-500/20 text-purple-300',
+    badgeColor: 'bg-purple-50 text-purple-600',
   },
 ]
 
@@ -148,9 +148,9 @@ export default function ResumePage() {
         primaryCTA={{ text: 'Build Your Resume', href: '/auth/register' }}
         secondaryCTA={{ text: 'Browse Templates', href: '/resume/templates' }}
         stats={[
-          { value: '50+', label: 'Resume Templates', color: 'text-purple-400' },
-          { value: '900+', label: 'Power Words', color: 'text-green-400' },
-          { value: '100+', label: 'Resume Examples', color: 'text-blue-400' },
+          { value: '50+', label: 'Resume Templates', color: 'text-purple-600' },
+          { value: '900+', label: 'Power Words', color: 'text-emerald-600' },
+          { value: '100+', label: 'Resume Examples', color: 'text-blue-600' },
         ]}
         breadcrumbs={[
           { name: 'Home', href: '/' },
@@ -167,14 +167,14 @@ export default function ResumePage() {
       />
 
       {/* Why Resume Matters Section */}
-      <section className="py-16 border-t border-white/10">
+      <section className="py-16 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-white mb-6">
+              <h2 className="text-3xl font-bold text-[#1a1615] mb-6">
                 Your Resume is Your First Impression
               </h2>
-              <p className="text-lg text-white/70 mb-6">
+              <p className="text-lg text-[#6b6b6b] mb-6">
                 Recruiters spend an average of just 7 seconds scanning a resume. In that brief
                 moment, your resume needs to communicate your value, match the job requirements, and
                 stand out from hundreds of other applicants.
@@ -186,16 +186,16 @@ export default function ResumePage() {
                   'Strong action verbs increase perceived competence by 30%',
                 ].map((stat, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-white/80">{stat}</span>
+                    <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-[#1a1615]">{stat}</span>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
-                <Target className="w-8 h-8 text-purple-400" />
-                <h3 className="text-xl font-semibold text-white">Resume Success Formula</h3>
+                <Target className="w-8 h-8 text-blue-600" />
+                <h3 className="text-xl font-semibold text-[#1a1615]">Resume Success Formula</h3>
               </div>
               <div className="space-y-4">
                 {[
@@ -206,10 +206,10 @@ export default function ResumePage() {
                 ].map((item, index) => (
                   <div
                     key={index}
-                    className="flex justify-between items-center p-3 bg-white/5 rounded-lg"
+                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
                   >
-                    <span className="font-medium text-white">{item.label}</span>
-                    <span className="text-sm text-white/60">{item.value}</span>
+                    <span className="font-medium text-[#1a1615]">{item.label}</span>
+                    <span className="text-sm text-[#6b6b6b]">{item.value}</span>
                   </div>
                 ))}
               </div>
@@ -219,11 +219,11 @@ export default function ResumePage() {
       </section>
 
       {/* Industry Guides Section */}
-      <section className="py-16 border-t border-white/10">
+      <section className="py-16 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">Industry-Specific Resume Guides</h2>
-            <p className="text-lg text-white/60 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-[#1a1615] mb-4">Industry-Specific Resume Guides</h2>
+            <p className="text-lg text-[#6b6b6b] max-w-2xl mx-auto">
               Every industry has different expectations. Get tailored advice for your field.
             </p>
           </div>
@@ -235,14 +235,14 @@ export default function ResumePage() {
                 <Link
                   key={index}
                   href={guide.href}
-                  className="group bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 rounded-2xl p-6 transition-all"
+                  className="group bg-white hover:bg-gray-50 border border-gray-100 hover:border-blue-200 rounded-2xl p-6 transition-all shadow-sm"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center mb-4">
-                    <Icon className="w-6 h-6 text-purple-400" />
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center mb-4">
+                    <Icon className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{guide.title}</h3>
-                  <p className="text-sm text-white/60 mb-4">{guide.description}</p>
-                  <div className="flex items-center gap-2 text-purple-400 text-sm font-medium">
+                  <h3 className="text-lg font-semibold text-[#1a1615] mb-2">{guide.title}</h3>
+                  <p className="text-sm text-[#6b6b6b] mb-4">{guide.description}</p>
+                  <div className="flex items-center gap-2 text-blue-600 text-sm font-medium">
                     <span>Read guide</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>

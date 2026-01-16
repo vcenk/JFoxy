@@ -51,7 +51,7 @@ const interviewTools = [
     href: '/mock-interviews',
     icon: Mic,
     badge: 'Popular',
-    badgeColor: 'bg-green-500/20 text-green-300',
+    badgeColor: 'bg-emerald-50 text-emerald-600',
   },
   {
     title: 'STAR Method Guide',
@@ -147,9 +147,9 @@ export default function InterviewPage() {
         primaryCTA={{ text: 'Start Practicing', href: '/auth/register' }}
         secondaryCTA={{ text: 'Learn STAR Method', href: '/star-method' }}
         stats={[
-          { value: '40%', label: 'Better Performance', color: 'text-green-400' },
-          { value: '1000+', label: 'Practice Questions', color: 'text-purple-400' },
-          { value: '10+', label: 'Interview Types', color: 'text-blue-400' },
+          { value: '40%', label: 'Better Performance', color: 'text-emerald-600' },
+          { value: '1000+', label: 'Practice Questions', color: 'text-purple-600' },
+          { value: '10+', label: 'Interview Types', color: 'text-blue-600' },
         ]}
         breadcrumbs={[
           { name: 'Home', href: '/' },
@@ -166,11 +166,11 @@ export default function InterviewPage() {
       />
 
       {/* Interview Types Section */}
-      <section className="py-16 border-t border-white/10">
+      <section className="py-16 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">Types of Interviews</h2>
-            <p className="text-lg text-white/60 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-[#1a1615] mb-4">Types of Interviews</h2>
+            <p className="text-lg text-[#6b6b6b] max-w-2xl mx-auto">
               Different roles require different interview styles. Learn what to expect and how to
               prepare.
             </p>
@@ -182,26 +182,26 @@ export default function InterviewPage() {
               return (
                 <div
                   key={index}
-                  className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-purple-500/30 transition-colors"
+                  className="bg-white border border-gray-100 rounded-2xl p-6 hover:border-blue-200 transition-colors shadow-sm"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-6 h-6 text-purple-400" />
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-6 h-6 text-blue-600" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-white mb-2">{type.title}</h3>
-                      <p className="text-white/60 mb-4">{type.description}</p>
+                      <h3 className="text-xl font-semibold text-[#1a1615] mb-2">{type.title}</h3>
+                      <p className="text-[#6b6b6b] mb-4">{type.description}</p>
                       <div className="space-y-2">
-                        <span className="text-sm font-medium text-white/80">
+                        <span className="text-sm font-medium text-[#1a1615]">
                           Example questions:
                         </span>
                         <ul className="space-y-1">
                           {type.examples.map((example, i) => (
                             <li
                               key={i}
-                              className="text-sm text-white/50 flex items-center gap-2"
+                              className="text-sm text-[#6b6b6b] flex items-center gap-2"
                             >
-                              <span className="w-1 h-1 rounded-full bg-purple-400" />
+                              <span className="w-1 h-1 rounded-full bg-blue-600" />
                               {example}
                             </li>
                           ))}
@@ -217,14 +217,14 @@ export default function InterviewPage() {
       </section>
 
       {/* Success Tips Section */}
-      <section className="py-16 border-t border-white/10">
+      <section className="py-16 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-white mb-6">
+              <h2 className="text-3xl font-bold text-[#1a1615] mb-6">
                 Interview Success Starts with Preparation
               </h2>
-              <p className="text-lg text-white/70 mb-6">
+              <p className="text-lg text-[#6b6b6b] mb-6">
                 The most successful candidates aren't necessarily the most qualified—they're the
                 most prepared. Our tools help you practice until your best answers become second
                 nature.
@@ -237,16 +237,16 @@ export default function InterviewPage() {
                   'Learn to handle unexpected questions with grace',
                 ].map((tip, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-white/80">{tip}</span>
+                    <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-[#1a1615]">{tip}</span>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="bg-gradient-to-br from-purple-500/20 to-violet-500/20 border border-purple-500/30 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100 rounded-2xl p-8">
               <div className="flex items-center gap-3 mb-6">
-                <Zap className="w-8 h-8 text-purple-400" />
-                <h3 className="text-xl font-semibold text-white">The Job Foxy Advantage</h3>
+                <Zap className="w-8 h-8 text-blue-600" />
+                <h3 className="text-xl font-semibold text-[#1a1615]">The Job Foxy Advantage</h3>
               </div>
               <div className="space-y-4">
                 {[
@@ -257,16 +257,16 @@ export default function InterviewPage() {
                 ].map((item, index) => (
                   <div
                     key={index}
-                    className="flex justify-between items-center p-3 bg-white/5 rounded-lg"
+                    className="flex justify-between items-center p-3 bg-white/80 rounded-lg"
                   >
-                    <span className="font-medium text-white">{item.label}</span>
-                    <span className="text-sm text-purple-300">{item.detail}</span>
+                    <span className="font-medium text-[#1a1615]">{item.label}</span>
+                    <span className="text-sm text-blue-600">{item.detail}</span>
                   </div>
                 ))}
               </div>
               <Link
                 href="/auth/register"
-                className="mt-6 w-full flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl transition-colors"
+                className="mt-6 w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#1a1615] hover:bg-black text-white font-semibold rounded-xl transition-colors"
               >
                 Start Free Practice
                 <ArrowRight className="w-4 h-4" />
