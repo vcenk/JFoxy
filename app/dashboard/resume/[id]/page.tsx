@@ -9,11 +9,12 @@ import { ResumeProvider, useResume } from '@/contexts/ResumeContext'
 import { ResumeCanvas } from '@/components/resume/studio/ResumeCanvas'
 import { StudioLayout } from '@/components/resume/studio/StudioLayout'
 import { useAutoSave } from '@/hooks/useAutoSave'
-import { ArrowLeft, Download, Check, Loader2, X, FileEdit, ScanSearch, FileText } from 'lucide-react'
+import { ArrowLeft, Download, Check, Loader2, X, FileEdit, ScanSearch, FileText, Linkedin } from 'lucide-react'
 import { JobAnalysisView, JobAnalysisViewRef } from '@/components/resume/analysis/JobAnalysisView'
 import { CoverLetterView, CoverLetterViewRef } from '@/components/resume/analysis/CoverLetterView'
 import { plainTextToJSON } from '@/lib/utils/richTextHelpers'
 import { ExportDropdown } from '@/components/ui/ExportDropdown'
+import { AlertModal } from '@/components/ui/AlertModal'
 import { exportResumeToDocx } from '@/lib/utils/docxExport'
 import { pdf } from '@react-pdf/renderer'
 import { getTemplateComponent } from '@/lib/pdf/templates'
@@ -41,6 +42,8 @@ function ResumeEditorContent({ params }: ResumeEditorContentProps) {
   const [hasAnalysisResults, setHasAnalysisResults] = useState(false)
   const [hasCoverLetter, setHasCoverLetter] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorModalMessage, setErrorModalMessage] = useState('')
   const coverLetterRef = useRef<CoverLetterViewRef>(null)
   const jobAnalysisRef = useRef<JobAnalysisViewRef>(null)
 
@@ -206,7 +209,8 @@ function ResumeEditorContent({ params }: ResumeEditorContentProps) {
         URL.revokeObjectURL(url)
       } catch (error) {
         console.error('PDF generation failed:', error)
-        alert('Failed to export PDF. Please try again.')
+        setErrorModalMessage('Failed to export PDF. Please try again.')
+        setShowErrorModal(true)
       } finally {
         setIsExporting(false)
       }
@@ -225,7 +229,8 @@ function ResumeEditorContent({ params }: ResumeEditorContentProps) {
         await exportResumeToDocx(resumeData as any, resumeTitle || 'Resume', pdfDesign)
       } catch (error) {
         console.error('DOCX Export Error:', error)
-        alert('Failed to export DOCX')
+        setErrorModalMessage('Failed to export DOCX. Please try again.')
+        setShowErrorModal(true)
       } finally {
         setIsExporting(false)
       }
@@ -343,6 +348,16 @@ function ResumeEditorContent({ params }: ResumeEditorContentProps) {
                 </button>
               )}
 
+              {/* LinkedIn Optimizer Button */}
+              <button
+                onClick={() => router.push(`/dashboard/linkedin/${resumeId}`)}
+                className="px-2 py-1.5 sm:px-3 md:px-4 rounded-lg sm:rounded-xl border border-white/10 transition-all flex items-center gap-1 sm:gap-2 flex-shrink-0 glass-panel hover:bg-blue-500/10 hover:border-blue-500/30 text-white/80 hover:text-white"
+                title="LinkedIn Optimizer"
+              >
+                <Linkedin className="w-4 h-4 flex-shrink-0 text-blue-400" />
+                <span className="text-xs sm:text-sm font-medium min-w-0 truncate hidden md:inline">LinkedIn</span>
+              </button>
+
               <ExportDropdown
                 onExportPDF={handleExportPDF}
                 onExportDOCX={handleExportDOCX}
@@ -433,6 +448,16 @@ function ResumeEditorContent({ params }: ResumeEditorContentProps) {
           }
         }
       `}</style>
+
+      {/* Export Error Modal */}
+      <AlertModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="Export Error"
+        message={errorModalMessage}
+        variant="error"
+        okText="OK"
+      />
     </>
   )
 }

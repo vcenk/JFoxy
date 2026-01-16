@@ -8,6 +8,7 @@ import { ArrowRight, Loader2, Target, FileText, Check, AlertCircle, Download } f
 import { AnalysisDashboard, AnalysisData } from './AnalysisDashboard'
 import { ResumeAnalysisResult } from '@/lib/types/analysis'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
+import { AlertModal } from '@/components/ui/AlertModal'
 import { getAvailableIndustries } from '@/lib/data/atsKeywords'
 import { useResume } from '@/contexts/ResumeContext'
 import { plainTextToJSON, jsonToPlainText } from '@/lib/utils/richTextHelpers'
@@ -47,6 +48,8 @@ export const JobAnalysisView = forwardRef<JobAnalysisViewRef, JobAnalysisViewPro
   const [optimizationComplete, setOptimizationComplete] = useState(false)
   const [optimizationMessage, setOptimizationMessage] = useState('')
   const [resumeRawText, setResumeRawText] = useState<string>('')
+  const [showExportErrorModal, setShowExportErrorModal] = useState(false)
+  const [exportErrorMessage, setExportErrorMessage] = useState('')
 
   // Get available industries for dropdown
   const availableIndustries = getAvailableIndustries()
@@ -911,7 +914,8 @@ export const JobAnalysisView = forwardRef<JobAnalysisViewRef, JobAnalysisViewPro
       doc.save(`JobFoxy_Analysis_${safeTitle}.pdf`)
     } catch (error) {
       console.error('PDF Export Error:', error)
-      alert('Failed to export PDF. Please try again.')
+      setExportErrorMessage('Failed to export PDF. Please try again.')
+      setShowExportErrorModal(true)
     } finally {
       setIsExporting(false)
     }
@@ -924,7 +928,8 @@ export const JobAnalysisView = forwardRef<JobAnalysisViewRef, JobAnalysisViewPro
       await exportAnalysisReportToDocx(analysisResult, jobTitle || 'Job Analysis', company || '')
     } catch (error) {
       console.error('DOCX Export Error:', error)
-      alert('Failed to export DOCX. Please try again.')
+      setExportErrorMessage('Failed to export DOCX. Please try again.')
+      setShowExportErrorModal(true)
     } finally {
       setIsExporting(false)
     }
@@ -1242,6 +1247,15 @@ export const JobAnalysisView = forwardRef<JobAnalysisViewRef, JobAnalysisViewPro
           missingKeywordsCount={analysisResult?.missing_keywords?.length || 0}
           isLoading={optimizing}
         />
+
+        <AlertModal
+          isOpen={showExportErrorModal}
+          onClose={() => setShowExportErrorModal(false)}
+          title="Export Error"
+          message={exportErrorMessage}
+          variant="error"
+          okText="OK"
+        />
       </div>
     )
   }
@@ -1428,6 +1442,15 @@ export const JobAnalysisView = forwardRef<JobAnalysisViewRef, JobAnalysisViewPro
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         featureName="AI Job Analysis"
+      />
+
+      <AlertModal
+        isOpen={showExportErrorModal}
+        onClose={() => setShowExportErrorModal(false)}
+        title="Export Error"
+        message={exportErrorMessage}
+        variant="error"
+        okText="OK"
       />
     </div>
   )

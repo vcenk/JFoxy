@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard, GlassCardSection } from '@/components/ui/glass-card'
+import { AlertModal } from '@/components/ui/AlertModal'
 
 // --- Types ---
 
@@ -132,7 +133,7 @@ async function exportToPDF(title: string, context: { resume?: string, job?: stri
     doc.save(`${title.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`)
   } catch (error) {
     console.error('PDF Export Error:', error)
-    alert('Failed to generate PDF')
+    throw new Error('Failed to generate PDF')
   }
 }
 
@@ -155,6 +156,7 @@ export default function CoachingPage() {
   const [newJobTitle, setNewJobTitle] = useState('')
   const [newJobCompany, setNewJobCompany] = useState('')
   const [newJobDescription, setNewJobDescription] = useState('')
+
 
   // Load Context Data
   useEffect(() => {
@@ -411,6 +413,7 @@ export default function CoachingPage() {
 function SwotView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId: string | null, contextTitles: any }) {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [showPDFError, setShowPDFError] = useState(false)
 
   // Fetch existing data on load
   useEffect(() => {
@@ -455,7 +458,7 @@ function SwotView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId:
     }
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!data) return
 
     // Helper to convert SWOT items to strings
@@ -471,12 +474,16 @@ function SwotView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId:
       return String(item)
     }
 
-    exportToPDF('SWOT Analysis', contextTitles, [
-      { title: 'Strengths', content: data.strengths?.map(convertToString) || [] },
-      { title: 'Weaknesses', content: data.weaknesses?.map(convertToString) || [] },
-      { title: 'Opportunities', content: data.opportunities?.map(convertToString) || [] },
-      { title: 'Threats', content: data.threats?.map(convertToString) || [] },
-    ])
+    try {
+      await exportToPDF('SWOT Analysis', contextTitles, [
+        { title: 'Strengths', content: data.strengths?.map(convertToString) || [] },
+        { title: 'Weaknesses', content: data.weaknesses?.map(convertToString) || [] },
+        { title: 'Opportunities', content: data.opportunities?.map(convertToString) || [] },
+        { title: 'Threats', content: data.threats?.map(convertToString) || [] },
+      ])
+    } catch {
+      setShowPDFError(true)
+    }
   }
 
   return (
@@ -526,6 +533,15 @@ function SwotView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId:
           </div>
         </div>
       )}
+
+      <AlertModal
+        isOpen={showPDFError}
+        onClose={() => setShowPDFError(false)}
+        title="Export Failed"
+        message="Failed to generate PDF. Please try again."
+        variant="error"
+        okText="OK"
+      />
     </div>
   )
 }
@@ -581,6 +597,9 @@ function StarView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId:
   // Custom Question State
   const [customQuestion, setCustomQuestion] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
+
+  // Error Modal State
+  const [showPDFError, setShowPDFError] = useState(false)
 
   // Fetch existing STAR stories on mount
   useEffect(() => {
@@ -844,13 +863,19 @@ function StarView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId:
                               {/* PDF Export Button */}
                               <div className="absolute top-0 right-0">
                                 <button
-                                  onClick={() => exportToPDF('STAR Story', contextTitles, [
-                                    { title: 'Question', content: q.question },
-                                    { title: 'Situation', content: q.answer.situation },
-                                    { title: 'Task', content: q.answer.task },
-                                    { title: 'Action', content: q.answer.action },
-                                    { title: 'Result', content: q.answer.result },
-                                  ])}
+                                  onClick={async () => {
+                                    try {
+                                      await exportToPDF('STAR Story', contextTitles, [
+                                        { title: 'Question', content: q.question },
+                                        { title: 'Situation', content: q.answer.situation },
+                                        { title: 'Task', content: q.answer.task },
+                                        { title: 'Action', content: q.answer.action },
+                                        { title: 'Result', content: q.answer.result },
+                                      ])
+                                    } catch {
+                                      setShowPDFError(true)
+                                    }
+                                  }}
                                   className="glass-panel p-2 hover:bg-yellow-900/30 text-white rounded-lg transition-all group"
                                   title="Download as PDF"
                                 >
@@ -891,6 +916,15 @@ function StarView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId:
           Select a Target Job to unlock Question Prediction.
         </div>
       )}
+
+      <AlertModal
+        isOpen={showPDFError}
+        onClose={() => setShowPDFError(false)}
+        title="Export Failed"
+        message="Failed to generate PDF. Please try again."
+        variant="error"
+        okText="OK"
+      />
     </div>
   )
 }
@@ -913,6 +947,9 @@ function GapView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId: 
   const [customGapDesc, setCustomGapDesc] = useState('')
   const [customGapType, setCustomGapType] = useState('employment_gap')
   const [showCustomInput, setShowCustomInput] = useState(false)
+
+  // Error Modal State
+  const [showPDFError, setShowPDFError] = useState(false)
 
   // Fetch existing defenses on load
   useEffect(() => {
@@ -1178,12 +1215,18 @@ function GapView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId: 
                               {/* PDF Export Button */}
                               <div className="absolute top-0 right-0">
                                 <button
-                                  onClick={() => exportToPDF('Gap Defense Script', contextTitles, [
-                                    { title: 'Gap', content: gap.description },
-                                    { title: 'Pivot', content: gap.defense.pivot },
-                                    { title: 'Proof', content: gap.defense.proof },
-                                    { title: 'Promise', content: gap.defense.promise },
-                                  ])}
+                                  onClick={async () => {
+                                    try {
+                                      await exportToPDF('Gap Defense Script', contextTitles, [
+                                        { title: 'Gap', content: gap.description },
+                                        { title: 'Pivot', content: gap.defense.pivot },
+                                        { title: 'Proof', content: gap.defense.proof },
+                                        { title: 'Promise', content: gap.defense.promise },
+                                      ])
+                                    } catch {
+                                      setShowPDFError(true)
+                                    }
+                                  }}
                                   className="glass-panel p-2 hover:bg-green-900/30 text-white rounded-lg transition-all group"
                                   title="Download as PDF"
                                 >
@@ -1221,6 +1264,15 @@ function GapView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId: 
           Select a Target Job in the sidebar to enable AI Gap Detection.
         </div>
       )}
+
+      <AlertModal
+        isOpen={showPDFError}
+        onClose={() => setShowPDFError(false)}
+        title="Export Failed"
+        message="Failed to generate PDF. Please try again."
+        variant="error"
+        okText="OK"
+      />
     </div>
   )
 }
@@ -1230,6 +1282,7 @@ function IntroView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
+  const [showPDFError, setShowPDFError] = useState(false)
 
   // Fetch existing pitch on load
   useEffect(() => {
@@ -1281,14 +1334,18 @@ function IntroView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId
     }
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!data) return
-    exportToPDF('Intro Pitch', contextTitles, [
-      { title: 'The Hook', content: data.hook },
-      { title: 'Core Message', content: data.core_message },
-      { title: 'Call to Action', content: data.call_to_action },
-      { title: 'Full Script', content: data.pitch_text },
-    ])
+    try {
+      await exportToPDF('Intro Pitch', contextTitles, [
+        { title: 'The Hook', content: data.hook },
+        { title: 'Core Message', content: data.core_message },
+        { title: 'Call to Action', content: data.call_to_action },
+        { title: 'Full Script', content: data.pitch_text },
+      ])
+    } catch {
+      setShowPDFError(true)
+    }
   }
 
   const styleOptions = [
@@ -1503,6 +1560,15 @@ function IntroView({ resumeId, jobId, contextTitles }: { resumeId: string; jobId
           </div>
         </motion.div>
       )}
+
+      <AlertModal
+        isOpen={showPDFError}
+        onClose={() => setShowPDFError(false)}
+        title="Export Failed"
+        message="Failed to generate PDF. Please try again."
+        variant="error"
+        okText="OK"
+      />
     </div>
   )
 }

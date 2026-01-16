@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { SimpleSwitch } from '@/components/ui/simple-switch'
 import { IntegrationsTab } from '@/components/account/IntegrationsTab'
+import { AlertModal } from '@/components/ui/AlertModal'
 
 // ------------------------------------------------------------------
 // Types
@@ -73,6 +74,8 @@ function AccountPageContent() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorModalMessage, setErrorModalMessage] = useState('')
 
   // Initialize
   useEffect(() => {
@@ -108,7 +111,8 @@ function AccountPageContent() {
       setTimeout(() => setSaveSuccess(false), 3000)
     } catch (error) {
       console.error('Error saving settings:', error)
-      alert('Failed to save settings')
+      setErrorModalMessage('Failed to save settings. Please try again.')
+      setShowErrorModal(true)
     } finally {
       setSaving(false)
     }
@@ -206,6 +210,16 @@ function AccountPageContent() {
           )}
         </div>
       </div>
+
+      {/* Error Modal */}
+      <AlertModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title="Error"
+        message={errorModalMessage}
+        variant="error"
+        okText="OK"
+      />
     </div>
   )
 }
@@ -259,6 +273,7 @@ function SubscriptionTab({ profile }: { profile: any }) {
     discount: string
     applicableTiers: string[]
   } | null>(null)
+  const [showCheckoutError, setShowCheckoutError] = useState(false)
 
   const tierDisplay = getTierDisplayName(tier)
   const isInterviewReady = tier === SUBSCRIPTION_TIERS.INTERVIEW_READY
@@ -331,7 +346,7 @@ function SubscriptionTab({ profile }: { profile: any }) {
       window.location.href = data.data.url
     } catch (error) {
       console.error('Checkout error:', error)
-      alert('Failed to start checkout. Please try again.')
+      setShowCheckoutError(true)
       setLoadingId(null)
     }
   }
@@ -635,6 +650,16 @@ function SubscriptionTab({ profile }: { profile: any }) {
           </>
         )}
       </div>
+
+      {/* Checkout Error Modal */}
+      <AlertModal
+        isOpen={showCheckoutError}
+        onClose={() => setShowCheckoutError(false)}
+        title="Checkout Error"
+        message="Failed to start checkout. Please try again."
+        variant="error"
+        okText="OK"
+      />
     </div>
   )
 }

@@ -59,7 +59,8 @@
       "WebFetch(domain:fonts.googleapis.com)",
       "Bash(git remote set-url:*)",
       "Bash(npm run lint)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd promo code redemption feature and update subscription plans\n\n- Add 4-tier pricing migration \\(free, basic, pro, interview_ready\\)\n- Add /api/billing/validate-promo endpoint to validate promo codes\n- Add promo code input UI on account subscription tab\n- Support tier-specific coupons \\(e.g., PRO-only discounts\\)\n- Enable allow_promotion_codes on Stripe checkout\n- Update stripeClient to support pre-applied promotion codes\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd promo code redemption feature and update subscription plans\n\n- Add 4-tier pricing migration \\(free, basic, pro, interview_ready\\)\n- Add /api/billing/validate-promo endpoint to validate promo codes\n- Add promo code input UI on account subscription tab\n- Support tier-specific coupons \\(e.g., PRO-only discounts\\)\n- Enable allow_promotion_codes on Stripe checkout\n- Update stripeClient to support pre-applied promotion codes\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)"
     ]
   }
 }

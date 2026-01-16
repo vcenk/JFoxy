@@ -24,6 +24,7 @@ import { SessionHeader } from '@/components/practice/SessionHeader'
 import { QuestionQueue } from '@/components/practice/QuestionQueue'
 import { RecordingHub } from '@/components/practice/RecordingHub'
 import { LiveConsole } from '@/components/practice/LiveConsole'
+import { AlertModal } from '@/components/ui/AlertModal'
 
 interface PracticeQuestion {
   id: string
@@ -95,6 +96,10 @@ const PracticeSessionPage = () => {
   const [showNoSpeechWarning, setShowNoSpeechWarning] = useState(false)
   const [showEndSessionModal, setShowEndSessionModal] = useState(false)
 
+  // Error modal state
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorModalContent, setErrorModalContent] = useState({ title: '', message: '' })
+
   // Adaptive Difficulty States
   const [recentScores, setRecentScores] = useState<number[]>([])
   const [currentDifficulty, setCurrentDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
@@ -163,7 +168,11 @@ const PracticeSessionPage = () => {
         setAudioStream(stream)
       } catch (err) {
         console.error('Error accessing microphone:', err)
-        alert('Please allow microphone access to start the practice session.')
+        setErrorModalContent({
+          title: 'Microphone Required',
+          message: 'Please allow microphone access to start the practice session. Check your browser permissions and try again.'
+        })
+        setShowErrorModal(true)
       }
     }
     initMedia()
@@ -196,7 +205,11 @@ const PracticeSessionPage = () => {
         console.error('Audio playback error:', e);
         setAiSpeaking(false);
         if (onEndCallback) onEndCallback();
-        alert('Failed to play audio. Please try again.');
+        setErrorModalContent({
+          title: 'Audio Playback Error',
+          message: 'Failed to play audio. Please check your speaker settings and try again.'
+        })
+        setShowErrorModal(true)
       };
 
       await audio.play()
@@ -204,7 +217,11 @@ const PracticeSessionPage = () => {
       console.error('Error in speakText:', error)
       setAiSpeaking(false)
       if (onEndCallback) onEndCallback()
-      alert('AI voice currently unavailable. Please check your network and settings.')
+      setErrorModalContent({
+        title: 'Voice Unavailable',
+        message: 'AI voice is currently unavailable. Please check your network connection and try again.'
+      })
+      setShowErrorModal(true)
     }
   }, [])
 
@@ -231,11 +248,19 @@ const PracticeSessionPage = () => {
         setSessionStatus('finished')
         router.push(`/dashboard/practice/session/${sessionId}/report`)
       } else {
-        alert('Error ending session: ' + (data.error || 'Unknown error'))
+        setErrorModalContent({
+          title: 'Session Error',
+          message: 'Error ending session: ' + (data.error || 'Unknown error')
+        })
+        setShowErrorModal(true)
       }
     } catch (e) {
       console.error('Error ending session:', e)
-      alert('Failed to end session properly.')
+      setErrorModalContent({
+        title: 'Session Error',
+        message: 'Failed to end session properly. Please try again.'
+      })
+      setShowErrorModal(true)
     }
   }, [sessionId])
 
@@ -355,11 +380,19 @@ const PracticeSessionPage = () => {
           await endSession();
         }
       } else {
-        alert('Error processing answer: ' + (data.error || 'Unknown error'))
+        setErrorModalContent({
+          title: 'Processing Error',
+          message: 'Error processing answer: ' + (data.error || 'Unknown error')
+        })
+        setShowErrorModal(true)
       }
     } catch (e) {
       console.error('Error in sending answer:', e)
-      alert('Failed to process your answer. Please try again.')
+      setErrorModalContent({
+        title: 'Processing Error',
+        message: 'Failed to process your answer. Please try again.'
+      })
+      setShowErrorModal(true)
     } finally {
       setIsSendingAnswer(false)
     }
@@ -435,11 +468,19 @@ const PracticeSessionPage = () => {
         // Reset spoken status so it can be spoken again
         spokenQuestionIdRef.current = null
       } else {
-        alert('Failed to regenerate question: ' + (data.error || 'Unknown error'))
+        setErrorModalContent({
+          title: 'Regeneration Failed',
+          message: 'Failed to regenerate question: ' + (data.error || 'Unknown error')
+        })
+        setShowErrorModal(true)
       }
     } catch (error) {
       console.error('Error regenerating question:', error)
-      alert('Failed to regenerate question. Please try again.')
+      setErrorModalContent({
+        title: 'Regeneration Failed',
+        message: 'Failed to regenerate question. Please try again.'
+      })
+      setShowErrorModal(true)
     } finally {
       setIsRegeneratingQuestion(false)
     }
@@ -630,6 +671,16 @@ const PracticeSessionPage = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Error Modal */}
+      <AlertModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title={errorModalContent.title}
+        message={errorModalContent.message}
+        variant="error"
+        okText="OK"
+      />
     </div>
   )
 }

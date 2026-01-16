@@ -31,6 +31,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { getAllIndustries, type Industry, type ExperienceLevel } from '@/lib/data/jobTitleTaxonomy'
 import ResumePreviewModal from '@/components/admin/ResumePreviewModal'
+import { AlertModal } from '@/components/ui/AlertModal'
 import type { ParsedResume } from '@/lib/types/resume'
 
 interface ResumeExample {
@@ -81,6 +82,15 @@ export default function AdminExamplesPage() {
   // Preview modal
   const [previewExample, setPreviewExample] = useState<ResumeExample | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+
+  // Delete modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [exampleToDelete, setExampleToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  // Info modal for placeholders
+  const [showInfoModal, setShowInfoModal] = useState(false)
+  const [infoModalContent, setInfoModalContent] = useState({ title: '', message: '' })
 
   // Helper function to get auth headers
   const getAuthHeaders = async () => {
@@ -145,13 +155,20 @@ export default function AdminExamplesPage() {
 
   const generateSingleExample = async () => {
     // This would open a modal or form to select job title and level
-    // For now, let's show a placeholder
-    alert('Single example generation form would open here')
+    setInfoModalContent({
+      title: 'Coming Soon',
+      message: 'Single example generation form will be available in a future update.'
+    })
+    setShowInfoModal(true)
   }
 
   const generateBatch = async () => {
     // This would open a batch generation interface
-    alert('Batch generation interface would open here')
+    setInfoModalContent({
+      title: 'Coming Soon',
+      message: 'Batch generation interface will be available in a future update.'
+    })
+    setShowInfoModal(true)
   }
 
   const togglePublish = async (exampleId: string, currentStatus: boolean) => {
@@ -171,12 +188,18 @@ export default function AdminExamplesPage() {
     }
   }
 
-  const deleteExample = async (exampleId: string) => {
-    if (!confirm('Are you sure you want to delete this example?')) return
+  const deleteExample = (exampleId: string) => {
+    setExampleToDelete(exampleId)
+    setShowDeleteModal(true)
+  }
 
+  const confirmDeleteExample = async () => {
+    if (!exampleToDelete) return
+
+    setIsDeleting(true)
     try {
       const headers = await getAuthHeaders()
-      const response = await fetch(`/api/admin/examples/${exampleId}`, {
+      const response = await fetch(`/api/admin/examples/${exampleToDelete}`, {
         method: 'DELETE',
         headers,
       })
@@ -186,6 +209,10 @@ export default function AdminExamplesPage() {
       }
     } catch (err) {
       console.error('Failed to delete example:', err)
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteModal(false)
+      setExampleToDelete(null)
     }
   }
 
@@ -675,6 +702,32 @@ export default function AdminExamplesPage() {
         isOpen={isPreviewOpen}
         onClose={closePreview}
         example={previewExample}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <AlertModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setExampleToDelete(null)
+        }}
+        title="Delete Example"
+        message="Are you sure you want to delete this example? This action cannot be undone."
+        variant="error"
+        confirmText="Delete"
+        onConfirm={confirmDeleteExample}
+        cancelText="Cancel"
+        isLoading={isDeleting}
+      />
+
+      {/* Info Modal for Placeholders */}
+      <AlertModal
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        title={infoModalContent.title}
+        message={infoModalContent.message}
+        variant="info"
+        okText="Got it"
       />
     </div>
   )

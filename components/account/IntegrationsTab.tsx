@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Mic, Play, Loader2, CheckCircle, Save, Pause, Globe, Sparkles, Lock, User, Video, Volume2 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import { AlertModal } from '@/components/ui/AlertModal'
 import { SUBSCRIPTION_TIERS, TIER_LIMITS } from '@/lib/config/constants'
 import { ALL_PERSONAS, InterviewerPersona } from '@/lib/data/interviewerPersonas'
 
@@ -31,6 +32,10 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
   const [genderFilter, setGenderFilter] = useState<'all' | 'female' | 'male'>('all')
   const [loadingData, setLoadingData] = useState(true)
   const [playingPreview, setPlayingPreview] = useState(false)
+
+  // Alert modal state
+  const [showAlertModal, setShowAlertModal] = useState(false)
+  const [alertModalContent, setAlertModalContent] = useState({ title: '', message: '', variant: 'error' as 'error' | 'warning' | 'info' })
 
   // Access user's tier from profile
   const userTier = profile?.subscription_tier || SUBSCRIPTION_TIERS.FREE
@@ -112,7 +117,12 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
       await audio.play()
     } catch (error) {
       console.error('Voice preview error:', error)
-      alert('Failed to play voice preview')
+      setAlertModalContent({
+        title: 'Preview Failed',
+        message: 'Failed to play voice preview. Please try again.',
+        variant: 'error'
+      })
+      setShowAlertModal(true)
       setPlayingPreview(false)
     }
   }
@@ -126,22 +136,42 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
 
     if (!isUsingDefaults) {
       if (!canAccessAllLanguages && currentPrefs.language !== 'en') {
-        alert('You cannot save a premium language on your current tier.');
+        setAlertModalContent({
+          title: 'Upgrade Required',
+          message: 'Premium languages require a Pro subscription. Please upgrade to access this feature.',
+          variant: 'warning'
+        })
+        setShowAlertModal(true)
         return;
       }
       if (!canAccessAllGenders && currentPrefs.gender !== 'female') {
-        alert('You cannot save a premium gender on your current tier.');
+        setAlertModalContent({
+          title: 'Upgrade Required',
+          message: 'Premium voice genders require a Pro subscription. Please upgrade to access this feature.',
+          variant: 'warning'
+        })
+        setShowAlertModal(true)
         return;
       }
       if (!canAccessProStyles && currentPrefs.style !== 'professional') {
-        alert('You cannot save a premium voice style on your current tier.');
+        setAlertModalContent({
+          title: 'Upgrade Required',
+          message: 'Premium voice styles require a Pro subscription. Please upgrade to access this feature.',
+          variant: 'warning'
+        })
+        setShowAlertModal(true)
         return;
       }
 
       const styleObj = styles.find(s => s.id === currentPrefs.style);
       if (!canAccessPremiumStyles && styleObj?.tier === 'premium') {
-         alert('You cannot save a premium voice style on your current tier.');
-         return;
+        setAlertModalContent({
+          title: 'Upgrade Required',
+          message: 'This voice style requires an Interview Ready subscription. Please upgrade to access this feature.',
+          variant: 'warning'
+        })
+        setShowAlertModal(true)
+        return;
       }
     }
 
@@ -164,7 +194,12 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
       onSave({ deepgram, mockInterview })
     } catch (error) {
       console.error('Error saving integration settings:', error)
-      alert('Failed to save settings. Please try again.')
+      setAlertModalContent({
+        title: 'Save Failed',
+        message: 'Failed to save settings. Please try again.',
+        variant: 'error'
+      })
+      setShowAlertModal(true)
     }
   }
 
@@ -503,6 +538,16 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
           )}
         </button>
       </div>
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={showAlertModal}
+        onClose={() => setShowAlertModal(false)}
+        title={alertModalContent.title}
+        message={alertModalContent.message}
+        variant={alertModalContent.variant}
+        okText="OK"
+      />
     </div>
   )
 }

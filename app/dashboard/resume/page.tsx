@@ -10,6 +10,7 @@ import { ResumeUploadModal } from '@/components/resume/ResumeUploadModal'
 import { LinkedInImportModal } from '@/components/resume/LinkedInImportModal'
 import { ScoreBadge } from '@/components/ui/ScoreBadge'
 import { UpgradeModal } from '@/components/ui/UpgradeModal'
+import { AlertModal } from '@/components/ui/AlertModal'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
   Plus,
@@ -62,6 +63,9 @@ export default function ResumeLibraryPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [renamingResume, setRenamingResume] = useState<Resume | null>(null)
   const [newResumeTitle, setNewResumeTitle] = useState('')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [resumeToDelete, setResumeToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -112,16 +116,26 @@ export default function ResumeLibraryPage() {
     }
   }
 
-  const handleDeleteResume = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this resume?')) return
+  const handleDeleteResume = (id: string) => {
+    setResumeToDelete(id)
+    setShowDeleteModal(true)
+  }
 
+  const confirmDeleteResume = async () => {
+    if (!resumeToDelete) return
+
+    setIsDeleting(true)
     try {
-      const response = await fetch(`/api/resume/${id}`, { method: 'DELETE' })
+      const response = await fetch(`/api/resume/${resumeToDelete}`, { method: 'DELETE' })
       if (response.ok) {
-        setResumes(resumes.filter(r => r.id !== id))
+        setResumes(resumes.filter(r => r.id !== resumeToDelete))
       }
     } catch (error) {
       console.error('Failed to delete resume:', error)
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteModal(false)
+      setResumeToDelete(null)
     }
   }
 
@@ -596,6 +610,22 @@ export default function ResumeLibraryPage() {
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         featureName="Resume Builds"
+      />
+
+      {/* Delete Confirmation Modal */}
+      <AlertModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setResumeToDelete(null)
+        }}
+        title="Delete Resume"
+        message="Are you sure you want to delete this resume? This action cannot be undone."
+        variant="error"
+        confirmText="Delete"
+        onConfirm={confirmDeleteResume}
+        cancelText="Cancel"
+        isLoading={isDeleting}
       />
     </div>
   )
