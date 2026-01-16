@@ -258,7 +258,7 @@ async function generatePracticeQuestions({
   if (jobContext) {
     // Simple extraction of key phrases (skills, requirements)
     const skillPatterns = /(?:experience with|proficiency in|knowledge of|familiar with|expertise in|skilled in|ability to)\s+([^,.;]+)/gi
-    const matches = jobContext.matchAll(skillPatterns)
+    const matches = Array.from(jobContext.matchAll(skillPatterns))
     for (const match of matches) {
       if (match[1] && match[1].length < 50) {
         extractedJob.keyRequirements.push(match[1].trim())
