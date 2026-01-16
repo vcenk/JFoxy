@@ -121,6 +121,51 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className={`${plusJakarta.variable} ${inter.variable} ${roboto.variable} ${openSans.variable} ${lato.variable} ${montserrat.variable} ${raleway.variable} ${poppins.variable} ${playfair.variable} ${merriweather.variable} font-sans antialiased`}>
+        {/* Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Job Foxy',
+              url: 'https://jobfoxy.com',
+              logo: 'https://jobfoxy.com/logo.png',
+              description: 'AI-powered interview coaching and resume analysis platform.',
+              sameAs: [
+                'https://twitter.com/jobfoxy',
+                'https://linkedin.com/company/jobfoxy'
+              ],
+              contactPoint: {
+                '@type': 'ContactPoint',
+                contactType: 'customer service',
+                url: 'https://jobfoxy.com'
+              }
+            }),
+          }}
+        />
+        {/* WebSite Schema - enables sitelinks search box */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'Job Foxy',
+              url: 'https://jobfoxy.com',
+              description: 'AI-powered interview coaching and resume analysis platform.',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: 'https://jobfoxy.com/blog?q={search_term_string}'
+                },
+                'query-input': 'required name=search_term_string'
+              }
+            }),
+          }}
+        />
+        {/* SoftwareApplication Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

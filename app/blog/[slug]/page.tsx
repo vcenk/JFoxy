@@ -50,19 +50,62 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
     notFound()
   }
 
-  // 3. JSON-LD Structured Data for Google
-  const jsonLd = {
+  // 3. JSON-LD Structured Data for Google - Enhanced BlogPosting
+  const blogPostingSchema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
     description: post.excerpt,
+    image: `https://jobfoxy.com/blog/${post.slug}/opengraph-image`,
     author: {
-      '@type': 'Person',
-      name: post.author,
+      '@type': 'Organization',
+      name: 'Job Foxy',
+      url: 'https://jobfoxy.com',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Job Foxy',
+      url: 'https://jobfoxy.com',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://jobfoxy.com/logo.png',
+      },
     },
     datePublished: new Date(post.publishedAt).toISOString(),
+    dateModified: new Date(post.publishedAt).toISOString(),
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://jobfoxy.com/blog/${post.slug}`,
+    },
     keywords: post.keywords.join(', '),
-    articleBody: post.content, // Ideally stripped of markdown, but this works for basic length checks
+    articleSection: post.tag,
+    wordCount: post.content.split(/\s+/).length,
+  }
+
+  // Breadcrumb Schema for navigation
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://jobfoxy.com',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Blog',
+        item: 'https://jobfoxy.com/#blog',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: post.title,
+        item: `https://jobfoxy.com/blog/${post.slug}`,
+      },
+    ],
   }
 
   return (
@@ -70,7 +113,11 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
       {/* Inject Structured Data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
       {/* Navigation */}

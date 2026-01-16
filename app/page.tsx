@@ -14,12 +14,16 @@ import {
   Blog,
   FinalCTA,
   Footer,
-  BrandSignature
+  BrandSignature,
+  HomePageStructuredData
 } from '@/components/landing'  // components/landing/index.ts
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen relative">
+      {/* Structured Data for SEO */}
+      <HomePageStructuredData />
+
       {/* Animated Background */}
       <Background />
 
