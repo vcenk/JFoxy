@@ -187,7 +187,6 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-white">Practice Session Voice</h2>
-                <p className="text-sm text-purple-300">Powered by Deepgram Aura (TTS)</p>
                 <p className="text-xs text-purple-400/70 mt-0.5">Used for rapid Q&A practice sessions (not mock interviews)</p>
               </div>
             </div>

@@ -24,6 +24,7 @@ import {
   User,
   Star,
   Trash2,
+  X,
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -55,6 +56,9 @@ export default function MockInterviewsPage() {
   const [interviews, setInterviews] = useState<MockInterview[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [interviewToDelete, setInterviewToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     const loadInterviews = async () => {
@@ -199,24 +203,32 @@ export default function MockInterviewsPage() {
     return undefined
   }
 
-  // Handle interview deletion
-  const handleDeleteInterview = async (e: React.MouseEvent, interviewId: string) => {
+  // Handle interview deletion - show modal
+  const handleDeleteInterview = (e: React.MouseEvent, interviewId: string) => {
     e.stopPropagation() // Prevent card click navigation
+    setInterviewToDelete(interviewId)
+    setShowDeleteModal(true)
+  }
 
-    if (!confirm('Are you sure you want to delete this mock interview?')) {
-      return
-    }
+  // Confirm delete interview
+  const confirmDeleteInterview = async () => {
+    if (!interviewToDelete) return
 
+    setIsDeleting(true)
     try {
-      const response = await fetch(`/api/mock/${interviewId}`, {
+      const response = await fetch(`/api/mock/${interviewToDelete}`, {
         method: 'DELETE',
       })
 
       if (response.ok) {
-        setInterviews(interviews.filter((i) => i.id !== interviewId))
+        setInterviews(interviews.filter((i) => i.id !== interviewToDelete))
       }
     } catch (error) {
       console.error('Failed to delete interview:', error)
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteModal(false)
+      setInterviewToDelete(null)
     }
   }
 
@@ -604,6 +616,70 @@ export default function MockInterviewsPage() {
           <Plus className="w-6 h-6 text-white" />
         </Link>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#1E1E2E] border border-red-500/30 rounded-2xl p-6 max-w-md w-full"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                    <Trash2 className="w-5 h-5 text-red-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-white">Delete Interview?</h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false)
+                    setInterviewToDelete(null)
+                  }}
+                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-white/70 text-sm mb-6">
+                Are you sure you want to delete this mock interview? This action cannot be undone
+                and all associated data will be permanently removed.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false)
+                    setInterviewToDelete(null)
+                  }}
+                  className="flex-1 py-3 bg-white/10 hover:bg-white/15 text-white rounded-xl font-semibold transition-colors"
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteInterview}
+                  disabled={isDeleting}
+                  className="flex-1 py-3 bg-red-500 hover:bg-red-600 disabled:bg-red-500/50 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -23,6 +23,7 @@ import {
   Bell,
   X,
   AlertTriangle,
+  Trash2,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
@@ -54,6 +55,9 @@ export default function PracticePage() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [filter, setFilter] = useState<FilterType>('all')
   const [reminderDismissed, setReminderDismissed] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Fetch sessions on mount
   useEffect(() => {
@@ -188,22 +192,31 @@ export default function PracticePage() {
     return (profile?.star_voice_sessions_used || 0) < 5
   }
 
-  // Handle session deletion
-  const handleDeleteSession = async (sessionId: string) => {
-    if (!confirm('Are you sure you want to delete this practice session?')) {
-      return
-    }
+  // Handle session deletion - show modal
+  const handleDeleteSession = (sessionId: string) => {
+    setSessionToDelete(sessionId)
+    setShowDeleteModal(true)
+  }
 
+  // Confirm deletion
+  const confirmDeleteSession = async () => {
+    if (!sessionToDelete) return
+
+    setIsDeleting(true)
     try {
-      const response = await fetch(`/api/practice/session/${sessionId}`, {
+      const response = await fetch(`/api/practice/session/${sessionToDelete}`, {
         method: 'DELETE',
       })
 
       if (response.ok) {
-        setSessions(sessions.filter((s) => s.id !== sessionId))
+        setSessions(sessions.filter((s) => s.id !== sessionToDelete))
       }
     } catch (error) {
       console.error('Failed to delete session:', error)
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteModal(false)
+      setSessionToDelete(null)
     }
   }
 
@@ -560,6 +573,56 @@ export default function PracticePage() {
           )}
         </div>
       </div>
+
+      {/* Delete Session Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="glass-panel p-8 max-w-md w-full border-2 border-red-500/30"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                  <Trash2 className="w-8 h-8 text-red-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Delete Practice Session?</h3>
+                <p className="text-white/70 mb-6">
+                  This will permanently delete this practice session and all its answers. This action cannot be undone.
+                </p>
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => {
+                      setShowDeleteModal(false)
+                      setSessionToDelete(null)
+                    }}
+                    disabled={isDeleting}
+                    className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-all disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeleteSession}
+                    disabled={isDeleting}
+                    className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      'Delete Session'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

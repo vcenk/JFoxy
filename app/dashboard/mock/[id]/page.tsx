@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, AlertCircle, Mic, Volume2 } from 'lucide-react'
+import { Loader2, AlertCircle, Mic, Volume2, X, LogOut } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import InterviewRoom from '@/components/mock/InterviewRoom'
 import ConversationTranscript from '@/components/mock/ConversationTranscript'
 import { getPersonaByName } from '@/lib/data/interviewerPersonas'
@@ -35,6 +36,7 @@ export default function LiveInterviewPage({ params }: { params: { id: string } }
   // Pre-interview state
   const [hasPermission, setHasPermission] = useState(false)
   const [showTranscript, setShowTranscript] = useState(false)
+  const [showEndSessionModal, setShowEndSessionModal] = useState(false)
 
   // Stable callback refs
   const handlePhaseChange = useCallback((phase: InterviewPhase) => {
@@ -113,10 +115,12 @@ export default function LiveInterviewPage({ params }: { params: { id: string } }
       return
     }
 
-    if (!window.confirm('Are you sure you want to end the interview early?')) {
-      return
-    }
+    setShowEndSessionModal(true)
+  }, [interview, id, router])
 
+  // Confirm end interview
+  const confirmEndInterview = useCallback(() => {
+    setShowEndSessionModal(false)
     interview.disconnect()
     router.push(`/dashboard/mock/${id}/report`)
   }, [interview, id, router])
@@ -272,6 +276,55 @@ export default function LiveInterviewPage({ params }: { params: { id: string } }
           {interview.error && <p className="text-red-400">Error: {interview.error}</p>}
         </div>
       )}
+
+      {/* End Session Confirmation Modal */}
+      <AnimatePresence>
+        {showEndSessionModal && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#1E1E2E] border border-red-500/30 rounded-2xl p-6 max-w-md w-full"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                    <LogOut className="w-5 h-5 text-red-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-white">End Interview Early?</h2>
+                </div>
+                <button
+                  onClick={() => setShowEndSessionModal(false)}
+                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-white/70 text-sm mb-6">
+                Are you sure you want to end the interview early? Your progress will be saved
+                and you'll be taken to the results page.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowEndSessionModal(false)}
+                  className="flex-1 py-3 bg-white/10 hover:bg-white/15 text-white rounded-xl font-semibold transition-colors"
+                >
+                  Continue Interview
+                </button>
+                <button
+                  onClick={confirmEndInterview}
+                  className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-colors"
+                >
+                  End Interview
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

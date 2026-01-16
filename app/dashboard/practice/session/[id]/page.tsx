@@ -17,6 +17,7 @@ import {
   ChevronUp,
   Lightbulb,
   AlertCircle,
+  LogOut,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { SessionHeader } from '@/components/practice/SessionHeader'
@@ -30,6 +31,11 @@ interface PracticeQuestion {
   question_category: string
   difficulty: string
   order_index: number
+  expected_components?: {
+    tips?: string[]
+    suggested_duration?: number
+    type?: string
+  }
 }
 
 interface PracticeAnswer {
@@ -69,7 +75,7 @@ const PracticeSessionPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState<PracticeQuestion | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [sessionStatus, setSessionStatus] = useState<'loading' | 'active' | 'generating_feedback' | 'finished'>('loading')
-  const [sessionPhase, setSessionPhase] = useState<'intro' | 'ai_greeting' | 'speaking_question' | 'user_answering' | 'processing_answer' | 'session_finished'>('intro');
+  const [sessionPhase, setSessionPhase] = useState<'intro' | 'ai_greeting' | 'speaking_question' | 'user_answering' | 'processing_answer' | 'ready_for_next' | 'session_finished'>('intro');
   const [countdown, setCountdown] = useState(0);
 
   // Audio States
@@ -87,6 +93,7 @@ const PracticeSessionPage = () => {
   const [showIdealAnswer, setShowIdealAnswer] = useState(false)
   const [isRegeneratingQuestion, setIsRegeneratingQuestion] = useState(false)
   const [showNoSpeechWarning, setShowNoSpeechWarning] = useState(false)
+  const [showEndSessionModal, setShowEndSessionModal] = useState(false)
 
   // Adaptive Difficulty States
   const [recentScores, setRecentScores] = useState<number[]>([])
@@ -335,11 +342,11 @@ const PracticeSessionPage = () => {
           setCurrentQuestionIndex(prev => prev + 1)
           setSessionPhase('processing_answer') // Keep processing while speaking feedback
 
-          // Speak feedback first, then new question (speakText handles chaining)
-          speakText(`Here's your feedback for the last question: "${data.data.evaluation.summary}".`, async () => {
-            // After feedback is spoken, initiate next question sequence
-            setSessionPhase('speaking_question'); // Transition to speaking phase for next Q
-            setCountdown(3); // Start countdown for next question
+          // Speak feedback first, then show "Next Question" button
+          speakText(`Here's your feedback: "${data.data.evaluation.summary}". Click Next Question when you're ready to continue.`, async () => {
+            // After feedback is spoken, transition to ready_for_next phase
+            // User can now view tips and click "Next Question" when ready
+            setSessionPhase('ready_for_next');
           });
         } else if (data.data.isSessionFinished) {
           await endSession()
@@ -440,9 +447,13 @@ const PracticeSessionPage = () => {
 
   // Handle end session with confirmation
   const handleEndSession = () => {
-    if (confirm('Are you sure you want to end this practice session?')) {
-      router.push('/dashboard/practice')
-    }
+    setShowEndSessionModal(true)
+  }
+
+  // Confirm end session
+  const confirmEndSession = () => {
+    setShowEndSessionModal(false)
+    router.push('/dashboard/practice')
   }
 
   if (loadingSession) {
@@ -501,14 +512,16 @@ const PracticeSessionPage = () => {
             isSendingAnswer={isSendingAnswer}
             isRegeneratingQuestion={isRegeneratingQuestion}
             audioStream={audioStream}
-            // NEW: User context for personalized greeting
+            // User context for personalized greeting
             userName={user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}
             sessionTrack={sessionData?.question_category}
             jobTitle={sessionData?.title}
             totalQuestions={sessionData?.total_questions}
-            // NEW: Adaptive difficulty
+            // Adaptive difficulty
             currentDifficulty={currentDifficulty}
             difficultyJustChanged={difficultyJustChanged}
+            // Tips for answering questions
+            expectedComponents={currentQuestion?.expected_components}
             onStartInterview={() => {
               // Transition to greeting phase and speak personalized intro
               setSessionPhase('ai_greeting');
@@ -530,6 +543,11 @@ const PracticeSessionPage = () => {
             onToggleRecording={isRecording ? stopRecording : startRecording}
             onRegenerateQuestion={handleRegenerate}
             onReturnToDashboard={() => router.push(`/dashboard/practice/session/${sessionId}/report`)}
+            onNextQuestion={() => {
+              // User clicked "Next Question" - start the question speaking sequence
+              setSessionPhase('speaking_question');
+              setCountdown(3);
+            }}
           />
         </main>
 
@@ -569,6 +587,44 @@ const PracticeSessionPage = () => {
                 >
                   Try Again
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* End Session Confirmation Modal */}
+      <AnimatePresence>
+        {showEndSessionModal && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="glass-panel p-8 max-w-md w-full border-2 border-red-500/30"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                  <LogOut className="w-8 h-8 text-red-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">End Practice Session?</h3>
+                <p className="text-white/70 mb-6">
+                  Are you sure you want to end this session? Your progress will be saved, but unanswered questions won't be scored.
+                </p>
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => setShowEndSessionModal(false)}
+                    className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-all"
+                  >
+                    Continue Practice
+                  </button>
+                  <button
+                    onClick={confirmEndSession}
+                    className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all"
+                  >
+                    End Session
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

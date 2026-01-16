@@ -478,11 +478,11 @@ export default function NewPracticeSessionPage() {
                   </div>
 
                   <div className="flex flex-col gap-1 py-1">
-                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Target Industry</span>
+                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Target Role</span>
                     <div className="flex items-center gap-3">
                       <Briefcase className="w-4 h-4 text-pink-400" />
                       <span className="text-sm text-white font-medium truncate">
-                        {jobDescriptions.find(j => j.id === selectedJobDescriptionId)?.title || 'Industry General'}
+                        {jobDescriptions.find(j => j.id === selectedJobDescriptionId)?.title || 'General Practice'}
                       </span>
                     </div>
                   </div>

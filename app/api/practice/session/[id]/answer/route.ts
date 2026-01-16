@@ -124,21 +124,51 @@ export async function POST(
     }
 
     // 3. Update practice session with completed question count
+    const newCompletedCount = currentQuestionIndex + 1;
     await supabaseAdmin
       .from('practice_sessions')
-      .update({ completed_questions: currentQuestionIndex + 1 })
+      .update({ completed_questions: newCompletedCount })
       .eq('id', sessionId)
       .eq('user_id', user.id);
 
 
-    // 4. Generate next question (if not all questions are completed)
+    // 4. Get the next pre-generated question (if any remain)
     let nextQuestion = null;
     let isSessionFinished = false;
 
-    // TODO: Implement dynamic question generation
-    // For now, end the session since we don't have pre-generated questions
-    // The generateInterviewPlan function needs to be implemented
-    isSessionFinished = true;
+    // Fetch all questions for this session ordered by order_index
+    const { data: allQuestions, error: questionsError } = await supabaseAdmin
+      .from('practice_questions')
+      .select('*')
+      .eq('session_id', sessionId)
+      .order('order_index', { ascending: true });
+
+    if (questionsError) {
+      console.error('Failed to fetch session questions:', questionsError);
+    }
+
+    if (allQuestions && allQuestions.length > 0) {
+      // Find the next question (order_index is 1-based, newCompletedCount is the count of completed)
+      const nextQuestionData = allQuestions.find(q => q.order_index === newCompletedCount + 1);
+
+      if (nextQuestionData) {
+        // There's another question to answer
+        nextQuestion = {
+          id: nextQuestionData.id,
+          question_text: nextQuestionData.question_text,
+          question_category: nextQuestionData.question_category,
+          difficulty: nextQuestionData.difficulty,
+          order_index: nextQuestionData.order_index,
+        };
+        isSessionFinished = false;
+      } else {
+        // No more questions - session is complete
+        isSessionFinished = true;
+      }
+    } else {
+      // No questions found (shouldn't happen) - end session
+      isSessionFinished = true;
+    }
 
     return successResponse({
       evaluation,
