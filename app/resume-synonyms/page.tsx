@@ -5,6 +5,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { POWER_WORD_SYNONYMS, ACTION_VERBS } from '@/lib/data/powerWords'
 import { ArrowRight, Search, Sparkles, TrendingUp, Target } from 'lucide-react'
+import { Navbar, Footer } from '@/components/landing'
 
 export const metadata: Metadata = {
   title: 'Resume Power Words & Synonyms | 900+ Action Verbs for ATS Optimization',
@@ -36,18 +37,20 @@ export default function ResumeSynonymsPage() {
   const categories = Object.entries(ACTION_VERBS)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900/20 to-gray-900">
+    <div className="min-h-screen bg-[#f4f7fa]">
+      <Navbar />
+
       {/* Header */}
-      <div className="border-b border-white/10 bg-black/20 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="border-b border-gray-100 bg-white pt-24 sm:pt-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-purple-500/20 border border-purple-500/30 mb-4">
-              <Sparkles className="w-8 h-8 text-purple-400" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-purple-50 border border-purple-100 mb-4">
+              <Sparkles className="w-8 h-8 text-purple-600" />
             </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+            <h1 className="text-4xl sm:text-5xl font-bold text-[#1a1615] mb-4">
               Resume Power Words & Synonyms
             </h1>
-            <p className="text-xl text-white/70 max-w-3xl mx-auto">
+            <p className="text-xl text-[#6b6b6b] max-w-3xl mx-auto">
               Transform your resume with 900+ powerful action verbs and synonyms. Replace weak
               phrases to boost your ATS score and stand out to recruiters.
             </p>
@@ -55,17 +58,17 @@ export default function ResumeSynonymsPage() {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-purple-400">900+</div>
-              <div className="text-sm text-white/60 mt-1">Power Word Synonyms</div>
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-purple-600">900+</div>
+              <div className="text-sm text-[#6b6b6b] mt-1">Power Word Synonyms</div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-green-400">10</div>
-              <div className="text-sm text-white/60 mt-1">Categories</div>
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-emerald-600">10</div>
+              <div className="text-sm text-[#6b6b6b] mt-1">Categories</div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-blue-400">195+</div>
-              <div className="text-sm text-white/60 mt-1">Action Verbs</div>
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-blue-600">195+</div>
+              <div className="text-sm text-[#6b6b6b] mt-1">Action Verbs</div>
             </div>
           </div>
         </div>
@@ -74,26 +77,26 @@ export default function ResumeSynonymsPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Why This Matters Section */}
-        <div className="mb-12 bg-blue-500/10 border border-blue-500/20 rounded-2xl p-8">
+        <div className="mb-12 bg-blue-50 border border-blue-100 rounded-2xl p-8">
           <div className="flex items-start gap-4">
-            <Target className="w-8 h-8 text-blue-400 flex-shrink-0 mt-1" />
+            <Target className="w-8 h-8 text-blue-600 flex-shrink-0 mt-1" />
             <div>
-              <h2 className="text-2xl font-bold text-white mb-3">
+              <h2 className="text-2xl font-bold text-[#1a1615] mb-3">
                 Why Power Words Matter for Your Resume
               </h2>
-              <div className="text-white/70 space-y-2">
+              <div className="text-[#6b6b6b] space-y-2">
                 <p>
-                  <strong className="text-white">ATS Systems scan for action verbs:</strong>{' '}
+                  <strong className="text-[#1a1615]">ATS Systems scan for action verbs:</strong>{' '}
                   Applicant Tracking Systems prioritize resumes with strong, specific action verbs
                   over generic phrases like "responsible for" or "helped with."
                 </p>
                 <p>
-                  <strong className="text-white">Recruiters prefer impact:</strong> Power words
+                  <strong className="text-[#1a1615]">Recruiters prefer impact:</strong> Power words
                   demonstrate leadership, achievement, and results - exactly what hiring managers
                   are looking for.
                 </p>
                 <p>
-                  <strong className="text-white">Stand out from competition:</strong> Most
+                  <strong className="text-[#1a1615]">Stand out from competition:</strong> Most
                   candidates use weak, passive language. Strong synonyms make your accomplishments
                   memorable.
                 </p>
@@ -105,10 +108,10 @@ export default function ResumeSynonymsPage() {
         {/* Action Verbs by Category */}
         <div className="mb-16">
           <div className="flex items-center gap-3 mb-6">
-            <TrendingUp className="w-6 h-6 text-purple-400" />
-            <h2 className="text-3xl font-bold text-white">Power Words by Category</h2>
+            <TrendingUp className="w-6 h-6 text-purple-600" />
+            <h2 className="text-3xl font-bold text-[#1a1615]">Power Words by Category</h2>
           </div>
-          <p className="text-white/60 mb-8">
+          <p className="text-[#6b6b6b] mb-8">
             Browse 195+ action verbs organized by type. Click any category to see recommended verbs
             for your resume.
           </p>
@@ -117,23 +120,23 @@ export default function ResumeSynonymsPage() {
             {categories.map(([category, verbs]) => (
               <div
                 key={category}
-                className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all"
+                className="bg-white border border-gray-100 rounded-2xl p-6 hover:border-purple-200 transition-all shadow-sm"
               >
-                <h3 className="text-xl font-bold text-white mb-2 capitalize">
+                <h3 className="text-xl font-bold text-[#1a1615] mb-2 capitalize">
                   {category.replace(/_/g, ' ')}
                 </h3>
-                <p className="text-sm text-white/60 mb-4">{verbs.length} powerful verbs</p>
+                <p className="text-sm text-[#6b6b6b] mb-4">{verbs.length} powerful verbs</p>
                 <div className="flex flex-wrap gap-2">
                   {verbs.slice(0, 8).map((verb) => (
                     <span
                       key={verb}
-                      className="px-3 py-1 bg-purple-500/20 text-purple-200 text-sm rounded-lg border border-purple-500/30"
+                      className="px-3 py-1 bg-purple-50 text-purple-700 text-sm rounded-lg border border-purple-100"
                     >
                       {verb}
                     </span>
                   ))}
                   {verbs.length > 8 && (
-                    <span className="px-3 py-1 text-white/40 text-sm">+{verbs.length - 8} more</span>
+                    <span className="px-3 py-1 text-[#6b6b6b] text-sm">+{verbs.length - 8} more</span>
                   )}
                 </div>
               </div>
@@ -144,10 +147,10 @@ export default function ResumeSynonymsPage() {
         {/* Common Weak Words to Replace */}
         <div className="mb-16">
           <div className="flex items-center gap-3 mb-6">
-            <Search className="w-6 h-6 text-yellow-400" />
-            <h2 className="text-3xl font-bold text-white">Weak Words to Replace</h2>
+            <Search className="w-6 h-6 text-amber-600" />
+            <h2 className="text-3xl font-bold text-[#1a1615]">Weak Words to Replace</h2>
           </div>
-          <p className="text-white/60 mb-8">
+          <p className="text-[#6b6b6b] mb-8">
             Click any weak word below to see powerful alternatives and usage examples.
           </p>
 
@@ -156,12 +159,12 @@ export default function ResumeSynonymsPage() {
               <Link
                 key={word}
                 href={`/resume-synonyms/${word.toLowerCase().replace(/\s+/g, '-')}`}
-                className="group bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 rounded-xl p-4 transition-all"
+                className="group bg-red-50 hover:bg-red-100 border border-red-100 hover:border-red-200 rounded-xl p-4 transition-all"
               >
-                <div className="text-sm text-red-200 group-hover:text-red-100 font-medium mb-1">
+                <div className="text-sm text-red-700 group-hover:text-red-800 font-medium mb-1">
                   {word}
                 </div>
-                <div className="flex items-center text-xs text-white/40 group-hover:text-white/60">
+                <div className="flex items-center text-xs text-[#6b6b6b] group-hover:text-[#1a1615]">
                   <span>See alternatives</span>
                   <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -171,27 +174,57 @@ export default function ResumeSynonymsPage() {
         </div>
 
         {/* How to Use Section */}
-        <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-8">
-          <h2 className="text-2xl font-bold text-white mb-4">How to Use Power Words Effectively</h2>
-          <div className="grid md:grid-cols-2 gap-6 text-white/70">
+        <div className="bg-purple-50 border border-purple-100 rounded-2xl p-8">
+          <h2 className="text-2xl font-bold text-[#1a1615] mb-4">How to Use Power Words Effectively</h2>
+          <div className="grid md:grid-cols-2 gap-6 text-[#6b6b6b]">
             <div>
-              <h3 className="text-lg font-semibold text-white mb-2">✅ Do:</h3>
+              <h3 className="text-lg font-semibold text-[#1a1615] mb-2">Do:</h3>
               <ul className="space-y-2 text-sm">
-                <li>• Start each bullet point with a strong action verb</li>
-                <li>• Use specific verbs that match your actual role and responsibilities</li>
-                <li>• Vary your word choice throughout the resume</li>
-                <li>• Combine power words with quantifiable results</li>
-                <li>• Match verbs to the job description when possible</li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                  Start each bullet point with a strong action verb
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                  Use specific verbs that match your actual role and responsibilities
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                  Vary your word choice throughout the resume
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                  Combine power words with quantifiable results
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                  Match verbs to the job description when possible
+                </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white mb-2">❌ Don't:</h3>
+              <h3 className="text-lg font-semibold text-[#1a1615] mb-2">Don&apos;t:</h3>
               <ul className="space-y-2 text-sm">
-                <li>• Use the same action verb repeatedly</li>
-                <li>• Choose fancy words that don't match your experience</li>
-                <li>• Start with weak phrases like "responsible for" or "duties included"</li>
-                <li>• Use passive voice or vague language</li>
-                <li>• Forget to back up action words with measurable results</li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-600 font-bold">✗</span>
+                  Use the same action verb repeatedly
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-600 font-bold">✗</span>
+                  Choose fancy words that don&apos;t match your experience
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-600 font-bold">✗</span>
+                  Start with weak phrases like "responsible for" or "duties included"
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-600 font-bold">✗</span>
+                  Use passive voice or vague language
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-600 font-bold">✗</span>
+                  Forget to back up action words with measurable results
+                </li>
               </ul>
             </div>
           </div>
@@ -199,15 +232,15 @@ export default function ResumeSynonymsPage() {
 
         {/* CTA Section */}
         <div className="mt-12 text-center">
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-3">Ready to Optimize Your Resume?</h2>
-            <p className="text-white/90 mb-6 max-w-2xl mx-auto">
+          <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-[#1a1615] mb-3">Ready to Optimize Your Resume?</h2>
+            <p className="text-[#6b6b6b] mb-6 max-w-2xl mx-auto">
               Use our AI-powered resume builder to automatically detect weak words and get
               personalized power word suggestions.
             </p>
             <Link
-              href="/dashboard/resume"
-              className="inline-flex items-center gap-2 bg-white text-purple-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+              href="/auth/register"
+              className="inline-flex items-center gap-2 bg-[#1a1615] text-white px-8 py-3 rounded-xl font-semibold hover:bg-black transition-colors shadow-lg"
             >
               <Sparkles className="w-5 h-5" />
               Analyze My Resume
@@ -216,6 +249,8 @@ export default function ResumeSynonymsPage() {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   )
 }

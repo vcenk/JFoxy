@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation'
 import { POWER_WORD_SYNONYMS } from '@/lib/data/powerWords'
 import { ArrowLeft, Check, X, Lightbulb, TrendingUp } from 'lucide-react'
 import { CopyButton } from './CopyButton'
+import { Navbar, Footer } from '@/components/landing'
 
 interface PageProps {
   params: Promise<{ word: string }> | { word: string }
@@ -79,26 +80,28 @@ export default async function WordSynonymPage({ params }: PageProps) {
   const examples = getExamplesForWord(weakWordKey)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900/20 to-gray-900">
+    <div className="min-h-screen bg-[#f4f7fa]">
+      <Navbar />
+
       {/* Header */}
-      <div className="border-b border-white/10 bg-black/20 backdrop-blur-sm">
+      <div className="border-b border-gray-100 bg-white pt-24 sm:pt-32">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link
             href="/resume-synonyms"
-            className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 mb-6 transition-colors"
+            className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 mb-6 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to all synonyms
           </Link>
 
           <div className="text-center">
-            <div className="inline-block bg-red-500/20 border border-red-500/30 rounded-2xl px-6 py-3 mb-4">
-              <span className="text-red-300 text-sm font-medium uppercase tracking-wide">
+            <div className="inline-block bg-red-50 border border-red-100 rounded-2xl px-6 py-3 mb-4">
+              <span className="text-red-600 text-sm font-medium uppercase tracking-wide">
                 Weak Phrase
               </span>
-              <h1 className="text-4xl font-bold text-white mt-2">"{weakWordKey}"</h1>
+              <h1 className="text-4xl font-bold text-[#1a1615] mt-2">&ldquo;{weakWordKey}&rdquo;</h1>
             </div>
-            <p className="text-xl text-white/70 max-w-2xl mx-auto mt-4">
+            <p className="text-xl text-[#6b6b6b] max-w-2xl mx-auto mt-4">
               Replace this weak phrase with {synonyms.length} powerful alternatives to strengthen
               your resume and improve ATS performance.
             </p>
@@ -109,14 +112,14 @@ export default async function WordSynonymPage({ params }: PageProps) {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Why This Is Weak */}
-        <div className="mb-12 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-6">
+        <div className="mb-12 bg-amber-50 border border-amber-100 rounded-2xl p-6">
           <div className="flex items-start gap-4">
-            <Lightbulb className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-1" />
+            <Lightbulb className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
             <div>
-              <h2 className="text-xl font-bold text-white mb-3">
-                Why "{weakWordKey}" Weakens Your Resume
+              <h2 className="text-xl font-bold text-[#1a1615] mb-3">
+                Why &ldquo;{weakWordKey}&rdquo; Weakens Your Resume
               </h2>
-              <div className="text-white/70 space-y-2 text-sm">
+              <div className="text-[#6b6b6b] space-y-2 text-sm">
                 {getWeaknessExplanation(weakWordKey)}
               </div>
             </div>
@@ -126,8 +129,8 @@ export default async function WordSynonymPage({ params }: PageProps) {
         {/* Power Word Alternatives */}
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-6">
-            <TrendingUp className="w-6 h-6 text-green-400" />
-            <h2 className="text-2xl font-bold text-white">
+            <TrendingUp className="w-6 h-6 text-emerald-600" />
+            <h2 className="text-2xl font-bold text-[#1a1615]">
               {synonyms.length} Powerful Alternatives
             </h2>
           </div>
@@ -141,35 +144,35 @@ export default async function WordSynonymPage({ params }: PageProps) {
 
         {/* Before & After Examples */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Before & After Examples</h2>
+          <h2 className="text-2xl font-bold text-[#1a1615] mb-6">Before & After Examples</h2>
           <div className="space-y-6">
             {examples.map((example, index) => (
               <div
                 key={index}
-                className="bg-white/5 border border-white/10 rounded-2xl p-6"
+                className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm"
               >
                 {/* Before */}
-                <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
-                    <X className="w-4 h-4 text-red-400" />
-                    <span className="text-xs font-bold text-red-300 uppercase tracking-wide">
+                    <X className="w-4 h-4 text-red-600" />
+                    <span className="text-xs font-bold text-red-600 uppercase tracking-wide">
                       Weak Example
                     </span>
                   </div>
-                  <p className="text-white/80 italic">"{example.before}"</p>
+                  <p className="text-[#1a1615] italic">&ldquo;{example.before}&rdquo;</p>
                 </div>
 
                 {/* After */}
-                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+                <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
-                    <Check className="w-4 h-4 text-green-400" />
-                    <span className="text-xs font-bold text-green-300 uppercase tracking-wide">
+                    <Check className="w-4 h-4 text-emerald-600" />
+                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wide">
                       Strong Example
                     </span>
                   </div>
-                  <p className="text-white font-medium">"{example.after}"</p>
-                  <p className="text-sm text-white/60 mt-2">
-                    <strong>Why it's better:</strong> {example.why}
+                  <p className="text-[#1a1615] font-medium">&ldquo;{example.after}&rdquo;</p>
+                  <p className="text-sm text-[#6b6b6b] mt-2">
+                    <strong>Why it&apos;s better:</strong> {example.why}
                   </p>
                 </div>
               </div>
@@ -178,35 +181,35 @@ export default async function WordSynonymPage({ params }: PageProps) {
         </div>
 
         {/* Tips for Using Alternatives */}
-        <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Tips for Using These Power Words</h2>
-          <ul className="space-y-3 text-white/70 text-sm">
+        <div className="bg-purple-50 border border-purple-100 rounded-2xl p-6">
+          <h2 className="text-xl font-bold text-[#1a1615] mb-4">Tips for Using These Power Words</h2>
+          <ul className="space-y-3 text-[#6b6b6b] text-sm">
             <li className="flex items-start gap-3">
-              <Check className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+              <Check className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
               <span>
-                <strong className="text-white">Choose the most accurate verb:</strong> Pick the
-                synonym that best describes what you actually did. "Spearheaded" is different from
-                "Coordinated."
+                <strong className="text-[#1a1615]">Choose the most accurate verb:</strong> Pick the
+                synonym that best describes what you actually did. &ldquo;Spearheaded&rdquo; is different from
+                &ldquo;Coordinated.&rdquo;
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Check className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+              <Check className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
               <span>
-                <strong className="text-white">Add quantifiable results:</strong> Strong verbs are
-                even better with numbers. "Increased sales by 40%" beats just "Increased sales."
+                <strong className="text-[#1a1615]">Add quantifiable results:</strong> Strong verbs are
+                even better with numbers. &ldquo;Increased sales by 40%&rdquo; beats just &ldquo;Increased sales.&rdquo;
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Check className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+              <Check className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
               <span>
-                <strong className="text-white">Match the job description:</strong> If the posting
-                uses "orchestrated," use that instead of "managed" to pass ATS keyword filters.
+                <strong className="text-[#1a1615]">Match the job description:</strong> If the posting
+                uses &ldquo;orchestrated,&rdquo; use that instead of &ldquo;managed&rdquo; to pass ATS keyword filters.
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Check className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+              <Check className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
               <span>
-                <strong className="text-white">Vary your language:</strong> Don't use the same power
+                <strong className="text-[#1a1615]">Vary your language:</strong> Don&apos;t use the same power
                 word throughout your resume. Mix it up to keep recruiters engaged.
               </span>
             </li>
@@ -214,22 +217,24 @@ export default async function WordSynonymPage({ params }: PageProps) {
         </div>
 
         {/* CTA */}
-        <div className="mt-12 text-center bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8">
-          <h2 className="text-2xl font-bold text-white mb-3">
+        <div className="mt-12 text-center bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100 rounded-2xl p-8">
+          <h2 className="text-2xl font-bold text-[#1a1615] mb-3">
             Automatically Find Weak Words in Your Resume
           </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
+          <p className="text-[#6b6b6b] mb-6 max-w-2xl mx-auto">
             Our AI-powered analyzer scans your entire resume for weak phrases and suggests the best
             power word replacements.
           </p>
           <Link
-            href="/dashboard/resume"
-            className="inline-flex items-center gap-2 bg-white text-purple-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+            href="/auth/register"
+            className="inline-flex items-center gap-2 bg-[#1a1615] text-white px-8 py-3 rounded-xl font-semibold hover:bg-black transition-colors shadow-lg"
           >
             Analyze My Resume Free
           </Link>
         </div>
       </div>
+
+      <Footer />
     </div>
   )
 }
@@ -386,12 +391,12 @@ function getWeaknessExplanation(weakWord: string): React.ReactNode {
     improved: (
       <>
         <p>
-          <strong>"Improved"</strong> is vague and doesn't specify what you actually did or how much
+          <strong>&ldquo;Improved&rdquo;</strong> is vague and doesn&apos;t specify what you actually did or how much
           better things got.
         </p>
         <p>
-          <strong>ATS Impact:</strong> Generic verbs like "improved" don't differentiate your resume.
-          More specific synonyms like "Enhanced," "Optimized," or "Elevated" signal precision and
+          <strong>ATS Impact:</strong> Generic verbs like &ldquo;improved&rdquo; don&apos;t differentiate your resume.
+          More specific synonyms like &ldquo;Enhanced,&rdquo; &ldquo;Optimized,&rdquo; or &ldquo;Elevated&rdquo; signal precision and
           expertise.
         </p>
       </>
@@ -399,11 +404,11 @@ function getWeaknessExplanation(weakWord: string): React.ReactNode {
     increased: (
       <>
         <p>
-          <strong>"Increased"</strong> is overused and passive. It doesn't show HOW you created the
+          <strong>&ldquo;Increased&rdquo;</strong> is overused and passive. It doesn&apos;t show HOW you created the
           increase.
         </p>
         <p>
-          <strong>ATS Impact:</strong> Stronger verbs like "Amplified," "Accelerated," or "Boosted"
+          <strong>ATS Impact:</strong> Stronger verbs like &ldquo;Amplified,&rdquo; &ldquo;Accelerated,&rdquo; or &ldquo;Boosted&rdquo;
           demonstrate active contribution and energy.
         </p>
       </>
@@ -411,11 +416,11 @@ function getWeaknessExplanation(weakWord: string): React.ReactNode {
     managed: (
       <>
         <p>
-          <strong>"Managed"</strong> is the most common word on resumes - which makes it invisible to
+          <strong>&ldquo;Managed&rdquo;</strong> is the most common word on resumes - which makes it invisible to
           recruiters.
         </p>
         <p>
-          <strong>ATS Impact:</strong> Words like "Orchestrated," "Spearheaded," or "Directed" show
+          <strong>ATS Impact:</strong> Words like &ldquo;Orchestrated,&rdquo; &ldquo;Spearheaded,&rdquo; or &ldquo;Directed&rdquo; show
           leadership complexity beyond basic management.
         </p>
       </>
@@ -423,36 +428,36 @@ function getWeaknessExplanation(weakWord: string): React.ReactNode {
     'responsible for': (
       <>
         <p>
-          <strong>"Responsible for"</strong> is passive voice and describes duties, not achievements.
-          It's a job description phrase, not a resume phrase.
+          <strong>&ldquo;Responsible for&rdquo;</strong> is passive voice and describes duties, not achievements.
+          It&apos;s a job description phrase, not a resume phrase.
         </p>
         <p>
           <strong>ATS Impact:</strong> This phrase gets flagged as weak by ATS systems. Starting with
-          action verbs like "Led," "Drove," or "Executed" dramatically improves scoring.
+          action verbs like &ldquo;Led,&rdquo; &ldquo;Drove,&rdquo; or &ldquo;Executed&rdquo; dramatically improves scoring.
         </p>
       </>
     ),
     'helped with': (
       <>
         <p>
-          <strong>"Helped with"</strong> minimizes your contribution and sounds like you played a
+          <strong>&ldquo;Helped with&rdquo;</strong> minimizes your contribution and sounds like you played a
           minor role.
         </p>
         <p>
-          <strong>ATS Impact:</strong> Recruiters skip vague phrases. Using "Collaborated on,"
-          "Contributed to," or "Partnered in" shows active participation.
+          <strong>ATS Impact:</strong> Recruiters skip vague phrases. Using &ldquo;Collaborated on,&rdquo;
+          &ldquo;Contributed to,&rdquo; or &ldquo;Partnered in&rdquo; shows active participation.
         </p>
       </>
     ),
     'worked on': (
       <>
         <p>
-          <strong>"Worked on"</strong> is lazy writing that tells nothing about what you actually did
+          <strong>&ldquo;Worked on&rdquo;</strong> is lazy writing that tells nothing about what you actually did
           or achieved.
         </p>
         <p>
-          <strong>ATS Impact:</strong> Specific action verbs like "Developed," "Executed," or
-          "Implemented" pass ATS filters and catch recruiter attention.
+          <strong>ATS Impact:</strong> Specific action verbs like &ldquo;Developed,&rdquo; &ldquo;Executed,&rdquo; or
+          &ldquo;Implemented&rdquo; pass ATS filters and catch recruiter attention.
         </p>
       </>
     ),
@@ -463,7 +468,7 @@ function getWeaknessExplanation(weakWord: string): React.ReactNode {
     explanations[weakWord] || (
       <>
         <p>
-          <strong>"{weakWord}"</strong> is a weak or overused phrase that doesn't effectively
+          <strong>&ldquo;{weakWord}&rdquo;</strong> is a weak or overused phrase that doesn&apos;t effectively
           communicate your impact and achievements.
         </p>
         <p>
