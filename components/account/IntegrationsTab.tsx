@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Mic, Play, Loader2, CheckCircle, Save, Pause, Globe, Sparkles, Lock, User, Video, Volume2 } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
 import { AlertModal } from '@/components/ui/AlertModal'
 import { SUBSCRIPTION_TIERS, TIER_LIMITS } from '@/lib/config/constants'
 import { ALL_PERSONAS, InterviewerPersona } from '@/lib/data/interviewerPersonas'
@@ -175,20 +174,21 @@ export function IntegrationsTab({ prefs, onSave, saving, success, profile }: Int
       }
     }
 
-    // Save voice preferences
+    // Save voice preferences through API route (not direct DB access)
     try {
-      const supabase = (await import('@/lib/clients/supabaseBrowserClient')).createClient()
-      const user = useAuthStore.getState().user
-
-      // Update preferences (include deepgram for practice sessions and mockInterview for mock interviews)
-      const { error } = await supabase
-        .from('profiles')
-        .update({
+      const response = await fetch('/api/profile/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           preferences: { deepgram, mockInterview }
-        })
-        .eq('id', user?.id)
+        }),
+      })
 
-      if (error) throw error
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to save preferences')
+      }
 
       // Call parent onSave for UI updates
       onSave({ deepgram, mockInterview })

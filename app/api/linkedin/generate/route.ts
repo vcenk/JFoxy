@@ -12,12 +12,20 @@ import {
   successResponse,
   validateRequiredFields,
   trackUsage,
+  checkSubscriptionTier,
 } from '@/lib/utils/apiHelpers'
+import { hasFeatureAccess } from '@/lib/utils/subscriptionLimits'
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser(req)
   if (!user) {
     return unauthorizedResponse()
+  }
+
+  // Check subscription tier for LinkedIn optimizer access
+  const tier = await checkSubscriptionTier(user.id)
+  if (!hasFeatureAccess(tier, 'linkedinOptimizer')) {
+    return badRequestResponse('LinkedIn Profile Optimizer requires Basic subscription or higher. Please upgrade to access this feature.')
   }
 
   try {

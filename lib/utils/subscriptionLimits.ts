@@ -14,6 +14,7 @@ export interface TierLimits {
   mockInterviewMinutes: number
   exports: boolean
   aiImprovements: boolean
+  linkedinOptimizer: boolean
 }
 
 /**
@@ -79,7 +80,7 @@ export function getRemainingAllowance(
  */
 export function hasFeatureAccess(
   tier: SubscriptionTier,
-  feature: 'aiImprovements' | 'exports' | 'starVoiceSessions' | 'mockInterviewMinutes'
+  feature: 'aiImprovements' | 'exports' | 'starVoiceSessions' | 'mockInterviewMinutes' | 'linkedinOptimizer'
 ): boolean {
   const limits = getLimitsForTier(tier)
 
@@ -92,6 +93,8 @@ export function hasFeatureAccess(
       return limits.starVoiceSessions > 0
     case 'mockInterviewMinutes':
       return limits.mockInterviewMinutes > 0
+    case 'linkedinOptimizer':
+      return limits.linkedinOptimizer
     default:
       return false
   }

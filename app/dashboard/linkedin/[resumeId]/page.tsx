@@ -12,6 +12,8 @@ import {
   ExternalLink, Award, Target, MessageSquare
 } from 'lucide-react'
 import { AlertModal } from '@/components/ui/AlertModal'
+import { UpgradeModal } from '@/components/ui/UpgradeModal'
+import { useAuthStore } from '@/store/authStore'
 import {
   LinkedInProfileData,
   LinkedInHeadline,
@@ -28,6 +30,10 @@ interface Props {
 export default function LinkedInOptimizerPage({ params }: Props) {
   const router = useRouter()
   const { resumeId } = params
+  const { profile } = useAuthStore()
+
+  // Check if user has access (basic tier or higher)
+  const hasAccess = profile?.subscription_tier && profile.subscription_tier !== 'free'
 
   // State
   const [loading, setLoading] = useState(true)
@@ -38,6 +44,7 @@ export default function LinkedInOptimizerPage({ params }: Props) {
   const [targetRole, setTargetRole] = useState('')
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   // Fetch existing data on load
   useEffect(() => {
@@ -152,7 +159,7 @@ export default function LinkedInOptimizerPage({ params }: Props) {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {!profileData ? (
-          // Initial state - prompt to generate
+          // Initial state - prompt to generate or upgrade
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -167,67 +174,86 @@ export default function LinkedInOptimizerPage({ params }: Props) {
                 Transform your resume into a compelling LinkedIn profile that attracts recruiters and opportunities.
               </p>
 
-              {/* Options */}
-              <div className="space-y-6 mb-8">
-                {/* Tone Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-3">Profile Tone</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { id: 'professional', label: 'Professional', icon: Briefcase, desc: 'Corporate & polished' },
-                      { id: 'creative', label: 'Creative', icon: Sparkles, desc: 'Personality-driven' },
-                      { id: 'executive', label: 'Executive', icon: Award, desc: 'Leadership-focused' },
-                    ].map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() => setTone(option.id as typeof tone)}
-                        className={`
-                          p-4 rounded-xl border transition-all text-left
-                          ${tone === option.id
-                            ? 'border-blue-500 bg-blue-500/10'
-                            : 'border-white/10 bg-white/5 hover:bg-white/10'}
-                        `}
-                      >
-                        <option.icon className={`w-5 h-5 mb-2 ${tone === option.id ? 'text-blue-400' : 'text-white/50'}`} />
-                        <div className={`font-medium ${tone === option.id ? 'text-white' : 'text-white/80'}`}>
-                          {option.label}
-                        </div>
-                        <div className="text-xs text-white/40">{option.desc}</div>
-                      </button>
-                    ))}
+              {!hasAccess ? (
+                // Upgrade prompt for free users
+                <div className="space-y-6">
+                  <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                    <p className="text-purple-300 text-sm mb-2">This feature requires Basic subscription or higher</p>
+                    <p className="text-white/50 text-xs">Upgrade to unlock LinkedIn profile optimization, unlimited job analyses, and more.</p>
                   </div>
-                </div>
-
-                {/* Target Role (optional) */}
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">Target Role (optional)</label>
-                  <input
-                    type="text"
-                    value={targetRole}
-                    onChange={(e) => setTargetRole(e.target.value)}
-                    placeholder="e.g., Senior Product Manager, Data Scientist"
-                    className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-blue-500/50 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleGenerate()}
-                disabled={generating}
-                className="glow-button px-8 py-4 rounded-xl font-bold text-white flex items-center gap-3 mx-auto"
-              >
-                {generating ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
+                  <button
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="glow-button px-8 py-4 rounded-xl font-bold text-white flex items-center gap-3 mx-auto"
+                  >
                     <Sparkles className="w-5 h-5" />
-                    Generate LinkedIn Profile
-                  </>
-                )}
-              </button>
+                    Upgrade to Unlock
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Options */}
+                  <div className="space-y-6 mb-8">
+                    {/* Tone Selection */}
+                    <div>
+                      <label className="block text-sm font-medium text-white/70 mb-3">Profile Tone</label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { id: 'professional', label: 'Professional', icon: Briefcase, desc: 'Corporate & polished' },
+                          { id: 'creative', label: 'Creative', icon: Sparkles, desc: 'Personality-driven' },
+                          { id: 'executive', label: 'Executive', icon: Award, desc: 'Leadership-focused' },
+                        ].map((option) => (
+                          <button
+                            key={option.id}
+                            onClick={() => setTone(option.id as typeof tone)}
+                            className={`
+                              p-4 rounded-xl border transition-all text-left
+                              ${tone === option.id
+                                ? 'border-blue-500 bg-blue-500/10'
+                                : 'border-white/10 bg-white/5 hover:bg-white/10'}
+                            `}
+                          >
+                            <option.icon className={`w-5 h-5 mb-2 ${tone === option.id ? 'text-blue-400' : 'text-white/50'}`} />
+                            <div className={`font-medium ${tone === option.id ? 'text-white' : 'text-white/80'}`}>
+                              {option.label}
+                            </div>
+                            <div className="text-xs text-white/40">{option.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Target Role (optional) */}
+                    <div>
+                      <label className="block text-sm font-medium text-white/70 mb-2">Target Role (optional)</label>
+                      <input
+                        type="text"
+                        value={targetRole}
+                        onChange={(e) => setTargetRole(e.target.value)}
+                        placeholder="e.g., Senior Product Manager, Data Scientist"
+                        className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white placeholder-white/30 focus:border-blue-500/50 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleGenerate()}
+                    disabled={generating}
+                    className="glow-button px-8 py-4 rounded-xl font-bold text-white flex items-center gap-3 mx-auto"
+                  >
+                    {generating ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        Generate LinkedIn Profile
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
             </div>
           </motion.div>
         ) : (
@@ -277,6 +303,13 @@ export default function LinkedInOptimizerPage({ params }: Props) {
         message={errorMessage}
         variant="error"
         okText="OK"
+      />
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        featureName="LinkedIn Profile Optimizer"
+        requiredTier="Pro"
       />
     </div>
   )

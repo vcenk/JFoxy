@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/clients/supabaseBrowserClient'
 import {
   User, CreditCard, Settings, Mic, Bell, Database,
   Save, Loader2, CheckCircle, Zap, Video, Check, Clock, Tag
@@ -91,20 +90,23 @@ function AccountPageContent() {
     setLoading(false)
   }, [searchParams, profile])
 
-  // Save Handler
+  // Save Handler - uses API route instead of direct DB access
   const handleSave = async (newPrefs: Partial<UserPreferences>) => {
     setSaving(true)
     setSaveSuccess(false)
     try {
-      const supabase = createClient()
       const updatedPrefs = { ...prefs, ...newPrefs }
-      
-      const { error } = await supabase
-        .from('profiles')
-        .update({ preferences: updatedPrefs })
-        .eq('id', user?.id)
 
-      if (error) throw error
+      const response = await fetch('/api/profile/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferences: updatedPrefs }),
+      })
+
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to save preferences')
+      }
 
       setPrefs(updatedPrefs)
       setSaveSuccess(true)
@@ -694,12 +696,32 @@ function UsageMeter({ label, used, limit }: { label: string, used: number, limit
 function ProfileTab({ profile, user }: { profile: any, user: any }) {
   const [fullName, setFullName] = useState(profile?.full_name || '')
   const [saving, setSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const updateProfile = async () => {
     setSaving(true)
-    const supabase = createClient()
-    await supabase.from('profiles').update({ full_name: fullName }).eq('id', user.id)
-    setSaving(false)
+    setSaveError('')
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: fullName }),
+      })
+
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to update profile')
+      }
+
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 3000)
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      setSaveError('Failed to save. Please try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (

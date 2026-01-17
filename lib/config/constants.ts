@@ -20,6 +20,7 @@ export const TIER_LIMITS: Record<string, {
   mockInterviewMinutes: number
   exports: boolean
   aiImprovements: boolean
+  linkedinOptimizer: boolean
 }> = {
   [SUBSCRIPTION_TIERS.FREE]: {
     resumes: 1,
@@ -30,6 +31,7 @@ export const TIER_LIMITS: Record<string, {
     mockInterviewMinutes: 0,
     exports: true, // But no AI improvements
     aiImprovements: false,
+    linkedinOptimizer: false,
   },
   [SUBSCRIPTION_TIERS.BASIC]: {
     resumes: 5,
@@ -40,6 +42,7 @@ export const TIER_LIMITS: Record<string, {
     mockInterviewMinutes: 0,
     exports: true,
     aiImprovements: true,
+    linkedinOptimizer: true,
   },
   [SUBSCRIPTION_TIERS.PRO]: {
     resumes: 5,
@@ -50,6 +53,7 @@ export const TIER_LIMITS: Record<string, {
     mockInterviewMinutes: 0,
     exports: true,
     aiImprovements: true,
+    linkedinOptimizer: true,
   },
   [SUBSCRIPTION_TIERS.INTERVIEW_READY]: {
     resumes: 5,
@@ -60,6 +64,7 @@ export const TIER_LIMITS: Record<string, {
     mockInterviewMinutes: 150, // 150 minutes/month
     exports: true,
     aiImprovements: true,
+    linkedinOptimizer: true,
   }
 }
 
