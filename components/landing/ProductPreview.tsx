@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
 import {
@@ -256,6 +256,65 @@ const CARDS = [
   },
 ]
 
+// Mobile card - simple vertical layout without sticky effects
+function MobileCard({ card }: { card: typeof CARDS[0] }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.5 }}
+      className="mb-6"
+    >
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white rounded-[24px] shadow-[0_10px_40px_-12px_rgba(0,0,0,0.12)] border border-gray-100/80 overflow-hidden">
+          {/* Visual at top on mobile */}
+          <div className={`${card.bgColor} p-6 flex items-center justify-center min-h-[240px] relative overflow-hidden`}>
+            {/* Large step number background */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+              <span className={`text-[100px] font-black bg-gradient-to-br ${card.gradient} bg-clip-text text-transparent opacity-[0.07]`}>
+                {card.step}
+              </span>
+            </div>
+            {/* Animated Visual Component */}
+            <div className="relative z-10 scale-90">
+              <card.Visual />
+            </div>
+          </div>
+
+          {/* Content below */}
+          <div className="p-6">
+            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-4`}>
+              <card.icon className="w-6 h-6 text-white" strokeWidth={1.5} />
+            </div>
+
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              {card.subtitle}
+            </p>
+
+            <h3 className="text-xl font-bold text-[#0f0f0f] tracking-tight mb-3">
+              {card.title}
+            </h3>
+
+            <p className="text-base text-gray-500 leading-relaxed mb-5">
+              {card.description}
+            </p>
+
+            <Link
+              href={card.href}
+              className="inline-flex items-center gap-2 text-[#0f0f0f] font-semibold group text-sm"
+            >
+              <span>Get started</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// Desktop card - sticky scroll effect
 function StackedCard({
   card,
   index,
@@ -303,14 +362,14 @@ function StackedCard({
     >
       <div className="max-w-5xl mx-auto">
         <motion.div
-          className="bg-white rounded-[24px] sm:rounded-[32px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border border-gray-100/80 overflow-hidden"
+          className="bg-white rounded-[32px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border border-gray-100/80 overflow-hidden"
           whileHover={{ boxShadow: "0 25px 60px -12px rgba(0,0,0,0.2)" }}
           transition={{ duration: 0.3 }}
         >
           <div className="grid md:grid-cols-2">
 
             {/* Left: Content */}
-            <div className="p-6 sm:p-8 md:p-10 lg:p-14 flex flex-col justify-center">
+            <div className="p-10 lg:p-14 flex flex-col justify-center">
               <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-6`}>
                 <card.icon className="w-7 h-7 text-white" strokeWidth={1.5} />
               </div>
@@ -319,7 +378,7 @@ function StackedCard({
                 {card.subtitle}
               </p>
 
-              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#0f0f0f] tracking-tight mb-4">
+              <h3 className="text-3xl md:text-4xl font-bold text-[#0f0f0f] tracking-tight mb-4">
                 {card.title}
               </h3>
 
@@ -337,10 +396,10 @@ function StackedCard({
             </div>
 
             {/* Right: Visual */}
-            <div className={`${card.bgColor} p-6 sm:p-8 md:p-10 lg:p-14 flex items-center justify-center min-h-[280px] sm:min-h-[320px] md:min-h-[380px] lg:min-h-[420px] relative overflow-hidden`}>
+            <div className={`${card.bgColor} p-10 lg:p-14 flex items-center justify-center min-h-[380px] lg:min-h-[420px] relative overflow-hidden`}>
               {/* Large step number background */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-                <span className={`text-[100px] sm:text-[140px] md:text-[180px] lg:text-[220px] font-black bg-gradient-to-br ${card.gradient} bg-clip-text text-transparent opacity-[0.07]`}>
+                <span className={`text-[180px] lg:text-[220px] font-black bg-gradient-to-br ${card.gradient} bg-clip-text text-transparent opacity-[0.07]`}>
                   {card.step}
                 </span>
               </div>
@@ -359,14 +418,54 @@ function StackedCard({
 
 export function ProductPreview() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   })
 
+  // Mobile layout - simple vertical cards
+  if (isMobile) {
+    return (
+      <section className="relative bg-[#fafafa] py-16 px-4">
+        {/* Header */}
+        <div className="text-center mb-10">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-3xl font-bold text-[#0f0f0f] tracking-tight"
+          >
+            Get Hired in{' '}
+            <span className="bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 bg-clip-text text-transparent">
+              3 Steps
+            </span>
+          </motion.h2>
+        </div>
+
+        {/* Simple vertical cards */}
+        <div>
+          {CARDS.map((card) => (
+            <MobileCard key={card.id} card={card} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  // Desktop layout - sticky scroll effect
   return (
-    <section ref={containerRef} className="relative bg-[#fafafa] pb-32 md:pb-0" style={{ height: `${(CARDS.length - 1) * 100}vh` }}>
+    <section ref={containerRef} className="relative bg-[#fafafa]" style={{ height: `${(CARDS.length - 1) * 100}vh` }}>
 
       {/* Header - Sticky at top */}
       <div className="sticky top-0 pt-24 pb-8 z-10 bg-gradient-to-b from-[#fafafa] via-[#fafafa] to-transparent">
@@ -375,7 +474,7 @@ export function ProductPreview() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#0f0f0f] tracking-tight"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#0f0f0f] tracking-tight"
           >
             Get Hired in{' '}
             <span className="bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500 bg-clip-text text-transparent">
@@ -386,7 +485,7 @@ export function ProductPreview() {
       </div>
 
       {/* Stacked Cards */}
-      <div className="px-4 sm:px-6 lg:px-8">
+      <div className="px-6 lg:px-8">
         {CARDS.map((card, index) => (
           <StackedCard
             key={card.id}
