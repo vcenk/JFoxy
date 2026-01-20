@@ -117,18 +117,18 @@ OPTIMIZATION GUIDELINES:
 
 4. ADDING QUANTIFIABLE METRICS (VERY IMPORTANT):
    For EACH bullet point, try to add one of these metric types:
-   - Percentage improvements: "increased efficiency by X%", "reduced errors by X%"
-   - Dollar amounts: "managed $Xk budget", "generated $X in revenue"
-   - Team/project sizes: "led team of X", "managed X projects"
-   - Time savings: "reduced processing time by X hours"
-   - Volume/scale: "processed X transactions", "supported X users"
-   
+   - Percentage improvements: "increased efficiency by 15%", "reduced errors by 25%"
+   - Dollar amounts: "managed $50K budget", "generated $100K in revenue"
+   - Team/project sizes: "led team of 5", "managed 12 projects"
+   - Time savings: "reduced processing time by 4 hours weekly"
+   - Volume/scale: "processed 500+ transactions", "supported 200+ users"
+
    RULES FOR REALISTIC METRICS:
-   - If original bullet mentions a result, quantify it with reasonable numbers
+   - If original bullet mentions a result, quantify it with reasonable estimates
    - Use conservative, realistic estimates (10-30% improvements, not 500%)
-   - If you cannot infer a real number, use placeholder format: [X%] or [X]
-   - Example: "Improved process efficiency" → "Improved process efficiency by [15-20]%, reducing manual workload"
-   - NEVER invent specific numbers that seem unrealistic
+   - ALWAYS provide actual numbers - NEVER use placeholders like [X%] or [X] or brackets
+   - Example: "Improved process efficiency" → "Improved process efficiency by 20%, reducing manual workload"
+   - If you truly cannot estimate a metric, keep the bullet impactful without numbers rather than using placeholders
 
 5. BULLET POINT STRUCTURE:
    - Start every bullet with a strong action verb
@@ -194,10 +194,25 @@ Return JSON with this EXACT structure (fill in improved content):
             return serverErrorResponse('AI optimization failed to return results')
         }
 
+        // Helper to clean placeholder brackets from AI output (e.g., [X%] → 15%)
+        const cleanPlaceholders = (text: string): string => {
+            return text
+                // Replace [X%] or [X] patterns with realistic estimates
+                .replace(/\[X%?\]/gi, '15%')
+                .replace(/\[\d+-\d+%?\]/g, (match) => {
+                    // Extract first number from range like [15-20%]
+                    const num = match.match(/\d+/)?.[0] || '15'
+                    return match.includes('%') ? `${num}%` : num
+                })
+                .replace(/\[X\s*(hours?|days?|weeks?|months?)\]/gi, '4 hours')
+                .replace(/\[\$?X[Kk]?\]/gi, '$50K')
+                .replace(/\[X\+?\]/gi, '20+')
+        }
+
         // Helper to convert plain text to RichText format
         const textToRichText = (text: string) => ({
             type: 'doc',
-            content: [{ type: 'paragraph', content: text ? [{ type: 'text', text }] : [] }]
+            content: [{ type: 'paragraph', content: text ? [{ type: 'text', text: cleanPlaceholders(text) }] : [] }]
         })
 
         // Helper to extract plain text from any bullet format
@@ -253,7 +268,7 @@ Return JSON with this EXACT structure (fill in improved content):
             if (typeof content.summary === 'object' && content.summary?.type === 'doc') {
                 mergedSummary = textToRichText(optimizedContent.summary)
             } else {
-                mergedSummary = optimizedContent.summary
+                mergedSummary = cleanPlaceholders(optimizedContent.summary)
             }
         }
 
