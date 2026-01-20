@@ -18,8 +18,8 @@ const PDFViewer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex items-center justify-center h-full bg-gray-100">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      <div className="flex items-center justify-center h-full bg-black/50">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
       </div>
     ),
   }
@@ -96,29 +96,29 @@ export function PDFPreview({
   }, [data.contact.name])
 
   return (
-    <div className={`flex flex-col h-full bg-gray-100 ${className}`}>
+    <div className={`flex flex-col h-full bg-black/50 ${className}`}>
       {/* Controls */}
       {showControls && (
-        <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200">
+        <div className="flex items-center justify-between px-4 py-2 bg-black/30 border-b border-white/10">
           <div className="flex items-center gap-2">
             <button
               onClick={handleZoomOut}
-              className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+              className="p-2 rounded-lg hover:bg-white/10 text-white/70"
               title="Zoom out"
             >
               <ZoomOut className="w-4 h-4" />
             </button>
-            <span className="text-sm text-gray-600 w-12 text-center">{zoom}%</span>
+            <span className="text-sm text-white/70 w-12 text-center">{zoom}%</span>
             <button
               onClick={handleZoomIn}
-              className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+              className="p-2 rounded-lg hover:bg-white/10 text-white/70"
               title="Zoom in"
             >
               <ZoomIn className="w-4 h-4" />
             </button>
             <button
               onClick={handleZoomReset}
-              className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+              className="p-2 rounded-lg hover:bg-white/10 text-white/70"
               title="Reset zoom"
             >
               <RotateCcw className="w-4 h-4" />
@@ -141,7 +141,7 @@ export function PDFPreview({
                 ) : (
                   <>
                     <Download className="w-4 h-4" />
-                    <span>Download PDF</span>
+                    <span className="hidden sm:inline">Download PDF</span>
                   </>
                 )
               }

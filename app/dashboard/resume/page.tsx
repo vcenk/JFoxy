@@ -250,40 +250,40 @@ export default function ResumeLibraryPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-2xl font-bold text-white">Your Resumes</h2>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-3 w-full md:w-auto">
             {/* Search Input */}
-            <div className="relative group">
+            <div className="relative group flex-1 md:flex-none">
               <input
                 type="text"
                 placeholder="Search Resumes"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-black/20 border border-white/10 rounded-lg py-2 pl-4 pr-10 text-white placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-purple-500 w-64 transition-all"
+                className="bg-black/20 border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-purple-500 w-full md:w-64 transition-all touch-target"
               />
               <Search className="w-4 h-4 text-white/40 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             {/* View Toggles */}
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg border transition-colors ${
+                className={`p-3 rounded-xl border transition-colors touch-target touch-active ${
                   viewMode === 'grid'
                     ? 'bg-purple-500 border-purple-500 text-white'
-                    : 'border-white/10 hover:bg-white/5 text-white/70'
+                    : 'border-white/10 active:bg-white/10 text-white/70'
                 }`}
               >
-                <LayoutGrid className="w-4 h-4" />
+                <LayoutGrid className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg border transition-colors ${
+                className={`p-3 rounded-xl border transition-colors touch-target touch-active hidden md:flex ${
                   viewMode === 'list'
                     ? 'bg-purple-500 border-purple-500 text-white'
-                    : 'border-white/10 hover:bg-white/5 text-white/70'
+                    : 'border-white/10 active:bg-white/10 text-white/70'
                 }`}
               >
-                <ListFilter className="w-4 h-4" />
+                <ListFilter className="w-5 h-5" />
               </button>
             </div>
           </div>

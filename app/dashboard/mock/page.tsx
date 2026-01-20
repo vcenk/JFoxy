@@ -607,11 +607,11 @@ export default function MockInterviewsPage() {
         </div>
       </div>
 
-      {/* Mobile FAB */}
-      <div className="md:hidden fixed bottom-6 right-6">
+      {/* Mobile FAB - positioned above bottom nav */}
+      <div className="md:hidden fixed fab-position z-40" style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))', right: '1.5rem' }}>
         <Link
           href="/dashboard/mock/new"
-          className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/30"
+          className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/30 touch-active"
         >
           <Plus className="w-6 h-6 text-white" />
         </Link>
