@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
 
-export const alt = 'Job Foxy - AI Interview Coach & Resume Analysis'
+export const alt = 'JobFoxy - AI Interview Coach & Resume Analysis'
 export const size = {
   width: 1200,
   height: 630,
@@ -20,99 +20,92 @@ export default async function Image() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #1e3a5f 0%, #0f1f33 100%)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
           fontFamily: 'system-ui, sans-serif',
         }}
       >
-        {/* Fox Icon */}
+        {/* JobFoxy Logo Text with Heartbeat */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 30,
+            marginBottom: 24,
           }}
         >
-          <svg
-            width="120"
-            height="120"
-            viewBox="0 0 100 100"
-            fill="none"
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              fontSize: 96,
+              fontWeight: 700,
+              color: '#3d4a4d',
+              letterSpacing: '-3px',
+            }}
           >
-            {/* Simple fox face */}
-            <path
-              d="M50 10 L20 50 L35 85 L50 70 L65 85 L80 50 Z"
-              fill="#f97316"
-            />
-            <circle cx="38" cy="45" r="6" fill="white" />
-            <circle cx="62" cy="45" r="6" fill="white" />
-            <circle cx="38" cy="45" r="3" fill="#1e3a5f" />
-            <circle cx="62" cy="45" r="3" fill="#1e3a5f" />
-            <ellipse cx="50" cy="58" rx="5" ry="4" fill="#1e3a5f" />
-          </svg>
-        </div>
-
-        {/* Title */}
-        <div
-          style={{
-            display: 'flex',
-            fontSize: 72,
-            fontWeight: 800,
-            color: 'white',
-            marginBottom: 16,
-            letterSpacing: '-2px',
-          }}
-        >
-          Job Foxy
+            <span>Job</span>
+            {/* Heartbeat/Pulse SVG */}
+            <svg
+              width="60"
+              height="40"
+              viewBox="0 0 60 40"
+              style={{ margin: '0 -4px', marginBottom: '-8px' }}
+            >
+              <path
+                d="M0 20 L15 20 L20 8 L25 32 L30 20 L60 20"
+                stroke="#3d4a4d"
+                strokeWidth="4"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>F</span>
+            {/* Fox "o" with ears */}
+            <div style={{ display: 'flex', position: 'relative', width: 58, height: 72 }}>
+              <svg width="58" height="72" viewBox="0 0 58 72">
+                {/* Fox ears */}
+                <path d="M10 28 L18 8 L26 24" fill="#3d4a4d" />
+                <path d="M48 28 L40 8 L32 24" fill="#3d4a4d" />
+                {/* Main "o" circle */}
+                <circle cx="29" cy="42" r="26" stroke="#3d4a4d" strokeWidth="6" fill="none" />
+                {/* Inner fox face - small smile */}
+                <path
+                  d="M20 44 Q29 52 38 44"
+                  stroke="#3d4a4d"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+            <span>xy</span>
+          </div>
         </div>
 
         {/* Tagline */}
         <div
           style={{
             display: 'flex',
-            fontSize: 32,
-            color: '#94a3b8',
-            marginBottom: 40,
+            fontSize: 36,
+            color: '#64748b',
+            fontWeight: 500,
+            marginBottom: 48,
           }}
         >
-          Stop Guessing. Master Your Interview.
+          AI Interview Coach & Resume Analysis
         </div>
 
-        {/* Features */}
+        {/* Subtle brand accent line */}
         <div
           style={{
             display: 'flex',
-            gap: 40,
+            width: 120,
+            height: 4,
+            background: '#3d4a4d',
+            borderRadius: 2,
           }}
-        >
-          {['AI Resume Analysis', 'Mock Interviews', 'Career Coaching'].map(
-            (feature) => (
-              <div
-                key={feature}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  color: '#f97316',
-                  fontSize: 20,
-                  fontWeight: 600,
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <circle cx="10" cy="10" r="10" fill="#f97316" />
-                  <path
-                    d="M6 10 L9 13 L14 7"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                {feature}
-              </div>
-            )
-          )}
-        </div>
+        />
       </div>
     ),
     {

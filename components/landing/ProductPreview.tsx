@@ -299,7 +299,7 @@ function StackedCard({
         y: index < totalCards - 1 ? y : 0,
         opacity: index < totalCards - 1 ? opacity : 1,
       }}
-      className="sticky top-32 mb-8"
+      className={`sticky top-32 ${index < totalCards - 1 ? 'mb-8' : ''}`}
     >
       <div className="max-w-5xl mx-auto">
         <motion.div
@@ -366,7 +366,7 @@ export function ProductPreview() {
   })
 
   return (
-    <section ref={containerRef} className="relative bg-[#fafafa]" style={{ height: `${(CARDS.length + 0.5) * 100}vh` }}>
+    <section ref={containerRef} className="relative bg-[#fafafa] pb-0" style={{ height: `${(CARDS.length - 1) * 100}vh` }}>
 
       {/* Header - Sticky at top */}
       <div className="sticky top-0 pt-24 pb-8 z-10 bg-gradient-to-b from-[#fafafa] via-[#fafafa] to-transparent">
