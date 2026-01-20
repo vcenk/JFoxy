@@ -25,7 +25,7 @@ export function Benefits() {
   ]
 
   return (
-    <section id="benefits" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-[#f4f7fa] overflow-hidden">
+    <section id="benefits" className="relative z-20 py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-[#f4f7fa] overflow-hidden">
       <div className="max-w-7xl mx-auto">
         
         <div className="grid lg:grid-cols-2 gap-16 items-center">
