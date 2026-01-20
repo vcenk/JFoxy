@@ -148,50 +148,55 @@ export function PDFPreview({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/95 flex flex-col"
+            className="fixed inset-0 z-50 bg-black/95 flex flex-col safe-area-inset-x"
+            onClick={(e) => {
+              // Close when clicking backdrop (not the PDF)
+              if (e.target === e.currentTarget) setIsFullscreen(false)
+            }}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-white/10 safe-area-inset-top">
-              <h3 className="text-white font-medium">Resume Preview</h3>
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between px-3 sm:px-4 py-3 bg-black/50 border-b border-white/10 safe-area-inset-top">
+              <h3 className="text-white font-medium text-sm sm:text-base">Resume Preview</h3>
+              <div className="flex items-center gap-2 sm:gap-3">
                 <PDFDownloadLink
                   document={<TemplateComponent data={data} design={design} />}
                   fileName={fileName}
-                  className="flex items-center gap-2 px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors touch-target"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white rounded-xl transition-colors touch-target touch-active"
                   onClick={() => onDownload?.()}
                 >
                   {({ loading }) =>
                     loading ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Preparing...</span>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span className="hidden sm:inline">Preparing...</span>
                       </>
                     ) : (
                       <>
-                        <Download className="w-4 h-4" />
-                        <span>Download</span>
+                        <Download className="w-5 h-5" />
+                        <span className="hidden sm:inline">Download</span>
                       </>
                     )
                   }
                 </PDFDownloadLink>
                 <button
                   onClick={() => setIsFullscreen(false)}
-                  className="p-2 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-colors touch-target"
+                  className="p-3 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-white transition-colors touch-target touch-active"
                   title="Close preview"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </div>
             </div>
 
             {/* Fullscreen PDF Viewer */}
-            <div className="flex-1 overflow-auto p-4 flex items-start justify-center">
+            <div className="flex-1 overflow-auto p-2 sm:p-4 flex items-start justify-center safe-area-inset-bottom">
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
+                initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
+                exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="w-full max-w-4xl h-full"
+                className="w-full h-full max-w-4xl"
+                style={{ minHeight: '70vh' }}
               >
                 <PDFViewer
                   key={`fullscreen-${design.templateId}`}
@@ -199,7 +204,6 @@ export function PDFPreview({
                     width: '100%',
                     height: '100%',
                     border: 'none',
-                    borderRadius: '8px',
                   }}
                   showToolbar={false}
                 >
