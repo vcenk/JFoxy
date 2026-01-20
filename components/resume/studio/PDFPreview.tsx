@@ -3,14 +3,15 @@
 // components/resume/studio/PDFPreview.tsx
 // PDF Preview component using React-PDF
 
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { ZoomIn, ZoomOut, RotateCcw, Download, Loader2 } from 'lucide-react'
+import { Maximize2, Download, Loader2, X } from 'lucide-react'
 import { ParsedResume } from '@/lib/types/resume'
 import { DesignerSettings } from '@/lib/types/designer'
 import { ResumeDesign, DEFAULT_DESIGN, TemplateId } from '@/lib/pdf/types'
 import { getTemplateComponent } from '@/lib/pdf/templates'
 import { convertToResumeDesign } from '@/lib/pdf/utils/designerAdapter'
+import { motion, AnimatePresence } from 'framer-motion'
 
 // Dynamic import to avoid SSR issues with react-pdf
 const PDFViewer = dynamic(
@@ -50,7 +51,7 @@ export function PDFPreview({
   showControls = true,
   onDownload,
 }: PDFPreviewProps) {
-  const [zoom, setZoom] = useState(100)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   // Merge design with defaults, supporting both new and legacy formats
   const design: ResumeDesign = useMemo(() => {
@@ -75,19 +76,6 @@ export function PDFPreview({
     return getTemplateComponent(design.templateId)
   }, [design.templateId])
 
-  // Zoom controls
-  const handleZoomIn = useCallback(() => {
-    setZoom((prev) => Math.min(prev + 10, 200))
-  }, [])
-
-  const handleZoomOut = useCallback(() => {
-    setZoom((prev) => Math.max(prev - 10, 50))
-  }, [])
-
-  const handleZoomReset = useCallback(() => {
-    setZoom(100)
-  }, [])
-
   // Generate filename
   const fileName = useMemo(() => {
     const name = data.contact.name || 'Resume'
@@ -96,75 +84,133 @@ export function PDFPreview({
   }, [data.contact.name])
 
   return (
-    <div className={`flex flex-col h-full bg-black/50 ${className}`}>
-      {/* Controls */}
-      {showControls && (
-        <div className="flex items-center justify-between px-4 py-2 bg-black/30 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleZoomOut}
-              className="p-2 rounded-lg hover:bg-white/10 text-white/70"
-              title="Zoom out"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <span className="text-sm text-white/70 w-12 text-center">{zoom}%</span>
-            <button
-              onClick={handleZoomIn}
-              className="p-2 rounded-lg hover:bg-white/10 text-white/70"
-              title="Zoom in"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleZoomReset}
-              className="p-2 rounded-lg hover:bg-white/10 text-white/70"
-              title="Reset zoom"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-          </div>
+    <>
+      <div className={`flex flex-col h-full bg-black/50 ${className}`}>
+        {/* Controls */}
+        {showControls && (
+          <div className="flex items-center justify-between px-4 py-2 bg-black/30 border-b border-white/10">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsFullscreen(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-colors touch-target"
+                title="Fullscreen preview"
+              >
+                <Maximize2 className="w-4 h-4" />
+                <span className="text-sm hidden sm:inline">Preview</span>
+              </button>
+            </div>
 
-          <div className="flex items-center gap-2">
-            <PDFDownloadLink
-              document={<TemplateComponent data={data} design={design} />}
-              fileName={fileName}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-              onClick={() => onDownload?.()}
-            >
-              {({ loading }) =>
-                loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Preparing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Download PDF</span>
-                  </>
-                )
-              }
-            </PDFDownloadLink>
+            <div className="flex items-center gap-2">
+              <PDFDownloadLink
+                document={<TemplateComponent data={data} design={design} />}
+                fileName={fileName}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors touch-target"
+                onClick={() => onDownload?.()}
+              >
+                {({ loading }) =>
+                  loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Preparing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      <span className="hidden sm:inline">Download</span>
+                    </>
+                  )
+                }
+              </PDFDownloadLink>
+            </div>
           </div>
+        )}
+
+        {/* PDF Viewer */}
+        <div className="flex-1 overflow-hidden">
+          <PDFViewer
+            key={design.templateId}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+            }}
+            showToolbar={false}
+          >
+            <TemplateComponent data={data} design={design} />
+          </PDFViewer>
         </div>
-      )}
-
-      {/* PDF Viewer */}
-      <div className="flex-1 overflow-hidden">
-        <PDFViewer
-          key={design.templateId}
-          style={{
-            width: '100%',
-            height: '100%',
-            border: 'none',
-          }}
-          showToolbar={false}
-        >
-          <TemplateComponent data={data} design={design} />
-        </PDFViewer>
       </div>
-    </div>
+
+      {/* Fullscreen Preview Modal */}
+      <AnimatePresence>
+        {isFullscreen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/95 flex flex-col"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-white/10 safe-area-inset-top">
+              <h3 className="text-white font-medium">Resume Preview</h3>
+              <div className="flex items-center gap-3">
+                <PDFDownloadLink
+                  document={<TemplateComponent data={data} design={design} />}
+                  fileName={fileName}
+                  className="flex items-center gap-2 px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors touch-target"
+                  onClick={() => onDownload?.()}
+                >
+                  {({ loading }) =>
+                    loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Preparing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        <span>Download</span>
+                      </>
+                    )
+                  }
+                </PDFDownloadLink>
+                <button
+                  onClick={() => setIsFullscreen(false)}
+                  className="p-2 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-colors touch-target"
+                  title="Close preview"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Fullscreen PDF Viewer */}
+            <div className="flex-1 overflow-auto p-4 flex items-start justify-center">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="w-full max-w-4xl h-full"
+              >
+                <PDFViewer
+                  key={`fullscreen-${design.templateId}`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                    borderRadius: '8px',
+                  }}
+                  showToolbar={false}
+                >
+                  <TemplateComponent data={data} design={design} />
+                </PDFViewer>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 
